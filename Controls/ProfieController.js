@@ -1,0 +1,1 @@
+/* Carregamento do perfil do artista, métricas da dashboard e hub de conhecimento. */

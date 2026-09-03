@@ -1,0 +1,1 @@
+/* Lógica de autenticação (login e cadastro de novos usuários). */
