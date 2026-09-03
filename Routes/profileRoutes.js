@@ -1,0 +1,1 @@
+/* Rotas para /perfil, /dashboard e /hub-de-conhecimento. */

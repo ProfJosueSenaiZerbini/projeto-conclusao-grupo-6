@@ -1,0 +1,1 @@
+/* Lógica de listagem e criação de eventos/cyphers. */

@@ -1,0 +1,1 @@
+/* Modelo para dados do usuário (MC, Produtor, Beatmaker, reputação, seguidores). */

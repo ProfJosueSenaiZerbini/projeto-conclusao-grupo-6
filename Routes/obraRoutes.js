@@ -1,0 +1,1 @@
+/* Rotas para /cadastro-obra e /gerenciar-collab. */
