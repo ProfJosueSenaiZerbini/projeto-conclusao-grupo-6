@@ -1,0 +1,503 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Eventos - CYPHER</title>
+<link rel="stylesheet" href="./css/eventos.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         CABEÇALHO
+    ========================= -->
+
+    <header>
+
+        <div class="logo">
+            CYPHER
+        </div>
+
+        <a
+            href="dashboard.html"
+            class="voltar"
+        >
+            ← Voltar
+        </a>
+
+    </header>
+
+
+    <!-- =========================
+         CONTEÚDO
+    ========================= -->
+
+    <main>
+
+
+        <!-- TÍTULO -->
+
+        <div class="titulo">
+
+            <h1>
+                Eventos
+            </h1>
+
+            <p>
+                Encontre batalhas, shows, encontros e eventos da cena.
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             PESQUISA
+        ========================= -->
+
+        <section class="pesquisa">
+
+            <div class="campo-pesquisa">
+
+                <input
+                    type="text"
+                    id="pesquisa"
+                    placeholder="Busque por eventos, artistas ou organizadores..."
+                >
+
+                <button onclick="pesquisarEventos()">
+                    Pesquisar
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FILTROS
+        ========================= -->
+
+        <section class="filtros">
+
+            <h3>
+                FILTROS
+            </h3>
+
+
+            <div class="filtros-grid">
+
+
+                <!-- CATEGORIA -->
+
+                <div class="filtro">
+
+                    <label>
+                        Categoria
+                    </label>
+
+                    <select id="categoria">
+
+                        <option value="todos">
+                            Todas
+                        </option>
+
+                        <option value="batalha">
+                            Batalha de Rima
+                        </option>
+
+                        <option value="show">
+                            Show
+                        </option>
+
+                        <option value="festival">
+                            Festival
+                        </option>
+
+                        <option value="encontro">
+                            Encontro
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- LOCAL -->
+
+                <div class="filtro">
+
+                    <label>
+                        Localização
+                    </label>
+
+                    <select id="local">
+
+                        <option value="todos">
+                            Todas as localidades
+                        </option>
+
+                        <option value="campinas">
+                            Campinas
+                        </option>
+
+                        <option value="saopaulo">
+                            São Paulo
+                        </option>
+
+                        <option value="outras">
+                            Outras cidades
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DATA -->
+
+                <div class="filtro">
+
+                    <label>
+                        Data
+                    </label>
+
+                    <input
+                        type="date"
+                        id="data"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="botao-filtrar"
+                onclick="filtrarEventos()"
+            >
+                FILTRAR EVENTOS
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             RESULTADOS
+        ========================= -->
+
+        <div class="titulo-resultados">
+
+            <h2>
+                Eventos disponíveis
+            </h2>
+
+            <span
+                class="contador"
+                id="contador"
+            >
+                3 eventos
+            </span>
+
+        </div>
+
+
+        <section
+            class="eventos"
+            id="eventos"
+        >
+
+
+            <!-- =========================
+                 EVENTO 1
+            ========================= -->
+
+            <article
+                class="evento"
+                data-categoria="batalha"
+                data-local="campinas"
+                data-data="2026-09-12"
+            >
+
+                <div class="evento-imagem">
+                    IMAGEM DO EVENTO
+                </div>
+
+
+                <div class="evento-info">
+
+
+                    <div class="evento-topo">
+
+                        <h2>
+                            Batalha da Estação
+                        </h2>
+
+                        <span class="status">
+                            ABERTO
+                        </span>
+
+                    </div>
+
+
+                    <p class="organizador">
+                        Organizado por: CYPHER Eventos
+                    </p>
+
+
+                    <div class="dados-evento">
+
+                        <span class="dado">
+                            📅 12/09/2026
+                        </span>
+
+                        <span class="dado">
+                            🕐 19:00
+                        </span>
+
+                        <span class="dado">
+                            📍 Campinas - SP
+                        </span>
+
+                    </div>
+
+
+                    <p class="descricao">
+                        Batalha de rima reunindo MCs
+                        independentes da região.
+                    </p>
+
+
+                    <div class="evento-footer">
+
+                        <span class="categoria">
+                            BATALHA DE RIMA
+                        </span>
+
+
+                        <div class="botoes">
+
+                            <button
+                                class="botao-detalhes"
+                                onclick="verDetalhes('Batalha da Estação')"
+                            >
+                                VER DETALHES
+                            </button>
+
+                            <button
+                                class="botao-participar"
+                                onclick="participar('Batalha da Estação')"
+                            >
+                                PARTICIPAR
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =========================
+                 EVENTO 2
+            ========================= -->
+
+            <article
+                class="evento"
+                data-categoria="show"
+                data-local="saopaulo"
+                data-data="2026-09-20"
+            >
+
+                <div class="evento-imagem">
+                    IMAGEM DO EVENTO
+                </div>
+
+
+                <div class="evento-info">
+
+
+                    <div class="evento-topo">
+
+                        <h2>
+                            CYPHER Underground
+                        </h2>
+
+                        <span class="status">
+                            ABERTO
+                        </span>
+
+                    </div>
+
+
+                    <p class="organizador">
+                        Organizado por: Underground SP
+                    </p>
+
+
+                    <div class="dados-evento">
+
+                        <span class="dado">
+                            📅 20/09/2026
+                        </span>
+
+                        <span class="dado">
+                            🕐 20:00
+                        </span>
+
+                        <span class="dado">
+                            📍 São Paulo - SP
+                        </span>
+
+                    </div>
+
+
+                    <p class="descricao">
+                        Evento voltado para artistas
+                        independentes, com apresentações
+                        e networking.
+                    </p>
+
+
+                    <div class="evento-footer">
+
+                        <span class="categoria">
+                            SHOW
+                        </span>
+
+
+                        <div class="botoes">
+
+                            <button
+                                class="botao-detalhes"
+                                onclick="verDetalhes('CYPHER Underground')"
+                            >
+                                VER DETALHES
+                            </button>
+
+                            <button
+                                class="botao-participar"
+                                onclick="participar('CYPHER Underground')"
+                            >
+                                PARTICIPAR
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =========================
+                 EVENTO 3
+            ========================= -->
+
+            <article
+                class="evento"
+                data-categoria="festival"
+                data-local="campinas"
+                data-data="2026-10-03"
+            >
+
+                <div class="evento-imagem">
+                    IMAGEM DO EVENTO
+                </div>
+
+
+                <div class="evento-info">
+
+
+                    <div class="evento-topo">
+
+                        <h2>
+                            Festival Vozes da Rua
+                        </h2>
+
+                        <span class="status">
+                            ABERTO
+                        </span>
+
+                    </div>
+
+
+                    <p class="organizador">
+                        Organizado por: Vozes da Rua
+                    </p>
+
+
+                    <div class="dados-evento">
+
+                        <span class="dado">
+                            📅 03/10/2026
+                        </span>
+
+                        <span class="dado">
+                            🕐 16:00
+                        </span>
+
+                        <span class="dado">
+                            📍 Campinas - SP
+                        </span>
+
+                    </div>
+
+
+                    <p class="descricao">
+                        Festival reunindo artistas,
+                        produtores e profissionais
+                        da cultura urbana.
+                    </p>
+
+
+                    <div class="evento-footer">
+
+                        <span class="categoria">
+                            FESTIVAL
+                        </span>
+
+
+                        <div class="botoes">
+
+                            <button
+                                class="botao-detalhes"
+                                onclick="verDetalhes('Festival Vozes da Rua')"
+                            >
+                                VER DETALHES
+                            </button>
+
+                            <button
+                                class="botao-participar"
+                                onclick="participar('Festival Vozes da Rua')"
+                            >
+                                PARTICIPAR
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+        </section>
+
+    </main>
+
+
+</body>
+
+</html>

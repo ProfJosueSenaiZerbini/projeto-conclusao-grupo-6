@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cypher - Registrar Música</title>
+  <link rel="stylesheet" href="./css/cadastroObra.css">
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      CYPHER
+    </div>
+    <div class="header-actions">
+      <button class="btn-back" onclick="history.back()">&larr; Voltar</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="page-title">
+      <span>Registrar música</span>
+      <span>🛡️</span>
+    </div>
+
+    <form id="register-form">
+      
+      <div class="form-group">
+        <label for="titulo">Título da Música</label>
+        <input type="text" id="titulo" placeholder="Insira o título">
+      </div>
+
+      <div class="form-group">
+        <label for="letra">Letra da Música</label>
+        <textarea id="letra" placeholder="Cole a letra aqui"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="genero">Gênero</label>
+          <select id="genero">
+            <option value="eletronico" selected>Eletrônico</option>
+            <option value="hiphop">Hip-Hop / Rap</option>
+            <option value="trap">Trap</option>
+            <option value="pop">Pop</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="bpm">BPM</label>
+          <input type="number" id="bpm" value="120">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="isrc">ISRC</label>
+          <input type="text" id="isrc" placeholder="BR-XXX-XX-XXXXX">
+        </div>
+        <div class="form-group">
+          <label for="iswc">ISWC</label>
+          <input type="text" id="iswc" placeholder="T-XXXXXXXXX-X">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Lançamento</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="tipo_lancamento" value="single" checked> Single
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="tipo_lancamento" value="ep"> EP
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="tipo_lancamento" value="album"> Álbum
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="data_lancamento">Data de Lançamento</label>
+          <input type="date" id="data_lancamento">
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status">
+            <option value="rascunho" selected>Rascunho</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="publicado">Publicado</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <section>
+        <div class="section-subtitle">Colaboradores</div>
+        
+        <div class="collaborators-list">
+          <div class="collaborator-item">
+            <div class="collaborator-info">
+              <div class="avatar-placeholder"></div>
+              <div class="collaborator-details">
+                <span class="collaborator-name">Anny Rivera</span>
+                <span class="collaborator-role">Produtor • Participação de 50%</span>
+              </div>
+            </div>
+            <button type="button" class="btn-remove">&times;</button>
+          </div>
+
+          <div class="collaborator-item">
+            <div class="collaborator-info">
+              <div class="avatar-placeholder"></div>
+              <div class="collaborator-details">
+                <span class="collaborator-name">Marco Pollo</span>
+                <span class="collaborator-role">Letrista • Participação de 25%</span>
+              </div>
+            </div>
+            <button type="button" class="btn-remove">&times;</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn-add-collaborator" id="btn-add">+ Adicionar Colaborador</button>
+
+        <div class="toggle-card">
+          <div class="toggle-info">
+            <span class="toggle-title">Menção fantasma (👻)</span>
+            <span class="toggle-desc">Caso o colaborador não esteja cadastrado.</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <button type="submit" class="btn-submit">REGISTRAR</button>
+
+    </form>
+  </div>
+
+</body>
+</html>

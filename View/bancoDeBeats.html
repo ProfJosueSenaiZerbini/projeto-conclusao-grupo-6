@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Banco de Beats - CYPHER</title>
+    <link rel="stylesheet" href="./css/bancoDeBeats.css">
+    
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         CABEÇALHO
+    ========================= -->
+
+    <header>
+
+        <div class="logo">
+            CYPHER
+        </div>
+
+        <a href="dashboard.html" class="voltar">
+            ← Voltar
+        </a>
+
+    </header>
+
+
+    <!-- =========================
+         CONTEÚDO
+    ========================= -->
+
+    <main>
+
+
+        <div class="titulo">
+
+            <h1>Banco de Beats</h1>
+
+            <p>
+                Encontre beats, produtores e instrumentais para seus projetos.
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             PESQUISA
+        ========================= -->
+
+        <section class="pesquisa">
+
+            <div class="campo-pesquisa">
+
+                <input type="text" id="pesquisa" placeholder="Busque por beats, produtores...">
+
+                <button onclick="pesquisar()">
+                    Pesquisar
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             FILTROS
+        ========================= -->
+
+        <section class="filtros">
+
+            <h3>FILTROS</h3>
+
+
+            <div class="filtros-grid">
+
+
+                <!-- GÊNERO -->
+
+                <div class="filtro">
+
+                    <label>Gêneros</label>
+
+                    <select id="genero">
+
+                        <option value="todos">
+                            Todos os gêneros
+                        </option>
+
+                        <option value="rap">
+                            Rap
+                        </option>
+
+                        <option value="trap">
+                            Trap
+                        </option>
+
+                        <option value="boombap">
+                            Boom Bap
+                        </option>
+
+                        <option value="funk">
+                            Funk
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- BPM -->
+
+                <div class="filtro">
+
+                    <label>BPM</label>
+
+                    <div class="bpm">
+
+                        <input type="number" id="bpmMin" placeholder="Min">
+
+                        <input type="number" id="bpmMax" placeholder="Max">
+
+                    </div>
+
+                </div>
+
+
+                <!-- KEY -->
+
+                <div class="filtro">
+
+                    <label>Key</label>
+
+                    <div class="keys">
+
+                        <button class="key ativo">
+                            Qualquer
+                        </button>
+
+                        <button class="key">
+                            C
+                        </button>
+
+                        <button class="key">
+                            D
+                        </button>
+
+                        <button class="key">
+                            E
+                        </button>
+
+                        <button class="key">
+                            F
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LICENÇA -->
+
+                <div class="filtro">
+
+                    <label>Licença</label>
+
+                    <div class="checkboxes">
+
+                        <label>
+                            <input type="checkbox" value="basica">
+                            Básica
+                        </label>
+
+                        <label>
+                            <input type="checkbox" value="premium">
+                            Premium
+                        </label>
+
+                        <label>
+                            <input type="checkbox" value="exclusiva">
+                            Exclusiva
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="filtro" style="margin-top: 15px;">
+
+                <label>Status</label>
+
+                <div class="checkboxes">
+
+                    <label>
+                        <input type="checkbox" id="disponivel" checked>
+                        Disponível
+                    </label>
+
+                    <label>
+                        <input type="checkbox" id="vendido">
+                        Vendido
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <button class="botao-filtrar" onclick="filtrarBeats()">
+                FILTRAR
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             RESULTADOS
+        ========================= -->
+
+        <section class="resultados" id="resultados">
+
+
+            <!-- =========================
+                 BEAT 1
+            ========================= -->
+
+            <article class="beat" data-genero="rap" data-bpm="180" data-status="disponivel">
+
+                <div class="capa">
+                    CAPA
+                </div>
+
+
+                <div class="beat-info">
+
+                    <div class="beat-topo">
+
+                        <h2>
+                            Sete Chaves
+                        </h2>
+
+                        <span class="status disponivel">
+                            DISPONÍVEL
+                        </span>
+
+                    </div>
+
+
+                    <p class="produtor">
+                        Prod. Paiva
+                    </p>
+
+
+                    <div class="dados">
+
+                        <span>
+                            BPM: 180
+                        </span>
+
+                        <span>
+                            KEY: A#
+                        </span>
+
+                        <span>
+                            GÊNERO: Rap/Funk
+                        </span>
+
+                    </div>
+
+
+                    <div class="player">
+
+                        <button onclick="tocarBeat(this)">
+                            ▶
+                        </button>
+
+                        <div class="barra">
+
+                            <div class="progresso"></div>
+
+                        </div>
+
+                        <span>
+                            0:00 / 3:12
+                        </span>
+
+                    </div>
+
+
+                    <div class="beat-footer">
+
+                        <span class="preco">
+                            R$ 59,90
+                        </span>
+
+                        <div class="botoes">
+
+                            <button class="licenca" onclick="verLicenca('Sete Chaves')">
+                                LICENÇA
+                            </button>
+
+                            <button class="carrinho" onclick="adicionarCarrinho('Sete Chaves')">
+                                CARRINHO
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =========================
+                 BEAT 2
+            ========================= -->
+
+            <article class="beat" data-genero="trap" data-bpm="130" data-status="vendido">
+
+                <div class="capa">
+                    CAPA
+                </div>
+
+
+                <div class="beat-info">
+
+                    <div class="beat-topo">
+
+                        <h2>
+                            Lua Púrpura
+                        </h2>
+
+                        <span class="status vendido">
+                            VENDIDO
+                        </span>
+
+                    </div>
+
+
+                    <p class="produtor">
+                        Prod. HenryGuetto
+                    </p>
+
+
+                    <div class="dados">
+
+                        <span>
+                            BPM: 130
+                        </span>
+
+                        <span>
+                            KEY: C
+                        </span>
+
+                        <span>
+                            GÊNERO: Trap
+                        </span>
+
+                    </div>
+
+
+                    <div class="player">
+
+                        <button onclick="tocarBeat(this)">
+                            ▶
+                        </button>
+
+                        <div class="barra">
+
+                            <div class="progresso"></div>
+
+                        </div>
+
+                        <span>
+                            0:00 / 3:40
+                        </span>
+
+                    </div>
+
+
+                    <div class="beat-footer">
+
+                        <span class="preco">
+                            —
+                        </span>
+
+                        <div class="botoes">
+
+                            <button class="licenca" disabled>
+                                LICENÇA
+                            </button>
+
+                            <button class="carrinho" disabled>
+                                VENDIDO
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =========================
+                 BEAT 3
+            ========================= -->
+
+            <article class="beat" data-genero="boombap" data-bpm="80" data-status="disponivel">
+
+                <div class="capa">
+                    CAPA
+                </div>
+
+
+                <div class="beat-info">
+
+                    <div class="beat-topo">
+
+                        <h2>
+                            Velha Guarda
+                        </h2>
+
+                        <span class="status disponivel">
+                            DISPONÍVEL
+                        </span>
+
+                    </div>
+
+
+                    <p class="produtor">
+                        Prod. Paiva
+                    </p>
+
+
+                    <div class="dados">
+
+                        <span>
+                            BPM: 80
+                        </span>
+
+                        <span>
+                            KEY: F
+                        </span>
+
+                        <span>
+                            GÊNERO: BoomBap
+                        </span>
+
+                    </div>
+
+
+                    <div class="player">
+
+                        <button onclick="tocarBeat(this)">
+                            ▶
+                        </button>
+
+                        <div class="barra">
+
+                            <div class="progresso"></div>
+
+                        </div>
+
+                        <span>
+                            0:00 / 4:10
+                        </span>
+
+                    </div>
+
+
+                    <div class="beat-footer">
+
+                        <span class="preco">
+                            R$ 49,90
+                        </span>
+
+                        <div class="botoes">
+
+                            <button class="licenca" onclick="verLicenca('Velha Guarda')">
+                                LICENÇA
+                            </button>
+
+                            <button class="carrinho" onclick="adicionarCarrinho('Velha Guarda')">
+                                CARRINHO
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

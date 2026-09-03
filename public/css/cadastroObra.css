@@ -1,0 +1,346 @@
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      color: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header Desktop */
+    header {
+      background-color: #ffffff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 1rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid #1a1a1a;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Container Principal */
+    .container {
+      max-width: 900px;
+      margin: 2.5rem auto;
+      padding: 0 2rem;
+      width: 100%;
+    }
+
+    .page-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #1a1a1a;
+      padding-bottom: 0.75rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #333;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      background-color: #fff;
+      color: #1a1a1a;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #000;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    /* Tipo de Lançamento (Radio Group) */
+    .radio-group {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      padding: 0.5rem 0;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    /* Seção de Colaboradores */
+    .section-divider {
+      border: 0;
+      border-top: 1px solid #e5e5e5;
+      margin: 1rem 0;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1rem;
+    }
+
+    .collaborators-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .collaborator-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 0.8rem 1rem;
+      border-radius: 4px;
+    }
+
+    .collaborator-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .avatar-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      border: 1px solid #a0a0a0;
+      position: relative;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .avatar-placeholder::before, .avatar-placeholder::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .avatar-placeholder::before {
+      border-top: 1px solid #a0a0a0;
+      transform: rotate(45deg);
+      top: calc(50% - 0.5px);
+    }
+
+    .avatar-placeholder::after {
+      border-top: 1px solid #a0a0a0;
+      transform: rotate(-45deg);
+      top: calc(50% - 0.5px);
+    }
+
+    .collaborator-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .collaborator-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .collaborator-role {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #666;
+      padding: 0 0.5rem;
+    }
+
+    .btn-remove:hover {
+      color: #000;
+    }
+
+    .btn-add-collaborator {
+      width: 100%;
+      padding: 0.8rem;
+      background: #fff;
+      border: 1px solid #1a1a1a;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-add-collaborator:hover {
+      background: #f0f0f0;
+    }
+
+    /* Toggle Menção Fantasma */
+    .toggle-card {
+      background: #e9e9e9;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .toggle-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toggle-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .toggle-desc {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #000;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Botão Principal */
+    .btn-submit {
+      width: 100%;
+      padding: 1rem;
+      background: #000;
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 1rem;
+      text-transform: uppercase;
+    }
+
+    .btn-submit:hover {
+      background: #222;
+    }
+  

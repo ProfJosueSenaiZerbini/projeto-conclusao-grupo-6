@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CYPHER - Gerenciar Colaboradores</title>
+    <link rel="stylesheet" href="./css/gerenCollab.css">
+</head>
+
+
+<body>
+
+    <div class="pagina">
+
+
+        <!-- =====================================
+             CABEÇALHO
+        ====================================== -->
+
+        <header>
+
+            <button
+                class="voltar-topo"
+                id="voltarTopo"
+                title="Voltar"
+            >
+                ←
+            </button>
+
+            <h1 class="titulo">
+                Gerenciar colaboradores
+            </h1>
+
+        </header>
+
+
+        <!-- =====================================
+             CONTEÚDO
+        ====================================== -->
+
+        <main>
+
+            <div class="conteudo">
+
+
+                <!-- PESQUISA -->
+
+                <div class="pesquisa">
+
+                    <div class="icone-pesquisa">
+                        ⌕
+                    </div>
+
+                    <input
+                        type="text"
+                        id="campoPesquisa"
+                        placeholder="Pesquisar usuários..."
+                    >
+
+                </div>
+
+
+                <!-- TÍTULO -->
+
+                <div class="titulo-lista">
+                    LISTA DE COLABORADORES
+                </div>
+
+
+                <!-- =====================================
+                     LISTA DE COLABORADORES
+                ====================================== -->
+
+                <div class="lista" id="lista">
+
+
+                    <!-- PAIVA -->
+
+                    <div
+                        class="colaborador"
+                        data-nome="Paiva"
+                        data-funcao="Produtor"
+                    >
+
+                        <div class="foto"></div>
+
+                        <div class="informacoes">
+
+                            <div class="nome">
+                                Paiva
+                            </div>
+
+                            <div class="funcao">
+                                Produtor
+                            </div>
+
+                        </div>
+
+                        <input
+                            class="porcentagem"
+                            type="text"
+                            value="50%"
+                        >
+
+                        <button class="remover">
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- MQUELLY -->
+
+                    <div
+                        class="colaborador"
+                        data-nome="Mquelly"
+                        data-funcao="Beatmaker"
+                    >
+
+                        <div class="foto"></div>
+
+                        <div class="informacoes">
+
+                            <div class="nome">
+                                Mquelly
+                            </div>
+
+                            <div class="funcao">
+                                Beatmaker
+                            </div>
+
+                        </div>
+
+                        <input
+                            class="porcentagem"
+                            type="text"
+                            value="25%"
+                        >
+
+                        <button class="remover">
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- MORGANA -->
+
+                    <div
+                        class="colaborador"
+                        data-nome="Morgana"
+                        data-funcao="Letrista"
+                    >
+
+                        <div class="foto"></div>
+
+                        <div class="informacoes">
+
+                            <div class="nome">
+                                🃏 - Morgana
+                            </div>
+
+                            <div class="funcao">
+                                Letrista
+                            </div>
+
+                        </div>
+
+                        <input
+                            class="porcentagem"
+                            type="text"
+                            value="15%"
+                        >
+
+                        <button class="remover">
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <!-- JKEY -->
+
+                    <div
+                        class="colaborador"
+                        data-nome="Jkey"
+                        data-funcao="Designer"
+                    >
+
+                        <div class="foto"></div>
+
+                        <div class="informacoes">
+
+                            <div class="nome">
+                                Jkey
+                            </div>
+
+                            <div class="funcao">
+                                Designer
+                            </div>
+
+                        </div>
+
+                        <input
+                            class="porcentagem"
+                            type="text"
+                            value="10%"
+                        >
+
+                        <button class="remover">
+                            ×
+                        </button>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- SEM RESULTADOS -->
+
+                <div
+                    class="sem-resultados"
+                    id="semResultados"
+                >
+                    Nenhum colaborador encontrado.
+                </div>
+
+
+                <!-- =====================================
+                     MENÇÕES
+                ====================================== -->
+
+                <div class="mencoes">
+
+                    <button
+                        class="mencao"
+                        id="mencaoCarta"
+                    >
+                        MENÇÃO - 🃏
+                    </button>
+
+                    <button
+                        class="mencao ativa"
+                        id="mencaoNormal"
+                    >
+                        MENÇÃO
+                    </button>
+
+                </div>
+
+
+            </div>
+
+        </main>
+
+
+        <!-- =====================================
+             RODAPÉ
+        ====================================== -->
+
+        <footer>
+
+            <button
+                class="salvar"
+                id="salvar"
+            >
+                SALVAR ALTERAÇÕES
+            </button>
+
+        </footer>
+
+
+        <!-- MENSAGEM -->
+
+        <div
+            class="mensagem"
+            id="mensagem"
+        ></div>
+
+
+    </div>
+
+</body>
+
+</html>

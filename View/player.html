@@ -1,0 +1,308 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Player - CYPHER</title>
+     <link rel="stylesheet" href="./css/player.css">
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         CABEÇALHO
+    ========================= -->
+
+    <header>
+
+        <div class="logo">
+            CYPHER
+        </div>
+
+        <a
+            href="banco-beats.html"
+            class="voltar"
+        >
+            ← Voltar para Banco de Beats
+        </a>
+
+    </header>
+
+
+    <!-- =========================
+         CONTEÚDO
+    ========================= -->
+
+    <main>
+
+
+        <!-- TÍTULO -->
+
+        <div class="titulo">
+
+            <h1>
+                Player
+            </h1>
+
+            <p>
+                Ouça o beat antes de adquirir a exclusividade.
+            </p>
+
+        </div>
+
+
+        <!-- =========================
+             PLAYER
+        ========================= -->
+
+        <section class="player-container">
+
+
+            <div class="beat-principal">
+
+
+                <!-- CAPA -->
+
+                <div class="capa">
+
+                    CAPA DO BEAT
+
+                </div>
+
+
+                <!-- INFORMAÇÕES -->
+
+                <div class="informacoes">
+
+
+                    <!-- STATUS -->
+
+                    <div class="status-area">
+
+                        <div class="status-titulo">
+                            STATUS
+                        </div>
+
+                        <span class="status">
+                            DISPONÍVEL
+                        </span>
+
+                    </div>
+
+
+                    <h2>
+                        Sete Chaves
+                    </h2>
+
+
+                    <p class="produtor">
+                        Prod. Paiva
+                    </p>
+
+
+                    <div class="dados">
+
+                        <span class="dado">
+                            BPM: 180
+                        </span>
+
+                        <span class="dado">
+                            KEY: A#
+                        </span>
+
+                        <span class="dado">
+                            GÊNERO: Rap/Funk
+                        </span>
+
+                        <span class="dado">
+                            DURAÇÃO: 3:12
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 PLAYER DE ÁUDIO
+            ========================= -->
+
+            <div class="audio-area">
+
+                <h3>
+                    PRÉVIA DO BEAT
+                </h3>
+
+
+                <audio
+                    id="audio"
+                    src="audios/sete-chaves.mp3">
+                </audio>
+
+
+                <div class="controles">
+
+
+                    <button
+                        class="botao-player"
+                        id="playButton"
+                        onclick="alternarAudio()">
+
+                        ▶
+
+                    </button>
+
+
+                    <span
+                        class="tempo"
+                        id="tempoAtual">
+
+                        0:00
+
+                    </span>
+
+
+                    <div
+                        class="progresso-container"
+                        id="barraProgresso">
+
+                        <div
+                            class="progresso"
+                            id="progresso">
+                        </div>
+
+                    </div>
+
+
+                    <span
+                        class="tempo"
+                        id="duracao">
+
+                        0:00
+
+                    </span>
+
+
+                    <div class="volume">
+
+                        🔊
+
+                        <input
+                            type="range"
+                            id="volume"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value="1">
+
+                    </div>
+
+                </div>
+
+
+                <!-- MARCA D'ÁGUA -->
+
+                <div class="marca-agua">
+
+                    <strong>
+                        MARCA D'ÁGUA: ON
+                    </strong>
+
+                    <br>
+
+                    Esta é uma prévia protegida do beat.
+                    O arquivo original será liberado após
+                    a aquisição exclusiva.
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- =========================
+             COMPRA EXCLUSIVA
+        ========================= -->
+
+        <section class="compra">
+
+            <div class="compra-texto">
+
+                <h3>
+                    Compra Exclusiva
+                </h3>
+
+                <p>
+                    Adquira a exclusividade deste beat
+                    e utilize o instrumental de acordo
+                    com os termos da compra.
+                </p>
+
+            </div>
+
+
+            <button
+                class="botao-exclusivo"
+                onclick="compraExclusiva()">
+
+                COMPRA EXCLUSIVA
+
+            </button>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================
+         LINKS ABAIXO DE TUDO
+    ========================= -->
+
+    <footer>
+
+        <div class="footer-container">
+
+
+            <!-- EVENTOS -->
+
+            <a
+                href="eventos.html"
+                class="footer-item">
+
+                <h4>
+                    TERMOS DA LICENÇA
+                </h4>
+            </a>
+
+
+            <!-- CONTATOS -->
+
+            <a
+                href="contatos.html"
+                class="footer-item">
+
+                <h4>
+                    BAIXAR DEMO (COM TAG)
+                     
+                </h4>
+              
+            </a>
+
+
+        </div>
+
+    </footer>
+
+</body>
+
+</html>
+
