@@ -1,7 +1,7 @@
 const USUARIO_VALIDO = {
 
-    email: "ogtreasure777@gmail.com",
-    senha: "12345678",
+    email: "cypheracima@gmail.com",
+    senha: "cypherGOAT",
 };
 
 document.getElementById("entrar").addEventListener("click", autenticar());
@@ -14,6 +14,5 @@ function autenticar () {
         
         alert("Login efetuado com sucesso!")
         window.location.href = "./View/2cadastro.html"  
-
     }
 }

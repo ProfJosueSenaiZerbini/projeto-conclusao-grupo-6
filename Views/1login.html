@@ -10,16 +10,10 @@
 
 <body>
 
-    <!-- CABEÇALHO -->
     <header>
-        <div class="logo">
-            CYPHER
-        </div>
-
-
+        <div class="logo">CYPHER</div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL -->
     <main>
         <section class="login-card">
             <div class="login-content">
@@ -27,7 +21,6 @@
 
                 <div class="divider"></div>
 
-                <!-- ÍCONE -->
                 <div class="globe-container">
                     <div class="globe"></div>
                 </div>
@@ -36,63 +29,84 @@
                     Conectando as ruas ao mundo!
                 </p>
 
-                <!-- FORMULÁRIO -->
                 <form id="loginForm">
-                    <!-- EMAIL -->
+
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" id="email" placeholder="cypher@exemplo.com" required>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="cypher@exemplo.com"
+                            required
+                        >
                     </div>
 
-                    <!-- SENHA -->
                     <div class="form-group">
                         <label for="password">Senha</label>
+
                         <div class="input-box">
-                            <input type="password" id="password" class="password-input" placeholder="••••••••••"
-                                required>
-                            <button type="button" class="eye-button" id="eyeButton" title="Mostrar senha">
+                            <input
+                                type="password"
+                                id="password"
+                                class="password-input"
+                                placeholder="••••••••••"
+                                required
+                            >
+
+                            <button
+                                type="button"
+                                class="eye-button"
+                                id="eyeButton"
+                                title="Mostrar senha"
+                            >
                                 ◉
                             </button>
                         </div>
                     </div>
 
-                    <!-- ENTRAR -->
-                    <button type="submit" class="btn btn-login" id="entrar">
+                    <button
+                        type="submit"
+                        class="btn btn-login"
+                        id="entrar"
+                    >
                         Entrar
                     </button>
 
-                    <!-- CRIAR -->
-                    <button type="button" class="btn btn-create" id="createButton">
+                    <button
+                        type="button"
+                        class="btn btn-create"
+                        id="createButton"
+                    >
                         Criar
                     </button>
 
-                    <!-- ESQUECEU A SENHA -->
                     <a class="forgot" id="forgotButton">
                         Esqueceu a Senha?
                     </a>
 
-                    <!-- OU -->
                     <div class="or-container">
                         <div class="or-line"></div>
                         <span class="or-text">ou</span>
                         <div class="or-line"></div>
                     </div>
 
-                    <!-- CONVIDADO -->
-                    <button type="button" class="guest-button" id="guestButton">
+                    <button
+                        type="button"
+                        class="guest-button"
+                        id="guestButton"
+                    >
                         Continuar como convidado.
                     </button>
 
-                    <!-- MENSAGEM -->
                     <p class="message" id="message"></p>
-                </form>
-            </div>
 
+                </form>
             </div>
         </section>
     </main>
 
     <script src="public/js/login-auth.js"></script>
+
 </body>
 
 </html>

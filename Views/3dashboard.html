@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cypher — Dashboard</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="../public/css/dashboard.css">
+</head>
+
+<body>
+
+  <header class="header">
+    <div class="container">
+      <div class="header-top">
+        <h1 class="logo">Cypher</h1>
+
+        <div class="header-actions">
+          <nav class="account-nav" aria-label="Conta">
+            <button class="nav-item">
+              <i data-lucide="log-in"></i>
+              <span>Entrar</span>
+            </button>
+
+            <button class="nav-item active">
+              <i data-lucide="user-round"></i>
+              <span>Convidado</span>
+            </button>
+          </nav>
+
+          <button class="notification" aria-label="Notificações">
+            <i data-lucide="bell"></i>
+          </button>
+        </div>
+      </div>
+
+      <input
+        class="search"
+        type="search"
+        placeholder="⌕  Buscar por..."
+        aria-label="Buscar"
+      >
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Oportunidades -->
+    <section class="section">
+      <h2 class="section-title">Oportunidades</h2>
+
+      <div class="horizontal-list">
+
+        <article class="card opportunity-card">
+          <div class="card-image"></div>
+          <div class="card-name">Projeto X</div>
+        </article>
+
+        <article class="card opportunity-card">
+          <div class="card-image"></div>
+          <div class="card-name">Projeto Y</div>
+        </article>
+
+        <article class="card opportunity-card">
+          <div class="card-image"></div>
+          <div class="card-name">Projeto Z</div>
+        </article>
+
+        <article class="card opportunity-card">
+          <div class="card-image"></div>
+          <div class="card-name">Projeto W</div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Eventos -->
+    <section class="section">
+      <h2 class="section-title">Eventos</h2>
+
+      <div class="horizontal-list">
+
+        <article class="card event-card">
+          <div class="card-image"></div>
+        </article>
+
+        <article class="card event-card">
+          <div class="card-image"></div>
+        </article>
+
+        <article class="card event-card">
+          <div class="card-image"></div>
+        </article>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- Collabs -->
+    <section class="section">
+      <h2 class="section-title">Collabs</h2>
+
+      <div class="horizontal-list">
+
+        <article class="card collab-card">
+          <div class="card-image"></div>
+        </article>
+
+        <article class="card collab-card">
+          <div class="card-image"></div>
+        </article>
+
+        <article class="card collab-card">
+          <div class="card-image"></div>
+        </article>
+
+        <article class="card collab-card">
+          <div class="card-image"></div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Lojinha -->
+    <section class="section">
+      <h2 class="section-title">Lojinha - Type’s</h2>
+
+      <div class="horizontal-list">
+
+        <article class="card beat-card">
+          <div class="card-image"></div>
+          <div class="card-name"><strong>Beat 01</strong></div>
+        </article>
+
+        <article class="card beat-card">
+          <div class="card-image"></div>
+          <div class="card-name"><strong>Beat 02</strong></div>
+        </article>
+
+        <article class="card beat-card">
+          <div class="card-image"></div>
+          <div class="card-name"><strong>Beat 03</strong></div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Recomendações -->
+    <section class="section">
+      <h2 class="section-title">Recomendado para colaboradores</h2>
+
+      <div class="recommended">
+
+        <article class="recommended-card">
+          <div class="avatar"></div>
+          <div class="recommended-info">
+            <strong>Colaborador A</strong>
+            <span>Produtor</span>
+          </div>
+        </article>
+
+        <article class="recommended-card">
+          <div class="avatar"></div>
+          <div class="recommended-info">
+            <strong>Colaborador B</strong>
+            <span>MC</span>
+          </div>
+        </article>
+
+        <article class="recommended-card">
+          <div class="avatar"></div>
+          <div class="recommended-info">
+            <strong>Colaborador C</strong>
+            <span>Empresário</span>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Atividade -->
+    <section class="section">
+      <h2 class="section-title">Atividade Recente</h2>
+
+      <div class="activity">
+
+        <article class="activity-card">
+          <p class="activity-text">Usuário X fez uma nova colaboração.</p>
+          <span class="activity-time">2 horas atrás</span>
+        </article>
+
+        <article class="activity-card">
+          <p class="activity-text">Novo beat lançado por: Beatmaker Y.</p>
+          <span class="activity-time">6 horas atrás</span>
+        </article>
+
+        <article class="activity-card">
+          <p class="activity-text">Showcase de ‘Rapper X’ está aberta!</p>
+          <span class="activity-time">1 dia atrás</span>
+        </article>
+
+        <article class="activity-card">
+          <p class="activity-text">Você colaborou com o Empresário A.</p>
+          <span class="activity-time">2 dias atrás</span>
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
