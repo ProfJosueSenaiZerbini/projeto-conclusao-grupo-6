@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net">
   <diagram id="cypher" name="Cypher - Diagrama de Classes MVP">
-    <mxGraphModel dx="2052" dy="1951" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2075" dy="1951" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -106,10 +106,10 @@
           <mxGeometry height="190" width="245" x="1230" y="245" as="geometry" />
         </mxCell>
         <mxCell id="x" parent="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=8" value="&lt;b&gt;ConexaoProfissional&lt;/b&gt;&lt;hr&gt;- id: int&lt;br&gt;- tipoRelacionamento: string&lt;br&gt;- status: string&lt;br&gt;- dataCriacao: date&lt;hr&gt;+ solicitar()&lt;br&gt;+ aceitar()&lt;br&gt;+ recusar()&lt;br&gt;+ remover()" vertex="1">
-          <mxGeometry height="190" width="220" x="775" y="-300" as="geometry" />
+          <mxGeometry height="190" width="170" x="775" y="-300" as="geometry" />
         </mxCell>
         <mxCell id="b" parent="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=8" value="&lt;b&gt;Beat&lt;/b&gt;&lt;hr&gt;- id: int&lt;br&gt;- nome: string&lt;br&gt;- bpm: int&lt;br&gt;- tom: string&lt;br&gt;- genero: string&lt;br&gt;- descricao: string&lt;br&gt;- arquivoDemo: string&lt;br&gt;- tags: string&lt;br&gt;- licenca: string&lt;br&gt;- status: string&lt;hr&gt;+ publicar()&lt;br&gt;+ editar()&lt;br&gt;+ alterarStatus()&lt;br&gt;+ excluir()" vertex="1">
-          <mxGeometry height="265" width="170" x="190" y="-230" as="geometry" />
+          <mxGeometry height="265" width="150" x="210" y="-230" as="geometry" />
         </mxCell>
         <mxCell id="e" parent="1" style="html=1;whiteSpace=wrap;align=left;verticalAlign=top;spacing=8" value="&lt;b&gt;Evento&lt;/b&gt;&lt;hr&gt;- id: int&lt;br&gt;- nome: string&lt;br&gt;- tipo: string&lt;br&gt;- descricao: string&lt;br&gt;- data: date&lt;br&gt;- local: string&lt;br&gt;- status: string&lt;hr&gt;+ criar()&lt;br&gt;+ editar()&lt;br&gt;+ publicar()&lt;br&gt;+ cancelar()" vertex="1">
           <mxGeometry height="210" width="130" x="380" y="414" as="geometry" />
