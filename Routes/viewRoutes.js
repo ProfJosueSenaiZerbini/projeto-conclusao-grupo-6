@@ -34,8 +34,8 @@ router.get("/eventos", ViewController.eventos);
 router.get("/colaboracao", ViewController.colaboracao);
 
 
-// Conhecimento
-router.get("/conhecimento", ViewController.conhecimento);
+// Central
+router.get("/central", ViewController.central);
 
 
 module.exports = router;

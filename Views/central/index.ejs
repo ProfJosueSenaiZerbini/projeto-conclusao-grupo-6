@@ -1,0 +1,210 @@
+<%- include('../partials/header') %>
+
+    <div class="app-layout">
+        <!-- ÁREA PRINCIPAL DA CYPHER CENTRAL (TEMA ESCURO) -->
+        <main class="main-content">
+
+            <!-- Top Nav Bar -->
+            <header class="top-nav-bar">
+                <div class="breadcrumb-info">
+                    <span class="status-indicator"></span>
+                    <span>CENA ATIVA: São Paulo - 23°C</span>
+                </div>
+
+                <div class="top-bar-right">
+                    <div class="search-input-wrapper">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" placeholder="Buscar guias, ISRC, contratos..." class="top-search-input">
+                    </div>
+
+                    <div class="user-pill-small">
+                        <div class="user-avatar-mini">
+                            <%= user ? user.name.charAt(0).toUpperCase() : 'U' %>
+                        </div>
+                        <span class="user-pill-name">
+                            <%= user ? user.name : 'Lia Rox' %>
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Headline Principal -->
+            <section class="headline-section">
+                <div>
+                    <span class="date-kicker">CYPHER CENTRAL • CONHECIMENTO</span>
+                    <h1 class="main-headline">Informação também é ferramenta.</h1>
+                    <p class="headline-subtext">Guias curtos para tomar decisões melhores, proteger seus créditos e
+                        profissionalizar sua caminhada.</p>
+                </div>
+                <a href="/central/historico" class="btn-outline-pill">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="margin-right: 6px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Meu histórico
+                </a>
+            </section>
+
+            <!-- HERO HUB: 2 CARDS GRANDES DE DESTAQUE -->
+            <section class="hub-hero-grid">
+
+                <!-- Card Principal (Guia Essencial em Destaque) -->
+                <div class="card-hero-main">
+                    <div class="card-top-tag">
+                        <span class="badge-tag-dark">COMEÇAR POR AQUI</span>
+                    </div>
+
+                    <div class="hero-content">
+                        <h2 class="hero-title">Sua obra merece um crédito à altura.</h2>
+                        <p class="hero-description">Entenda o que guardar, com quem confirmar e como seu histórico
+                            dentro do Cypher pode se tornar portfólio.</p>
+                    </div>
+
+                    <div class="hero-action">
+                        <a href="/central/guias/credito-essencial" class="btn-yellow-pill">
+                            LER GUIA ESSENCIAL
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card Secundário (Mapa de Aprendizado Step-by-Step) -->
+                <div class="card-learning-map">
+                    <h3 class="learning-title">MAPA DE APRENDIZADO</h3>
+
+                    <div class="learning-steps-list">
+                        <div class="step-item">
+                            <span class="step-number gold">01</span>
+                            <div class="step-info">
+                                <span class="step-headline">Organize sua obra</span>
+                                <span class="step-subtext">Fonograma, ISRC e ECAD</span>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <span class="step-number green">02</span>
+                            <div class="step-info">
+                                <span class="step-headline">Proteja sua participação</span>
+                                <span class="step-subtext">Direitos e acordos</span>
+                            </div>
+                        </div>
+
+                        <div class="step-item">
+                            <span class="step-number dark">03</span>
+                            <div class="step-info">
+                                <span class="step-headline">Mostre seu histórico</span>
+                                <span class="step-subtext">Reputação e portfólio</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="disclaimer-box">
+                        <p>A Central orienta. Ela não substitui consulta jurídica, registro oficial ou o acordo direto
+                            entre as partes.</p>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- SEÇÃO DE TRILHAS E GUIAS RÁPIDOS -->
+            <section class="knowledge-cards-grid">
+
+                <!-- Card 1: Registro Musical (Amarelo Neon) -->
+                <a href="/central/guias/isrc" class="knowledge-card card-yellow">
+                    <div class="card-header-flex">
+                        <span class="card-category">REGISTRO MUSICAL</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="card-knowledge-title">O que é ISRC?</h3>
+                    <div class="card-footer-meta">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>6 min de leitura</span>
+                    </div>
+                </a>
+
+                <!-- Card 2: Profissionalização (Verde Menta) -->
+                <a href="/central/guias/creditos-sem-ruido" class="knowledge-card card-green">
+                    <div class="card-header-flex">
+                        <span class="card-category">PROFISSIONALIZAÇÃO</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="card-knowledge-title">Como organizar créditos sem ruído</h3>
+                    <div class="card-footer-meta">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>8 min de leitura</span>
+                    </div>
+                </a>
+
+                <!-- Card 3: Direitos Autorais (Card Dark) -->
+                <a href="/central/guias/direitos-autorais-basico" class="knowledge-card card-surface">
+                    <div class="card-header-flex">
+                        <span class="card-category">DIREITOS AUTORAIS</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="card-knowledge-title">Direitos autorais: o básico para começar</h3>
+                    <div class="card-footer-meta">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>10 min de leitura</span>
+                    </div>
+                </a>
+
+                <!-- Card 4: Carreira (Card Neutro Muted Dark) -->
+                <a href="/central/guias/primeiros-shows" class="knowledge-card card-muted-dark">
+                    <div class="card-header-flex">
+                        <span class="card-category">CARREIRA</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="7" y1="17" x2="17" y2="7"></line>
+                            <polyline points="7 7 17 7 17 17"></polyline>
+                        </svg>
+                    </div>
+                    <h3 class="card-knowledge-title">Como conseguir seus primeiros shows</h3>
+                    <div class="card-footer-meta">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>7 min de leitura</span>
+                    </div>
+                </a>
+
+            </section>
+
+        </main>
+    </div>
+
+    <%- include('../partials/footer') %>

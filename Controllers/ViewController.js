@@ -40,8 +40,8 @@ class ViewController {
         res.render("colaboracao/index");
     }
 
-    static conhecimento(req, res) {
-        res.render("conhecimento/index");
+    static central(req, res) {
+        res.render("central/index");
     }
 
 }
