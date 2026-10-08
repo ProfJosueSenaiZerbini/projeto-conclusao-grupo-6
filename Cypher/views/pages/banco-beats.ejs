@@ -1,0 +1,180 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Banco de Beats' }) %>
+<div class="page-content">
+<div class="page-header">
+  <div>
+    <div class="eyebrow">
+      BANCO DE BEATS
+    </div>
+    <h1>
+      Encontre o som certo.
+    </h1>
+    <p>
+      Beats cadastrados por produtores da cena, com informações claras
+            de uso e licença.
+    </p>
+  </div>
+  <button class="button button-yellow" type="button" data-toast="O cadastro de beats ainda é demonstrativo" >
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.plus %>
+    </span>
+    Cadastrar beat
+  </button>
+</div>
+<div class="beats-toolbar">
+  <label class="search-field" for="buscar-beats">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.search %>
+    </span>
+    <input id="buscar-beats" type="search" data-filter placeholder="Buscar por nome, produtor, gênero ou BPM" aria-label="Buscar beats" >
+  </label>
+</div>
+<div class="beats-grid">
+  <% beats.forEach((beat, i) => { %>
+    <article class="beat-card" data-search-item>
+      <div class="beat-art beat-art-<%= beat.color %>">
+        <div class="beat-art-lines" aria-hidden="true">
+        </div>
+        <span class="beat-number">
+          0<%= i + 1 %>
+        </span>
+        <button class="play-button" type="button" data-toast="Player demonstrativo:<%= beat.title %>" aria-label="Prévia demonstrativa de<%= beat.title %>" >
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.music %>
+          </span>
+        </button>
+        <span class="demo-label">
+          DEMO
+        </span>
+      </div>
+      <div class="beat-card-content">
+        <div class="beat-title-row">
+          <div>
+            <h3>
+              <%= beat.title %>
+            </h3>
+            <p>
+              por<%= beat.producer %>
+            </p>
+          </div>
+        </div>
+        <div class="beat-specs">
+          <span>
+            <i class="lucide-icon" aria-hidden="true">
+              <%- icones.audioLines %>
+            </i>
+            <%= beat.bpm %>
+          </span>
+          <span>
+            <i class="lucide-icon" aria-hidden="true">
+              <%- icones.music2 %>
+            </i>
+            <%= beat.key %>
+          </span>
+          <span>
+            <%= beat.genre %>
+          </span>
+        </div>
+        <div class="beat-bottom">
+          <span class="license license-<%= beat.color %>">
+            <%= beat.license %>
+          </span>
+          <button class="text-link" type="button" data-beat-detail data-beat-title="<%= beat.title %>" data-beat-producer="<%= beat.producer %>" data-beat-bpm="<%= beat.bpm %>" data-beat-key="<%= beat.key %>" data-beat-genre="<%= beat.genre %>" data-beat-license="<%= beat.license %>" data-beat-duration="<%= beat.duration %>" data-beat-description="<%= beat.description %>" data-beat-usage="<%= beat.usage %>" >
+            Ver detalhe
+            <span class="lucide-icon" aria-hidden="true">
+              <%- icones.arrowUpRight %>
+            </span>
+          </button>
+        </div>
+      </div>
+    </article>
+  <% }) %>
+</div>
+</div>
+</main>
+</div>
+<dialog class="detail-dialog beat-detail-dialog" id="detalhe-beat" aria-labelledby="detalhe-beat-titulo" >
+<div class="detail-dialog-header">
+<span class="detail-kicker">
+FICHA DO BEAT
+</span>
+<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe" >
+<span class="lucide-icon" aria-hidden="true">
+  <%- icones.x %>
+</span>
+</button>
+</div>
+<h2 id="detalhe-beat-titulo" data-beat-title-detail>
+</h2>
+<p class="beat-detail-producer">
+Produzido por
+<strong data-beat-producer-detail>
+</strong>
+</p>
+<div class="detail-facts work-detail-facts">
+<div>
+<small>
+  ANDAMENTO
+</small>
+<b data-beat-bpm-detail>
+</b>
+</div>
+<div>
+<small>
+  TOM
+</small>
+<b data-beat-key-detail>
+</b>
+</div>
+<div>
+<small>
+  GÊNERO
+</small>
+<b data-beat-genre-detail>
+</b>
+</div>
+<div>
+<small>
+  DURAÇÃO
+</small>
+<b data-beat-duration-detail>
+</b>
+</div>
+</div>
+<section class="detail-section">
+<h3>
+Sobre o beat
+</h3>
+<p data-beat-description-detail>
+</p>
+</section>
+<div class="license-note">
+<span class="lucide-icon" aria-hidden="true">
+<%- icones.shieldCheck %>
+</span>
+<p>
+<strong data-beat-license-detail>
+</strong>
+<span data-beat-usage-detail>
+</span>
+</p>
+</div>
+<div class="detail-actions">
+<button class="button button-dark" type="button" data-toast="Solicitação de contato demonstrativa" >
+<span class="lucide-icon" aria-hidden="true">
+  <%- icones.user %>
+</span>
+Falar com produtor
+</button>
+<button class="button button-outline" type="button" data-toast="Prévia demonstrativa, sem arquivo de áudio" >
+<span class="lucide-icon" aria-hidden="true">
+  <%- icones.headphones %>
+</span>
+Ouvir prévia
+</button>
+</div>
+</dialog>
+<%- include('../partials/fim-pagina') %>

@@ -1,0 +1,309 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Obras / Cadastrar' }) %>
+<div class="page-content work-form-page">
+<a href="/works" class="back-link">
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.arrowLeft %>
+  </span>
+  Voltar para Obras
+</a>
+<div class="page-header">
+  <div>
+    <div class="eyebrow">
+      NOVO REGISTRO
+    </div>
+    <h1>
+      Cadastrar obra
+    </h1>
+    <p>
+      Registre a faixa e organize a participação de cada pessoa envolvida.
+    </p>
+  </div>
+</div>
+<% if (mensagem) { %>
+  <div class="form-feedback success-feedback" role="status">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.circleCheck %>
+    </span>
+    <%= mensagem %>
+  </div>
+<% } %>
+<% if (erro) { %>
+  <div class="form-feedback error-feedback" role="alert">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.circleHelp %>
+    </span>
+    <%= erro %>
+  </div>
+<% } %>
+<div class="work-form-notice">
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.circleHelp %>
+  </span>
+  <div>
+    <strong>
+      Versão de protótipo
+    </strong>
+    <p>
+      Esta tela demonstra o fluxo de cadastro. Os dados enviados ainda
+            não são persistidos.
+    </p>
+  </div>
+</div>
+<form class="work-form" method="post" action="/works/new" data-work-form >
+  <section class="form-section">
+    <div class="form-section-heading">
+      <span class="form-step">
+        01
+      </span>
+      <div>
+        <h2>
+          Informações da obra
+        </h2>
+        <p>
+          Comece pelos dados que identificam a faixa.
+        </p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label class="field-full">
+        Título da obra
+        <span class="required-mark">
+          *
+        </span>
+        <input name="titulo" required maxlength="120" placeholder="Ex.: Metrô depois das duas" >
+      </label>
+      <label>
+        Tipo de lançamento
+        <span class="required-mark">
+          *
+        </span>
+        <select name="tipo" required>
+          <option value="">
+            Selecione
+          </option>
+          <option>
+            Single
+          </option>
+          <option>
+            EP
+          </option>
+          <option>
+            Álbum
+          </option>
+          <option>
+            Mixtape
+          </option>
+          <option>
+            Outro
+          </option>
+        </select>
+      </label>
+      <label>
+        Gênero principal
+        <span class="required-mark">
+          *
+        </span>
+        <select name="genero" required>
+          <option value="">
+            Selecione
+          </option>
+          <option>
+            Rap
+          </option>
+          <option>
+            Boom bap
+          </option>
+          <option>
+            Trap
+          </option>
+          <option>
+            R&amp;B
+          </option>
+          <option>
+            Lo-fi
+          </option>
+          <option>
+            Outro
+          </option>
+        </select>
+      </label>
+      <label>
+        BPM
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input type="number" name="bpm" min="30" max="300" placeholder="Ex.: 92" >
+      </label>
+      <label>
+        Status
+        <span class="required-mark">
+          *
+        </span>
+        <select name="status" required>
+          <option>
+            Em produção
+          </option>
+          <option>
+            Rascunho
+          </option>
+          <option>
+            Lançado
+          </option>
+        </select>
+      </label>
+      <label class="field-full">
+        Descrição
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <textarea name="descricao" rows="4" maxlength="500" placeholder="Conte sobre o contexto, estilo e fase atual da obra." >
+        </textarea>
+      </label>
+      <label class="field-full">
+        Letra ou observações de composição
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <textarea name="letra" rows="5" placeholder="Adicione um trecho ou notas privadas da obra." >
+        </textarea>
+      </label>
+    </div>
+  </section>
+  <section class="form-section">
+    <div class="form-section-heading">
+      <span class="form-step">
+        02
+      </span>
+      <div>
+        <h2>
+          Créditos e participações
+        </h2>
+        <p>
+          Reconheça quem colaborou e identifique a função de cada pessoa.
+        </p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label>
+        Seu papel na obra
+        <span class="required-mark">
+          *
+        </span>
+        <select name="papel" required>
+          <option>
+            Artista principal
+          </option>
+          <option>
+            Composição
+          </option>
+          <option>
+            Produção musical
+          </option>
+          <option>
+            Instrumentação
+          </option>
+          <option>
+            Participação como feat
+          </option>
+          <option>
+            Outro crédito
+          </option>
+        </select>
+      </label>
+      <label>
+        Participantes com perfil Cypher
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input name="colaboradores" placeholder="Busque ou digite nomes" >
+      </label>
+    </div>
+    <div class="ghost-credit-form">
+      <div>
+        <span class="ghost-icon lucide-icon" aria-hidden="true">
+          <%- icones.user %>
+        </span>
+        <div>
+          <strong>
+            Menção fantasma
+          </strong>
+          <p>
+            Registre uma pessoa que ainda não tem conta no Cypher.
+          </p>
+        </div>
+      </div>
+      <div class="ghost-entry-list" data-ghost-list>
+      </div>
+      <button class="button button-outline small" type="button" data-add-ghost >
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.plus %>
+        </span>
+        Adicionar menção fantasma
+      </button>
+    </div>
+  </section>
+  <section class="form-section">
+    <div class="form-section-heading">
+      <span class="form-step">
+        03
+      </span>
+      <div>
+        <h2>
+          Identificação e lançamento
+        </h2>
+        <p>
+          Inclua códigos existentes ou deixe-os para preencher depois.
+        </p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label>
+        ISRC
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input name="isrc" maxlength="20" placeholder="Código da gravação" >
+      </label>
+      <label>
+        ISWC
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input name="iswc" maxlength="20" placeholder="Código da obra" >
+      </label>
+      <label>
+        Data de lançamento
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input type="date" name="dataLancamento">
+      </label>
+      <label>
+        Link de escuta
+        <span class="optional-mark">
+          Opcional
+        </span>
+        <input type="url" name="link" placeholder="https://">
+      </label>
+    </div>
+  </section>
+  <div class="work-form-actions">
+    <a class="button button-outline" href="/works">
+      Cancelar
+    </a>
+    <button class="button button-lime" type="submit">
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.fileMusic %>
+      </span>
+      Cadastrar obra
+    </button>
+  </div>
+</form>
+</div>
+</main>
+</div>
+<%- include('../partials/fim-pagina' ) %>

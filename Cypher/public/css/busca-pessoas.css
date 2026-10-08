@@ -1,0 +1,82 @@
+/* View: busca de profissionais. */
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  flex: 1;
+  padding: 0 13px;
+  border: 1px solid #dfe3d8;
+  border-radius: 9px;
+  color: #8d978a;
+  background: var(--white);
+}
+
+.search-input-wrap kbd {
+  padding: 3px 6px;
+  border: 1px solid #e1e4dd;
+  border-radius: 4px;
+  color: #9da59a;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.people-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+}
+
+.profile-card {
+  border: 1px solid #e0e3d9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--white);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.profile-card-top {
+  position: relative;
+  height: 105px;
+  padding: 16px;
+}
+
+.profile-card-top .avatar {
+  position: absolute;
+  bottom: -16px;
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--white);
+}
+
+.profile-card-top .dots-button {
+  position: absolute;
+  left: 14px;
+  top: 15px;
+  color: rgba(16, 20, 15, 0.55);
+}
+
+.profile-card-body {
+  padding: 27px 16px 16px;
+}
+
+.profile-card-body h3 {
+  margin: 0 0 3px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 19px;
+  letter-spacing: -0.05em;
+}
+
+.profile-card-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 18px;
+}

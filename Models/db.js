@@ -1,1 +1,0 @@
-/* Conexão com o banco de dados (MySQL, PostgreSQL, MongoDB, etc.). */

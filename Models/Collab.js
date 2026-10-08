@@ -1,1 +1,0 @@
-/* Modelo para registro de créditos e colaborações entre artistas. */

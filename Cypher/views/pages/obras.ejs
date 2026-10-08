@@ -1,0 +1,209 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Obras' }) %>
+<div class="page-content">
+<div class="page-header">
+  <div>
+    <div class="eyebrow">
+      ORGANIZAÇÃO PROFISSIONAL
+    </div>
+    <h1>
+      Obras
+    </h1>
+    <p>
+      Um lugar claro para guardar sua trajetória e reconhecer quem
+            constrói com você.
+    </p>
+  </div>
+  <a class="button button-lime" href="/works/new">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.plus %>
+    </span>
+    Cadastrar obra
+  </a>
+</div>
+<div class="works-overview">
+  <section class="work-overview-card catalog-summary">
+    <div>
+      <span>
+        OBRAS NO PERFIL · PRINCIPAL / FEAT
+      </span>
+      <strong>
+        <%= estatisticasObras.publicadasComoArtista %>
+        /<%= estatisticasObras.participacoesComoFeat %>
+      </strong>
+      <p>
+        Obras concluídas e publicadas no perfil / participações como feat
+      </p>
+    </div>
+    <a href="#catalogo-obras" class="overview-link">
+      Ver catálogo
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.arrowUpRight %>
+      </span>
+    </a>
+  </section>
+  <section class="work-overview-card in-progress-summary">
+    <span>
+      EM ANDAMENTO
+    </span>
+    <strong>
+      <%= String(estatisticasObras.emAndamento).padStart(2, '0') %>
+    </strong>
+    <p>
+      Obras que ainda pedem atenção
+    </p>
+    <span class="lucide-icon summary-watermark" aria-hidden="true">
+      <%- icones.audioLines %>
+    </span>
+  </section>
+</div>
+<div class="works-toolbar" id="catalogo-obras">
+  <div>
+    <div class="eyebrow">
+      SEU CATÁLOGO
+    </div>
+    <h2>
+      Obras recentes
+    </h2>
+  </div>
+  <span class="catalog-count">
+    <%= obras.length %>
+    registros demonstrativos
+  </span>
+</div>
+<div class="works-card-list">
+  <% obras.forEach((obra, i) => { %>
+    <button class="work-card" type="button" data-work-card data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>" >
+      <span class="work-card-index index-<%= i %>">
+        0<%= i + 1 %>
+      </span>
+      <span class="work-card-main">
+        <strong>
+          <%= obra.title %>
+        </strong>
+        <span>
+          <%= obra.meta %>
+        </span>
+        <span class="work-card-badges">
+          <span class="type-label">
+            <%= obra.type %>
+          </span>
+          <span class="status-label">
+            <i>
+            </i>
+            <%= obra.status %>
+          </span>
+        </span>
+      </span>
+      <span class="work-card-role">
+        <small>
+          PARTICIPAÇÃO
+        </small>
+        <b>
+          <%= obra.role %>
+        </b>
+        <small>
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.users %>
+          </span>
+          <%= obra.credits %>
+          créditos associados
+        </small>
+      </span>
+      <span class="work-card-open">
+        Ver ficha
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowUpRight %>
+        </span>
+      </span>
+    </button>
+  <% }) %>
+</div>
+<p class="prototype-note">
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.circleHelp %>
+  </span>
+  Os registros e contadores acima são dados de demonstração. O protótipo
+        não salva novas obras.
+</p>
+</div>
+</main>
+</div>
+<dialog class="detail-dialog work-detail-dialog" id="detalhe-obra" aria-labelledby="detalhe-obra-titulo" >
+<div class="detail-dialog-header">
+<span class="detail-kicker">
+FICHA DA OBRA
+</span>
+<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe" >
+<span class="lucide-icon" aria-hidden="true">
+  <%- icones.x %>
+</span>
+</button>
+</div>
+<h2 id="detalhe-obra-titulo" data-work-title-detail>
+</h2>
+<div class="detail-tags">
+<span data-work-type-detail>
+</span>
+<span data-work-status-detail>
+</span>
+</div>
+<p class="work-detail-meta" data-work-meta-detail>
+</p>
+<section class="detail-section">
+<h3>
+Sobre
+</h3>
+<p data-work-description-detail>
+</p>
+</section>
+<div class="detail-facts work-detail-facts">
+<div>
+<small>
+  PARTICIPAÇÃO
+</small>
+<b data-work-role-detail>
+</b>
+</div>
+<div>
+<small>
+  CRÉDITOS ASSOCIADOS
+</small>
+<b data-work-credits-detail>
+</b>
+</div>
+<div>
+<small>
+  BPM
+</small>
+<b data-work-bpm-detail>
+</b>
+</div>
+</div>
+<div class="detail-facts work-detail-facts">
+<div>
+<small>
+  ISRC
+</small>
+<b data-work-isrc-detail>
+</b>
+</div>
+<div>
+<small>
+  ISWC
+</small>
+<b data-work-iswc-detail>
+</b>
+</div>
+</div>
+<p class="prototype-note">
+<span class="lucide-icon" aria-hidden="true">
+<%- icones.circleHelp %>
+</span>
+Códigos e créditos precisam de conferência; este é um detalhe demonstrativo.
+</p>
+</dialog>
+<%- include('../partials/fim-pagina') %>

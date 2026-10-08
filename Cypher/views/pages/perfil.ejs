@@ -1,0 +1,223 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Meu perfil' }) %>
+<div class="page-content">
+<div class="page-header">
+  <div>
+    <div class="eyebrow">
+      SEU ESPAÇO PROFISSIONAL
+    </div>
+    <h1>
+      <%= usuario.name %>
+    </h1>
+    <p>
+      <%= usuario.role %>
+      ·<%= usuario.city %>
+    </p>
+  </div>
+  <button class="button button-outline" type="button" data-toast="Edição do perfil disponível em uma próxima etapa" >
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.settings %>
+    </span>
+    Editar perfil
+  </button>
+</div>
+<section class="profile-hero">
+  <div class="profile-hero-main">
+    <div class="avatar avatar-hero">
+      <%= usuario.initials %>
+    </div>
+    <div>
+      <div class="profile-kicker">
+        <span class="status-dot" aria-hidden="true">
+        </span>
+        Disponível para colaboração
+      </div>
+      <h2>
+        <%= usuario.name %>
+      </h2>
+      <p>
+        OG Emicê
+        <span>
+          ·
+        </span>
+        <%= usuario.handle %>
+      </p>
+      <div class="tag-line big">
+        <% usuario.genres.forEach(genero => { %>
+          <span>
+            <%= genero %>
+          </span>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+  <div class="profile-rep">
+    <span>
+      REPUTAÇÃO
+    </span>
+    <strong>
+      <%= usuario.reputation %>
+    </strong>
+    <small>
+      profissional
+    </small>
+  </div>
+</section>
+<div class="profile-id-strip">
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.badgeCheck %>
+  </span>
+  <div>
+    <small>
+      C-TAG · IDENTIFICADOR ÚNICO
+    </small>
+    <strong>
+      <%= usuario.cTag %>
+    </strong>
+  </div>
+  <span class="immutable-label">
+    Imutável
+  </span>
+</div>
+<div class="profile-columns">
+  <div class="profile-column-main">
+    <section class="profile-section card-surface">
+      <div class="eyebrow">
+        SOBRE
+      </div>
+      <h3>
+        Biografia
+      </h3>
+      <p class="bio">
+        Artista independente construindo pontes entre o rap alternativo
+              e a cidade. Gosto de transformar vivências em letra e encontrar
+              gente que leva o processo a sério.
+      </p>
+      <div class="profile-info-grid">
+        <div>
+          <span>
+            Frequência de lançamentos
+          </span>
+          <strong>
+            A cada 3 meses
+          </strong>
+        </div>
+        <div>
+          <span>
+            Interesse em colaboração
+          </span>
+          <strong>
+            Sim, especialmente feats
+          </strong>
+        </div>
+        <div>
+          <span>
+            Contato
+          </span>
+          <strong>
+            <%= usuario.email %>
+          </strong>
+        </div>
+        <div>
+          <span>
+            No Cypher desde
+          </span>
+          <strong>
+            Março de 2023
+          </strong>
+        </div>
+      </div>
+    </section>
+    <section class="profile-section card-surface">
+      <div class="profile-catalog-heading">
+        <div class="eyebrow">
+          CATÁLOGO
+        </div>
+        <a href="/works" class="text-link">
+          Abrir Obras
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.arrowUpRight %>
+          </span>
+        </a>
+      </div>
+      <h3>
+        Últimos 30 dias
+      </h3>
+      <% obras.slice(0,2).forEach((obra, i) => { %>
+        <a class="profile-work" href="/works" aria-label="Abrir catálogo de Obras:<%= obra.title %>" >
+          <div class="work-index index-<%= i %>">
+            0<%= i + 1 %>
+          </div>
+          <div>
+            <strong>
+              <%= obra.title %>
+            </strong>
+            <span>
+              <%= obra.meta %>
+              ·<%= obra.role %>
+            </span>
+          </div>
+          <span class="status-label">
+            <i>
+            </i>
+            <%= obra.status %>
+          </span>
+        </a>
+      <% }) %>
+    </section>
+  </div>
+  <aside class="profile-column-side">
+    <div class="profile-section card-surface">
+      <div class="eyebrow">
+        EQUIPAMENTOS
+      </div>
+      <h3>
+        Meu setup
+      </h3>
+      <div class="gear-list">
+        <span>
+          <i class="lucide-icon" aria-hidden="true">
+            <%- icones.mic %>
+          </i>
+          Shure SM58
+        </span>
+        <span>
+          <i class="lucide-icon" aria-hidden="true">
+            <%- icones.audioLines %>
+          </i>
+          Focusrite Scarlett
+        </span>
+        <span>
+          <i class="lucide-icon" aria-hidden="true">
+            <%- icones.music %>
+          </i>
+          Ableton Live
+        </span>
+      </div>
+      <button class="button button-outline full" type="button" data-toast="Edição de equipamentos demonstrativa" >
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.settings %>
+        </span>
+        Gerenciar setup
+      </button>
+    </div>
+    <div class="profile-section lime-mini">
+      <span>
+        PRÓXIMA META
+      </span>
+      <strong>
+        Registrar o próximo crédito
+      </strong>
+      <p>
+        Complete os créditos de suas obras para fortalecer sua trajetória.
+      </p>
+    </div>
+  </aside>
+</div>
+</div>
+</main>
+</div>
+<%- include('../partials/fim-pagina') %>

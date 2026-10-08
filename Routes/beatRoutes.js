@@ -1,1 +1,0 @@
-/* Rotas para /banco-de-beats e /player. */

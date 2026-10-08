@@ -1,0 +1,31 @@
+<header class="topbar">
+  <button class="icon-button mobile-menu" type="button" data-sidebar-open aria-label="Abrir menu de navegação" >
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.menu %>
+    </span>
+  </button>
+  <div class="breadcrumbs">
+    <span>
+      Workspace
+    </span>
+    <span class="breadcrumb-separator" aria-hidden="true">
+      /
+    </span>
+    <strong>
+      <%= breadcrumb %>
+    </strong>
+  </div>
+  <div class="topbar-actions">
+    <% if (typeof showSearch !== 'undefined' && showSearch) { %>
+      <a class="topbar-search" href="/search">
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.search %>
+        </span>
+        Buscar pessoas
+      </a>
+    <% } %>
+    <a class="topbar-avatar" href="/profile" aria-label="Abrir perfil de<%= usuario.name %>" title="Perfil de<%= usuario.name %>" >
+      <%= usuario.initials %>
+    </a>
+  </div>
+</header>

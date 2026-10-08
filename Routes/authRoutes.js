@@ -1,1 +1,0 @@
-/* Rotas para /login e /cadastro. */

@@ -1,1 +1,0 @@
-/* Modelo para armazenamento de beats (BPM, tom, preço, arquivo de áudio). */

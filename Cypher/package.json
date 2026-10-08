@@ -1,0 +1,27 @@
+{
+  "name": "cypher-underground",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "tsx watch src/aplicacao.ts",
+    "build": "tsc",
+    "start": "NODE_ENV=production node dist/src/aplicacao.js",
+    "check": "tsc --noEmit",
+    "format": "prettier --write src scripts",
+    "format:views": "node scripts/formatar-ejs.mjs"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "lucide-static": "^1.49.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/express": "4.17.21",
+    "@types/node": "^24.7.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.19.1",
+    "typescript": "5.6.3"
+  }
+}

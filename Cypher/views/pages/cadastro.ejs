@@ -1,0 +1,133 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="auth-page">
+<div class="auth-art">
+  <div class="auth-brand">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <span>
+        </span>
+        <span>
+        </span>
+        <span>
+        </span>
+      </span>
+      <span class="logo-word">
+        CYPHER
+      </span>
+    </div>
+    <span>
+      ECOSSISTEMA PROFISSIONAL DA CENA UNDERGROUND
+    </span>
+  </div>
+  <div class="auth-quote">
+    <span>
+      01 — CONECTAR
+    </span>
+    <h1>
+      Seu próximo
+      <em>
+        passo começa aqui.
+      </em>
+    </h1>
+    <p>
+      Um perfil profissional bem cuidado é o começo de novas oportunidades.
+    </p>
+  </div>
+</div>
+<div class="auth-panel">
+  <div class="auth-panel-inner">
+    <div class="eyebrow">
+      PRIMEIRO PASSO
+    </div>
+    <h2>
+      Crie seu espaço.
+    </h2>
+    <p class="auth-description">
+      Selecione todas as formas como você participa da cena underground.
+    </p>
+    <form method="post" action="/register" data-register-form>
+      <label>
+        Nome completo
+        <input name="name" placeholder="Seu nome" required>
+      </label>
+      <label>
+        E-mail
+        <input type="email" name="email" placeholder="voce@email.com" required>
+      </label>
+      <fieldset class="category-fieldset">
+        <legend class="eyebrow category-label">
+          SUAS CATEGORIAS
+          <span>
+            (selecione todas as aplicáveis)
+          </span>
+        </legend>
+        <div class="category-grid">
+          <% const categorias = ['Rapper / MC', 'Beatmaker', 'Produtor musical', 'DJ', 'Empreendedor', 'Organizador de eventos']; %>
+          <% categorias.forEach(categoria => { %>
+            <label class="category-option">
+              <input type="checkbox" name="categorias" value="<%= categoria %>">
+              <span>
+                <%= categoria %>
+              </span>
+              <span class="category-check lucide-icon" aria-hidden="true">
+                <%- icones.check %>
+              </span>
+            </label>
+          <% }) %>
+          <label class="category-option other-option">
+            <input type="checkbox" name="categorias" value="Outros" data-category-other >
+            <span>
+              Outros
+            </span>
+            <span class="category-check lucide-icon" aria-hidden="true">
+              <%- icones.check %>
+            </span>
+          </label>
+        </div>
+        <p class="category-validation" data-category-validation role="alert" hidden >
+          Selecione pelo menos uma categoria.
+        </p>
+      </fieldset>
+      <div class="other-category-field" data-other-category-field hidden>
+        <label for="categoria-personalizada">
+          Qual categoria deseja sugerir?
+        </label>
+        <div class="other-category-controls">
+          <input id="categoria-personalizada" name="outraCategoria" maxlength="60" placeholder="Ex.: engenheiro de áudio" >
+          <button class="button button-outline small" type="button" data-analyze-category >
+            Solicitar análise
+          </button>
+        </div>
+        <p class="category-analysis-result" data-category-result role="status" hidden >
+        </p>
+      </div>
+      <div class="ctag-note">
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.badgeCheck %>
+        </span>
+        <span>
+          Ao criar a conta, você recebe uma
+          <strong>
+            C-Tag única e imutável
+          </strong>
+          .
+            No protótipo, a geração é apenas ilustrativa.
+        </span>
+      </div>
+      <button class="button button-lime full" type="submit">
+        Continuar
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowUpRight %>
+        </span>
+      </button>
+    </form>
+    <p class="auth-switch">
+      Já tem uma conta?
+      <a href="/login">
+        Entrar
+      </a>
+    </p>
+  </div>
+</div>
+</div>
+<%- include('../partials/fim-pagina') %>

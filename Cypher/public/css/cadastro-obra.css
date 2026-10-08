@@ -1,0 +1,226 @@
+/* View: cadastro de obra. */
+.work-form-page {
+  max-width: 1120px;
+}
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: -14px 0 21px;
+  color: #748070;
+  font-size: 11px;
+  font-weight: 700;
+}
+.back-link:hover {
+  color: var(--ink);
+}
+.back-link svg {
+  width: 15px;
+  height: 15px;
+}
+.work-form-notice,
+.form-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -13px 0 18px;
+  padding: 13px 15px;
+  border: 1px solid #e2e8d4;
+  border-radius: 9px;
+  color: #66725e;
+  background: #eff4e5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.work-form-notice > .lucide-icon,
+.form-feedback > .lucide-icon {
+  margin-top: 1px;
+  color: #768c2a;
+}
+.work-form-notice strong {
+  display: block;
+  color: #3c4934;
+  font-size: 11px;
+}
+.work-form-notice p {
+  margin: 3px 0 0;
+}
+.form-feedback {
+  margin: 0 0 18px;
+}
+.success-feedback {
+  border-color: #cee0a0;
+  color: #445333;
+  background: #eff8d7;
+}
+.error-feedback {
+  border-color: #e3c0b9;
+  color: #8a4f45;
+  background: #fff3f0;
+}
+.work-form {
+  display: grid;
+  gap: 15px;
+}
+.form-section {
+  padding: 23px clamp(16px, 3vw, 27px);
+  border: 1px solid #e0e3d9;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+.form-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eceee8;
+}
+.form-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--lime);
+  font-size: 9px;
+  font-weight: 800;
+}
+.form-section-heading h2 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  letter-spacing: -0.05em;
+}
+.form-section-heading p {
+  margin: 4px 0 0;
+  color: #8b9589;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.work-form .form-grid {
+  gap: 16px;
+}
+.work-form label {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  color: #697568;
+  font-size: 10px;
+  font-weight: 700;
+}
+.work-form label input,
+.work-form label select,
+.work-form label textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #dfe3d9;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fbfbf7;
+  outline-color: var(--lime);
+  font-size: 11px;
+  font-weight: 400;
+}
+.work-form label textarea {
+  min-height: 95px;
+  resize: vertical;
+  line-height: 1.55;
+}
+.work-form label input::placeholder,
+.work-form label textarea::placeholder {
+  color: #a0a89e;
+}
+.work-form .field-full {
+  grid-column: 1 / -1;
+}
+.required-mark {
+  color: #b97058;
+}
+.optional-mark {
+  color: #98a094;
+  font-size: 9px;
+  font-weight: 400;
+}
+.ghost-credit-form {
+  display: grid;
+  gap: 13px;
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px dashed #cfd5c9;
+  border-radius: 10px;
+  background: #fbfcf7;
+}
+.ghost-credit-form > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.ghost-credit-form strong {
+  font-size: 11px;
+}
+.ghost-credit-form p {
+  margin: 3px 0 0;
+  color: #899287;
+  font-size: 10px;
+}
+.ghost-credit-form .ghost-icon {
+  width: 34px;
+  height: 34px;
+  background: #eaf0dc;
+}
+.ghost-credit-form .ghost-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.ghost-entry-list {
+  display: grid;
+  gap: 10px;
+}
+.ghost-entry {
+  margin: 0;
+  padding: 13px;
+  border: 1px solid #e3e7dd;
+  border-radius: 8px;
+}
+.ghost-entry legend {
+  padding: 0 5px;
+  color: #8b9589;
+  font-size: 9px;
+}
+.ghost-entry .form-grid {
+  grid-template-columns: 1fr 1fr;
+}
+.ghost-remove {
+  justify-self: start;
+  margin-top: 9px;
+  color: #966b62;
+}
+.work-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 4px 0;
+}
+.work-form-actions .button {
+  min-height: 46px;
+}
+.work-form-actions .lucide-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.work-form label {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  row-gap: 7px;
+}
+.work-form label > input,
+.work-form label > select,
+.work-form label > textarea {
+  grid-column: 1 / -1;
+}

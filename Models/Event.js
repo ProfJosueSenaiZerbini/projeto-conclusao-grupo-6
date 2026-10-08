@@ -1,1 +1,0 @@
-/* Modelo para agenda e gestão de eventos. */

@@ -1,0 +1,97 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="auth-page">
+<div class="auth-art">
+  <div class="auth-brand">
+    <div class="logo">
+      <span class="logo-mark" aria-hidden="true">
+        <span>
+        </span>
+        <span>
+        </span>
+        <span>
+        </span>
+      </span>
+      <span class="logo-word">
+        CYPHER
+      </span>
+    </div>
+    <span>
+      ECOSSISTEMA PROFISSIONAL DA CENA UNDERGROUND
+    </span>
+  </div>
+  <div class="auth-quote">
+    <span>
+      01 — CONECTAR
+    </span>
+    <h1>
+      Seu próximo
+      <em>
+        passo começa aqui.
+      </em>
+    </h1>
+    <p>
+      Encontre profissionais. Organize suas obras. Faça a cena avançar.
+    </p>
+  </div>
+</div>
+<div class="auth-panel">
+  <div class="auth-panel-inner">
+    <div class="auth-mobile-logo logo">
+      <span class="logo-mark" aria-hidden="true">
+        <span>
+        </span>
+        <span>
+        </span>
+        <span>
+        </span>
+      </span>
+      <span class="logo-word">
+        CYPHER
+      </span>
+    </div>
+    <div class="eyebrow">
+      BEM-VINDO DE VOLTA
+    </div>
+    <h2>
+      Entre no seu espaço.
+    </h2>
+    <p class="auth-description">
+      A cena continua se movendo enquanto você não para.
+    </p>
+    <form method="post" action="/login">
+      <label>
+        E-mail
+        <input type="email" name="email" placeholder="voce@email.com" required >
+      </label>
+      <label>
+        Senha
+        <input type="password" name="password" placeholder="••••••••" required >
+      </label>
+      <button class="button button-lime full" type="submit">
+        Entrar
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowUpRight %>
+        </span>
+      </button>
+    </form>
+    <div class="auth-divider">
+      <span>
+        ou
+      </span>
+    </div>
+    <form method="post" action="/login">
+      <input type="hidden" name="guest" value="true">
+      <button class="button button-outline full" type="submit">
+        Entrar como OG Emicê (demonstração)
+      </button>
+    </form>
+    <p class="auth-switch">
+      Ainda não está no Cypher?
+      <a href="/register">
+        Criar conta
+      </a>
+    </p>
+  </div>
+</div>
+</div>
+<%- include('../partials/fim-pagina') %>

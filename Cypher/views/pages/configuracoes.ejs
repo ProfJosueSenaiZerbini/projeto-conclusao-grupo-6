@@ -1,0 +1,277 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Configurações' }) %>
+<div class="page-content">
+<div class="settings-intro">
+  <div>
+    <div class="eyebrow">
+      CONTROLE DO SEU ESPAÇO
+    </div>
+    <h1>
+      Configurações
+    </h1>
+    <p>
+      Controle sua conta e a forma como você vive a cena dentro do Cypher.
+    </p>
+  </div>
+  <div class="settings-mark">
+    <span>
+      06
+    </span>
+    <small>
+      áreas de controle
+    </small>
+  </div>
+</div>
+<div class="settings-layout">
+  <aside class="settings-index" aria-label="Seções de configurações">
+    <div class="settings-index-label">
+      NESTA PÁGINA
+    </div>
+    <a class="settings-index-link active" href="#conta" data-settings-link aria-current="location" >
+      <span>
+        01
+      </span>
+      Conta
+    </a>
+    <a class="settings-index-link" href="#perfil" data-settings-link >
+      <span>
+        02
+      </span>
+      Perfil profissional
+    </a>
+    <a class="settings-index-link" href="#privacidade" data-settings-link >
+      <span>
+        03
+      </span>
+      Privacidade e visibilidade
+    </a>
+    <a class="settings-index-link" href="#descoberta" data-settings-link >
+      <span>
+        04
+      </span>
+      Descoberta
+    </a>
+    <a class="settings-index-link" href="#aparencia" data-settings-link >
+      <span>
+        05
+      </span>
+      Aparência
+    </a>
+    <a class="settings-index-link" href="#ajuda" data-settings-link >
+      <span>
+        06
+      </span>
+      Ajuda e sobre
+    </a>
+  </aside>
+  <main class="settings-content">
+    <section id="conta" class="settings-section">
+      <div class="eyebrow">
+        01 · CONTA
+      </div>
+      <h2>
+        Sua conta
+      </h2>
+      <p>
+        Os dados que identificam seu acesso ao Cypher.
+      </p>
+      <div class="account-summary">
+        <div class="avatar avatar-yellow">
+          <%= usuario.initials %>
+        </div>
+        <div>
+          <strong>
+            <%= usuario.name %>
+          </strong>
+          <span>
+            <%= usuario.role %>
+          </span>
+        </div>
+        <span class="account-status">
+          <i>
+          </i>
+          Ativa
+        </span>
+      </div>
+      <div class="settings-data-grid">
+        <div class="settings-data">
+          <span>
+            E-mail
+          </span>
+          <strong>
+            <%= usuario.email %>
+          </strong>
+        </div>
+        <div class="settings-data">
+          <span>
+            Tipo de conta
+          </span>
+          <strong>
+            <%= usuario.role %>
+          </strong>
+        </div>
+        <div class="settings-data">
+          <span>
+            Status
+          </span>
+          <strong>
+            Ativa · demonstração
+          </strong>
+        </div>
+        <div class="settings-data ctag-setting">
+          <span>
+            C-Tag imutável
+          </span>
+          <strong>
+            <%= usuario.cTag %>
+          </strong>
+        </div>
+      </div>
+    </section>
+    <section id="perfil" class="settings-section">
+      <div class="eyebrow">
+        02 · PERFIL PROFISSIONAL
+      </div>
+      <h2>
+        Como você aparece
+      </h2>
+      <p>
+        Mantenha sua identidade profissional clara para a cena.
+      </p>
+      <div class="settings-link-list">
+        <a class="settings-link-row" href="/profile">
+          <span class="settings-link-icon lucide-icon" aria-hidden="true" >
+            <%- icones.user %>
+          </span>
+          <span>
+            <strong>
+              Editar perfil
+            </strong>
+            <small>
+              Identidade, biografia e C-Tag
+            </small>
+          </span>
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.arrowUpRight %>
+          </span>
+        </a>
+        <a class="settings-link-row" href="/works">
+          <span class="settings-link-icon lucide-icon" aria-hidden="true" >
+            <%- icones.fileMusic %>
+          </span>
+          <span>
+            <strong>
+              Informações profissionais
+            </strong>
+            <small>
+              Obras, créditos e participações
+            </small>
+          </span>
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.arrowUpRight %>
+          </span>
+        </a>
+      </div>
+    </section>
+    <section id="privacidade" class="settings-section">
+      <div class="eyebrow">
+        03 · PRIVACIDADE E VISIBILIDADE
+      </div>
+      <h2>
+        Você decide o que aparece
+      </h2>
+      <p>
+        Perfil público · Aparecer na busca · Localização visível ·
+              Disponível para colaboração
+      </p>
+    </section>
+    <section id="descoberta" class="settings-section">
+      <div class="eyebrow">
+        04 · DESCOBERTA
+      </div>
+      <h2>
+        Oriente o que encontra
+      </h2>
+      <label class="settings-field">
+        <span>
+          REGIÃO PRINCIPAL
+        </span>
+        <select>
+          <option>
+            São Paulo - SP
+          </option>
+          <option>
+            Campinas - SP
+          </option>
+        </select>
+      </label>
+      <p>
+        Gêneros de interesse: Boom bap · Rap alternativo · Trap
+      </p>
+    </section>
+    <section id="aparencia" class="settings-section">
+      <div class="eyebrow">
+        05 · APARÊNCIA
+      </div>
+      <h2>
+        Escolha o clima da interface
+      </h2>
+      <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="light" aria-pressed="true" >
+        Claro
+      </button>
+      <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="dark" aria-pressed="false" >
+        Escuro
+      </button>
+    </section>
+    <section id="ajuda" class="settings-section">
+      <div class="eyebrow">
+        06 · AJUDA E SOBRE
+      </div>
+      <h2>
+        Continue no caminho
+      </h2>
+      <a class="settings-link-row" href="/central">
+        <span class="settings-link-icon lucide-icon" aria-hidden="true" >
+          <%- icones.circleHelp %>
+        </span>
+        <span>
+          <strong>
+            Cypher Central
+          </strong>
+          <small>
+            Guias e respostas da plataforma
+          </small>
+        </span>
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowUpRight %>
+        </span>
+      </a>
+    </section>
+    <form method="post" action="/logout" class="settings-signout">
+      <div>
+        <div class="eyebrow">
+          FIM DO CAMINHO
+        </div>
+        <h2>
+          Sair da conta
+        </h2>
+        <p>
+          Encerre seu acesso a este espaço e retorne à tela de login.
+        </p>
+      </div>
+      <button class="button button-outline danger-button" type="submit" >
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowLeft %>
+        </span>
+        Sair da conta
+      </button>
+    </form>
+  </main>
+</div>
+</div>
+</main>
+</div>
+<%- include('../partials/fim-pagina') %>
