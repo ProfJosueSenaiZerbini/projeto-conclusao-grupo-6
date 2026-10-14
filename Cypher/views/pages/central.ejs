@@ -13,8 +13,7 @@
       Cypher Central
     </h1>
     <p>
-      Informação direta para cuidar melhor da sua carreira e das suas
-            obras.
+      Informação direta para cuidar melhor da sua carreira e das suas obras.
     </p>
   </div>
 </div>
@@ -22,7 +21,7 @@
   <span class="lucide-icon" aria-hidden="true">
     <%- icones.search %>
   </span>
-  <input type="search" placeholder="O que você quer entender hoje?" aria-label="Buscar na Cypher Central" >
+  <input type="search" placeholder="O que você quer entender hoje?" aria-label="Buscar na Cypher Central">
   <button class="button button-dark" type="submit">
     Buscar
   </button>
@@ -37,15 +36,15 @@
     </h2>
     <div class="faq-list">
       <% faqs.forEach((faq, i) => { %>
-        <div class="faq-item<%= i === 0 ? ' open' : '' %>" data-faq-item >
-          <button type="button" data-faq aria-expanded="<%= i === 0 ? 'true' : 'false' %>" >
+        <div class="faq-item<%= i === 0 ? ' open' : '' %>" data-faq-item>
+          <button type="button" data-faq aria-expanded="<%= i === 0 ? 'true' : 'false' %>">
             <span>
               <b>
                 0<%= i + 1 %>
               </b>
               <%= faq.q %>
             </span>
-            <span class="lucide-icon faq-chevron" aria-hidden="true" >
+            <span class="lucide-icon faq-chevron" aria-hidden="true">
               <%- icones.chevronDown %>
             </span>
           </button>

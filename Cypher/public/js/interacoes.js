@@ -20,7 +20,9 @@
     campo.addEventListener("input", () => {
       const consulta = campo.value.trim().toLocaleLowerCase("pt-BR");
       document.querySelectorAll("[data-search-item]").forEach(item => {
-        item.hidden = !item.textContent.toLocaleLowerCase("pt-BR").includes(consulta);
+        item.hidden = !item.textContent
+          .toLocaleLowerCase("pt-BR")
+          .includes(consulta);
       });
     });
   });
@@ -44,7 +46,9 @@
   });
 
   const barraLateral = document.querySelector(".sidebar");
-  const camadaMenu = document.querySelector("[data-sidebar-close].mobile-overlay");
+  const camadaMenu = document.querySelector(
+    "[data-sidebar-close].mobile-overlay"
+  );
   const fecharMenu = () => {
     barraLateral?.classList.remove("sidebar-open");
     document.body.classList.remove("sidebar-visible");
@@ -72,7 +76,10 @@
     document.querySelectorAll("[data-interest-button]").forEach(botao => {
       botao.setAttribute("aria-pressed", String(interessado));
       const rotulo = botao.querySelector("[data-interest-label]");
-      if (rotulo) rotulo.textContent = interessado ? "Interesse demonstrado" : "Demonstrar interesse";
+      if (rotulo)
+        rotulo.textContent = interessado
+          ? "Interesse demonstrado"
+          : "Demonstrar interesse";
       botao.classList.toggle("is-interested", interessado);
     });
     document.querySelectorAll("[data-interest-notice]").forEach(aviso => {
@@ -95,7 +102,8 @@
         outro.setAttribute("aria-pressed", String(ativo));
       });
       document.querySelectorAll("[data-event-card]").forEach(cartao => {
-        cartao.hidden = filtro !== "Todos" && cartao.dataset.eventCategory !== filtro;
+        cartao.hidden =
+          filtro !== "Todos" && cartao.dataset.eventCategory !== filtro;
       });
     });
   });
@@ -119,23 +127,42 @@
       if (!dialogo) return;
       const dados = cartao.dataset;
       definirTexto(dialogo, "[data-event-title-detail]", dados.detailTitle);
-      definirTexto(dialogo, "[data-event-category-detail]", dados.detailCategory);
+      definirTexto(
+        dialogo,
+        "[data-event-category-detail]",
+        dados.detailCategory
+      );
       definirTexto(dialogo, "[data-event-date-detail]", dados.detailDate);
       definirTexto(dialogo, "[data-event-time-detail]", dados.detailTime);
-      definirTexto(dialogo, "[data-event-location-detail]", dados.detailLocation);
+      definirTexto(
+        dialogo,
+        "[data-event-location-detail]",
+        dados.detailLocation
+      );
       definirTexto(dialogo, "[data-event-org-detail]", dados.detailOrg);
-      definirTexto(dialogo, "[data-event-description-detail]", dados.detailDescription);
+      definirTexto(
+        dialogo,
+        "[data-event-description-detail]",
+        dados.detailDescription
+      );
       definirTexto(dialogo, "[data-event-format-detail]", dados.detailFormat);
-      definirTexto(dialogo, "[data-event-registration-detail]", dados.detailRegistration);
+      definirTexto(
+        dialogo,
+        "[data-event-registration-detail]",
+        dados.detailRegistration
+      );
       definirTexto(dialogo, "[data-event-prize-detail]", dados.detailPrize);
       const listaTags = dialogo.querySelector("[data-event-tags-detail]");
       if (listaTags) {
         listaTags.replaceChildren();
-        (dados.detailTags ?? "").split("|").filter(Boolean).forEach(tag => {
-          const elemento = document.createElement("span");
-          elemento.textContent = tag;
-          listaTags.appendChild(elemento);
-        });
+        (dados.detailTags ?? "")
+          .split("|")
+          .filter(Boolean)
+          .forEach(tag => {
+            const elemento = document.createElement("span");
+            elemento.textContent = tag;
+            listaTags.appendChild(elemento);
+          });
       }
       abrirDialogo(dialogo, cartao);
     });
@@ -158,7 +185,9 @@
         "[data-work-isrc-detail]": "workIsrc",
         "[data-work-iswc-detail]": "workIswc",
       };
-      Object.entries(campos).forEach(([seletor, chave]) => definirTexto(dialogo, seletor, dados[chave]));
+      Object.entries(campos).forEach(([seletor, chave]) =>
+        definirTexto(dialogo, seletor, dados[chave])
+      );
       abrirDialogo(dialogo, cartao);
     });
   });
@@ -179,7 +208,9 @@
         "[data-beat-description-detail]": "beatDescription",
         "[data-beat-usage-detail]": "beatUsage",
       };
-      Object.entries(campos).forEach(([seletor, chave]) => definirTexto(dialogo, seletor, dados[chave]));
+      Object.entries(campos).forEach(([seletor, chave]) =>
+        definirTexto(dialogo, seletor, dados[chave])
+      );
       abrirDialogo(dialogo, botao);
     });
   });
@@ -205,27 +236,42 @@
     });
   });
   window.addEventListener("hashchange", () => {
-    const link = document.querySelector(`[data-settings-link][href="${window.location.hash}"]`);
+    const link = document.querySelector(
+      `[data-settings-link][href="${window.location.hash}"]`
+    );
     if (link) link.click();
   });
 
   const aplicarTema = tema => {
     document.documentElement.classList.toggle("dark", tema === "dark");
     document.querySelectorAll("[data-theme-mode]").forEach(botao => {
-      botao.setAttribute("aria-pressed", String(botao.dataset.themeMode === tema));
+      botao.setAttribute(
+        "aria-pressed",
+        String(botao.dataset.themeMode === tema)
+      );
     });
-    try { window.localStorage.setItem("cypher-tema", tema); } catch { /* armazenamento pode estar bloqueado */ }
+    try {
+      window.localStorage.setItem("cypher-tema", tema);
+    } catch {
+      /* armazenamento pode estar bloqueado */
+    }
   };
   let temaSalvo = "light";
-  try { temaSalvo = window.localStorage.getItem("cypher-tema") === "dark" ? "dark" : "light"; }
-  catch { /* usa o tema claro padrão */ }
+  try {
+    temaSalvo =
+      window.localStorage.getItem("cypher-tema") === "dark" ? "dark" : "light";
+  } catch {
+    /* usa o tema claro padrão */
+  }
   aplicarTema(temaSalvo);
   document.querySelectorAll("[data-theme-mode]").forEach(botao => {
     botao.addEventListener("click", () => aplicarTema(botao.dataset.themeMode));
   });
 
   const categoriaOutros = document.querySelector("[data-category-other]");
-  const blocoOutraCategoria = document.querySelector("[data-other-category-field]");
+  const blocoOutraCategoria = document.querySelector(
+    "[data-other-category-field]"
+  );
   const entradaCategoria = document.getElementById("categoria-personalizada");
   const atualizarCategorias = () => {
     document.querySelectorAll(".category-option").forEach(opcao => {
@@ -236,51 +282,65 @@
     if (blocoOutraCategoria) blocoOutraCategoria.hidden = !exibir;
     if (entradaCategoria) entradaCategoria.required = exibir;
   };
-  document.querySelectorAll(".category-option input[type=checkbox]").forEach(campo => {
-    campo.addEventListener("change", atualizarCategorias);
-  });
+  document
+    .querySelectorAll(".category-option input[type=checkbox]")
+    .forEach(campo => {
+      campo.addEventListener("change", atualizarCategorias);
+    });
   atualizarCategorias();
 
-  document.querySelector("[data-register-form]")?.addEventListener("submit", evento => {
-    const selecionadas = [...document.querySelectorAll('.category-option input[type="checkbox"]')].some(campo => campo.checked);
-    const aviso = document.querySelector("[data-category-validation]");
-    if (aviso) aviso.hidden = selecionadas;
-    if (!selecionadas) {
-      evento.preventDefault();
-      document.querySelector(".category-fieldset")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      document.querySelector('.category-option input[type="checkbox"]')?.focus();
-    }
-  });
+  document
+    .querySelector("[data-register-form]")
+    ?.addEventListener("submit", evento => {
+      const selecionadas = [
+        ...document.querySelectorAll('.category-option input[type="checkbox"]'),
+      ].some(campo => campo.checked);
+      const aviso = document.querySelector("[data-category-validation]");
+      if (aviso) aviso.hidden = selecionadas;
+      if (!selecionadas) {
+        evento.preventDefault();
+        document
+          .querySelector(".category-fieldset")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+        document
+          .querySelector('.category-option input[type="checkbox"]')
+          ?.focus();
+      }
+    });
 
-  document.querySelector("[data-analyze-category]")?.addEventListener("click", async evento => {
-    const botao = evento.currentTarget;
-    const resultado = document.querySelector("[data-category-result]");
-    const categoria = entradaCategoria?.value.trim();
-    if (!categoria || !resultado) {
-      entradaCategoria?.focus();
-      return;
-    }
-    botao.disabled = true;
-    botao.textContent = "Analisando…";
-    resultado.hidden = false;
-    resultado.textContent = "Solicitando pré-análise demonstrativa…";
-    try {
-      const resposta = await fetch("/categories/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ categoria }),
-      });
-      const dados = await resposta.json();
-      resultado.textContent = dados.mensagem ?? "Não foi possível concluir a pré-análise.";
-      resultado.classList.toggle("is-error", !resposta.ok);
-    } catch {
-      resultado.textContent = "Não foi possível solicitar a análise. Tente novamente.";
-      resultado.classList.add("is-error");
-    } finally {
-      botao.disabled = false;
-      botao.textContent = "Solicitar análise";
-    }
-  });
+  document
+    .querySelector("[data-analyze-category]")
+    ?.addEventListener("click", async evento => {
+      const botao = evento.currentTarget;
+      const resultado = document.querySelector("[data-category-result]");
+      const categoria = entradaCategoria?.value.trim();
+      if (!categoria || !resultado) {
+        entradaCategoria?.focus();
+        return;
+      }
+      botao.disabled = true;
+      botao.textContent = "Analisando…";
+      resultado.hidden = false;
+      resultado.textContent = "Solicitando pré-análise demonstrativa…";
+      try {
+        const resposta = await fetch("/categories/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categoria }),
+        });
+        const dados = await resposta.json();
+        resultado.textContent =
+          dados.mensagem ?? "Não foi possível concluir a pré-análise.";
+        resultado.classList.toggle("is-error", !resposta.ok);
+      } catch {
+        resultado.textContent =
+          "Não foi possível solicitar a análise. Tente novamente.";
+        resultado.classList.add("is-error");
+      } finally {
+        botao.disabled = false;
+        botao.textContent = "Solicitar análise";
+      }
+    });
 
   const listaMenções = document.querySelector("[data-ghost-list]");
   document.querySelector("[data-add-ghost]")?.addEventListener("click", () => {
@@ -317,12 +377,16 @@
     nome.focus();
   });
 
-  document.querySelector("[data-central-search]")?.addEventListener("submit", evento => {
-    evento.preventDefault();
-    const campo = evento.currentTarget.querySelector("input");
-    const consulta = campo.value.trim().toLocaleLowerCase("pt-BR");
-    document.querySelectorAll("[data-faq-item]").forEach(item => {
-      item.hidden = !item.textContent.toLocaleLowerCase("pt-BR").includes(consulta);
+  document
+    .querySelector("[data-central-search]")
+    ?.addEventListener("submit", evento => {
+      evento.preventDefault();
+      const campo = evento.currentTarget.querySelector("input");
+      const consulta = campo.value.trim().toLocaleLowerCase("pt-BR");
+      document.querySelectorAll("[data-faq-item]").forEach(item => {
+        item.hidden = !item.textContent
+          .toLocaleLowerCase("pt-BR")
+          .includes(consulta);
+      });
     });
-  });
 })();

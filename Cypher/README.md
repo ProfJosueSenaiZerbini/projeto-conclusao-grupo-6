@@ -1,128 +1,63 @@
 # Cypher
 
-O **Cypher** é um protótipo de plataforma profissional para a cena musical underground, reunindo profissionais, oportunidades, obras, beats, perfis e conteúdos de apoio.
-
-## Tecnologias
-
-- **Node.js**
-- **TypeScript**
-- **Express**
-- **EJS**
-- **HTML, CSS e JavaScript**
-- **Lucide Static** para ícones locais
-
-### Estrutura
-
-```text
-cypher/
-├── public/
-│   ├── css/
-│   └── js/
-├── src/
-│   ├── aplicacao.ts
-│   └── app/
-│       ├── controllers/
-│       │   └── controladorCypher.ts
-│       ├── models/
-│       │   └── modeloCypher.ts
-│       └── routes/
-│           └── rotasCypher.ts
-├── views/
-│   ├── pages/
-│   └── partials/
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
-### Responsabilidades
-
-| Camada      | Responsabilidade                           |
-|-------------|--------------------------------------------|
-| Application | Configura o Express e inicia o servidor    |
-| Routes      | Define as rotas                            |
-| Controllers | Processa as requisições e controla o fluxo |
-| Models      | Organiza dados e operações                 |
-| Views       | Exibe as páginas em EJS                    |
-| Partials    | Reutiliza trechos comuns das Views         |
-| Public      | Armazena CSS e JavaScript do navegador     |
-
-## Funcionalidades
-
-- Login e cadastro demonstrativos
-- Sessão por cookie
-- Dashboard
-- Busca de profissionais
-- Oportunidades
-- Catálogo de obras
-- Cadastro demonstrativo de obras
-- Banco de beats
-- Cypher Central
-- Perfil profissional
-- Configurações
-- Layout responsivo
-- Logout e proteção das páginas autenticadas
+Protótipo web para profissionais da cena musical underground. Reúne perfil, busca de profissionais, oportunidades, obras, banco de beats e conteúdo de apoio.
 
 ## Requisitos
 
-- **Node.js 20 ou superior**
-- **npm**
+- Node.js 20 ou superior
+- npm (incluído na instalação do Node.js)
 
-## Como executar
+A aplicação usa TypeScript, Express, EJS, CSS, JavaScript no navegador e ícones Lucide locais. Não usa banco de dados: autenticação e dados são demonstrativos e não persistem.
 
-### 1. Instalar dependências
+## Executar
+
+Na pasta raiz do projeto:
 
 ```bash
-npm install
+npm ci
+npm run dev
 ```
 
-### 2. Verificar o projeto
+Abra <http://localhost:3000/login>. O servidor de desenvolvimento reinicia quando os arquivos TypeScript são alterados.
+
+Para compilar e iniciar a versão compilada:
+
+```bash
+npm run build
+npm start
+```
+
+Para verificar o TypeScript:
 
 ```bash
 npm run check
 ```
 
-### 3. Executar em desenvolvimento
+A porta padrão é `3000`. Para usar outra porta, defina a variável `PORT` antes de iniciar o comando.
+
+## Funcionalidades do protótipo
+
+- Login e cadastro demonstrativos, com perfil de exemplo OG Emicê.
+- Visão geral, busca de profissionais e oportunidades com filtros e detalhes.
+- Catálogo de obras, formulário de cadastro e créditos demonstrativos.
+- Banco de beats, Cypher Central, perfil e configurações.
+- Navegação responsiva, menus, painéis e alternância de tema.
+
+As telas e interações demonstram os fluxos; usuários, obras, créditos, conexões e outras informações não são gravados.
+
+## Estrutura
+
+- `src/aplicacao.ts`: configuração e inicialização do Express.
+- `src/app/routes/`: rotas HTTP.
+- `src/app/controllers/`: fluxo das requisições e seleção das páginas.
+- `src/app/models/`: dados demonstrativos.
+- `views/pages/` e `views/partials/`: páginas EJS e componentes compartilhados.
+- `public/css/` e `public/js/`: estilos e interações do navegador.
+- `scripts/`: utilitários de formatação EJS e geração do agregador CSS.
+
+## Formatação
 
 ```bash
-npm run dev
+npm run format
+npm run format:views
 ```
-
-Acesse:
-
-```text
-http://localhost:3000
-```
-
-### 4. Gerar a versão compilada
-
-```bash
-npm run build
-```
-
-### 5. Executar a versão compilada
-
-```bash
-npm start
-```
-
-## Rotas principais
-| Método | Rota         | Acesso      |
-|--------|--------------|-------------|
-| GET    | `/login`     | Público     |
-| POST   | `/login`     | Público     |
-| GET    | `/register`  | Público     |
-| POST   | `/register`  | Público     |
-| POST   | `/logout`    | Autenticado |
-| GET    | `/dashboard` | Autenticado |
-| GET    | `/search`    | Autenticado |
-| GET    | `/events`    | Autenticado |
-| GET    | `/works`     | Autenticado |
-| GET    | `/works/new` | Autenticado |
-| POST   | `/works/new` | Autenticado |
-| GET    | `/beats`     | Autenticado |
-| GET    | `/central`   | Autenticado |
-| GET    | `/profile`   | Autenticado |
-| GET    | `/settings`  | Autenticado |
-
-A rota `/` direciona para o dashboard quando existe uma sessão válida.

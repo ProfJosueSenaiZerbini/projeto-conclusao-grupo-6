@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/aplicacao.ts",
     "build": "tsc",
-    "start": "NODE_ENV=production node dist/src/aplicacao.js",
+    "start": "node dist/src/aplicacao.js",
     "check": "tsc --noEmit",
-    "format": "prettier --write src scripts",
+    "format": "prettier --write src scripts public/js public/css",
     "format:views": "node scripts/formatar-ejs.mjs"
   },
   "dependencies": {

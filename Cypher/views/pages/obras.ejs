@@ -13,8 +13,7 @@
       Obras
     </h1>
     <p>
-      Um lugar claro para guardar sua trajetória e reconhecer quem
-            constrói com você.
+      Um lugar claro para guardar sua trajetória e reconhecer quem constrói com você.
     </p>
   </div>
   <a class="button button-lime" href="/works/new">
@@ -50,7 +49,7 @@
       EM ANDAMENTO
     </span>
     <strong>
-      <%= String(estatisticasObras.emAndamento).padStart(2, '0') %>
+      <%= String( estatisticasObras.emAndamento ).padStart(2, '0') %>
     </strong>
     <p>
       Obras que ainda pedem atenção
@@ -76,7 +75,7 @@
 </div>
 <div class="works-card-list">
   <% obras.forEach((obra, i) => { %>
-    <button class="work-card" type="button" data-work-card data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>" >
+    <button class="work-card" type="button" data-work-card data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>">
       <span class="work-card-index index-<%= i %>">
         0<%= i + 1 %>
       </span>
@@ -126,18 +125,17 @@
   <span class="lucide-icon" aria-hidden="true">
     <%- icones.circleHelp %>
   </span>
-  Os registros e contadores acima são dados de demonstração. O protótipo
-        não salva novas obras.
+  Os registros e contadores acima são dados de demonstração. O protótipo não salva novas obras.
 </p>
 </div>
 </main>
 </div>
-<dialog class="detail-dialog work-detail-dialog" id="detalhe-obra" aria-labelledby="detalhe-obra-titulo" >
+<dialog class="detail-dialog work-detail-dialog" id="detalhe-obra" aria-labelledby="detalhe-obra-titulo">
 <div class="detail-dialog-header">
 <span class="detail-kicker">
 FICHA DA OBRA
 </span>
-<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe" >
+<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe">
 <span class="lucide-icon" aria-hidden="true">
   <%- icones.x %>
 </span>

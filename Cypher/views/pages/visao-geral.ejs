@@ -11,13 +11,13 @@
     </div>
     <h1>
       A cena se move quando
+      <br>
       <em>
         a gente se conecta.
       </em>
     </h1>
     <p>
-      Bom te ver,<%= usuario.name %>. Aqui está o que acontece no seu
-            espaço.
+      Bom te ver,<%= usuario.name %>. Aqui está o que acontece no seu espaço.
     </p>
   </div>
 </div>
@@ -27,8 +27,10 @@
       SEU CICLO
     </span>
     <h2>
-      Descobrir.  
-Conectar.
+      Descobrir.
+      <br>
+      Conectar.
+      <br>
       <span>
         Criar.
       </span>
@@ -54,7 +56,7 @@ Conectar.
     </div>
   </div>
   <div class="stat-stack">
-    <a class="stat-card stat-yellow stat-link" href="/works" aria-label="Abrir Obras:<%= estatisticasObras.emAndamento %>em andamento" >
+    <a class="stat-card stat-yellow stat-link" href="/works" aria-label="Abrir Obras:<%= estatisticasObras.emAndamento %>em andamento">
       <span>
         Obras em andamento
       </span>
@@ -81,7 +83,7 @@ Conectar.
     </div>
   </div>
   <article class="accent-note hit-month-card">
-    <span class="lucide-icon hit-month-icon" aria-hidden="true" >
+    <span class="lucide-icon hit-month-icon" aria-hidden="true">
       <%- icones.audioLines %>
     </span>
     <span>
@@ -131,7 +133,7 @@ Conectar.
       </div>
     </div>
     <% eventos.slice(0,2).forEach(evento => { %>
-      <a class="event-row" href="/events" aria-label="Ver oportunidade<%= evento.title %>" >
+      <a class="event-row" href="/events" aria-label="Ver oportunidade<%= evento.title %>">
         <div class="date-tile date-<%= evento.color %>">
           <strong>
             <%= evento.date.split(' ')[0] %>
@@ -173,7 +175,7 @@ Conectar.
       </div>
     </div>
     <% pessoas.slice(0,3).forEach(pessoa => { %>
-      <a class="person-row" href="/search" aria-label="Encontrar<%= pessoa.name %>" >
+      <a class="person-row" href="/search" aria-label="Encontrar<%= pessoa.name %>">
         <div class="avatar avatar-<%= pessoa.tone %>">
           <%= pessoa.initials %>
         </div>

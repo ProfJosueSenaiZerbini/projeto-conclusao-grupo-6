@@ -16,7 +16,7 @@
       Eventos, encontros e espaços para colocar seu trabalho em movimento.
     </p>
   </div>
-  <button class="button button-yellow" type="button" data-interest-button aria-pressed="false" >
+  <button class="button button-yellow" type="button" data-interest-button aria-pressed="false">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.calendarCheck %>
     </span>
@@ -25,32 +25,30 @@
     </span>
   </button>
 </div>
-<p class="interest-explainer" data-interest-notice role="status" hidden >
-  Ao marcar interesse, você sinaliza aos organizadores que está ativo na
-        cena. Eles poderão notificar você antes ou depois do lançamento do
-        evento. Este protótipo não envia notificações.
+<p class="interest-explainer" data-interest-notice role="status" hidden>
+  Ao marcar interesse, você sinaliza aos organizadores que está ativo na cena. Eles poderão notificar você antes ou depois do lançamento do evento. Este protótipo não envia notificações.
 </p>
 <div class="tabs-row" role="group" aria-label="Filtrar oportunidades">
-  <button class="tab active" type="button" data-event-filter="Todos" aria-pressed="true" >
+  <button class="tab active" type="button" data-event-filter="Todos" aria-pressed="true">
     Todos
   </button>
-  <button class="tab" type="button" data-event-filter="Batalha" aria-pressed="false" >
+  <button class="tab" type="button" data-event-filter="Batalha" aria-pressed="false">
     Batalhas
   </button>
-  <button class="tab" type="button" data-event-filter="Show" aria-pressed="false" >
+  <button class="tab" type="button" data-event-filter="Show" aria-pressed="false">
     Shows
   </button>
-  <button class="tab" type="button" data-event-filter="Cypher" aria-pressed="false" >
+  <button class="tab" type="button" data-event-filter="Cypher" aria-pressed="false">
     Cyphers
   </button>
-  <button class="tab" type="button" data-event-filter="Workshop" aria-pressed="false" >
+  <button class="tab" type="button" data-event-filter="Workshop" aria-pressed="false">
     Workshops
   </button>
 </div>
 <div class="events-layout">
   <div class="events-list">
     <% eventos.forEach((evento, i) => { %>
-      <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>" >
+      <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
         <span class="event-card-band band-<%= evento.color %>">
           <span>
             0<%= i + 1 %>
@@ -120,7 +118,7 @@
         participações
       </span>
     </div>
-    <div class="history-meter" role="img" aria-label="Participações distribuídas em três categorias" >
+    <div class="history-meter" role="img" aria-label="Participações distribuídas em três categorias">
       <i>
       </i>
       <i>
@@ -159,18 +157,18 @@
 </div>
 </main>
 </div>
-<dialog class="detail-dialog" id="detalhe-oportunidade" aria-labelledby="detalhe-oportunidade-titulo" >
+<dialog class="detail-dialog" id="detalhe-oportunidade" aria-labelledby="detalhe-oportunidade-titulo">
 <div class="detail-dialog-header">
 <span class="detail-kicker" data-event-category-detail>
 OPORTUNIDADE
 </span>
-<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe" >
+<button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe">
 <span class="lucide-icon" aria-hidden="true">
   <%- icones.x %>
 </span>
 </button>
 </div>
-<h2 id="detalhe-oportunidade-titulo" data-event-title-detail >
+<h2 id="detalhe-oportunidade-titulo" data-event-title-detail>
 </h2>
 <div class="detail-meta">
 <span>
@@ -249,7 +247,7 @@ Sobre a oportunidade
 <div class="detail-tags" data-event-tags-detail>
 </div>
 <div class="detail-actions">
-<button class="button button-lime" type="button" data-interest-button aria-pressed="false" >
+<button class="button button-lime" type="button" data-interest-button aria-pressed="false">
 <span class="lucide-icon" aria-hidden="true">
   <%- icones.calendarCheck %>
 </span>
@@ -257,7 +255,7 @@ Sobre a oportunidade
   Demonstrar interesse
 </span>
 </button>
-<button class="button button-outline" type="button" data-toast="Link copiado nesta demonstração" >
+<button class="button button-outline" type="button" data-toast="Link copiado nesta demonstração">
 <span class="lucide-icon" aria-hidden="true">
   <%- icones.share %>
 </span>

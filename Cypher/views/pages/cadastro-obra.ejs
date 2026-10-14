@@ -48,12 +48,11 @@
       Versão de protótipo
     </strong>
     <p>
-      Esta tela demonstra o fluxo de cadastro. Os dados enviados ainda
-            não são persistidos.
+      Esta tela demonstra o fluxo de cadastro. Os dados enviados ainda não são persistidos.
     </p>
   </div>
 </div>
-<form class="work-form" method="post" action="/works/new" data-work-form >
+<form class="work-form" method="post" action="/works/new" data-work-form>
   <section class="form-section">
     <div class="form-section-heading">
       <span class="form-step">
@@ -74,7 +73,7 @@
         <span class="required-mark">
           *
         </span>
-        <input name="titulo" required maxlength="120" placeholder="Ex.: Metrô depois das duas" >
+        <input name="titulo" required maxlength="120" placeholder="Ex.: Metrô depois das duas">
       </label>
       <label>
         Tipo de lançamento
@@ -121,7 +120,7 @@
             Trap
           </option>
           <option>
-            R&amp;B
+            R&B
           </option>
           <option>
             Lo-fi
@@ -136,7 +135,7 @@
         <span class="optional-mark">
           Opcional
         </span>
-        <input type="number" name="bpm" min="30" max="300" placeholder="Ex.: 92" >
+        <input type="number" name="bpm" min="30" max="300" placeholder="Ex.: 92">
       </label>
       <label>
         Status
@@ -160,7 +159,7 @@
         <span class="optional-mark">
           Opcional
         </span>
-        <textarea name="descricao" rows="4" maxlength="500" placeholder="Conte sobre o contexto, estilo e fase atual da obra." >
+        <textarea name="descricao" rows="4" maxlength="500" placeholder="Conte sobre o contexto, estilo e fase atual da obra.">
         </textarea>
       </label>
       <label class="field-full">
@@ -168,7 +167,7 @@
         <span class="optional-mark">
           Opcional
         </span>
-        <textarea name="letra" rows="5" placeholder="Adicione um trecho ou notas privadas da obra." >
+        <textarea name="letra" rows="5" placeholder="Adicione um trecho ou notas privadas da obra.">
         </textarea>
       </label>
     </div>
@@ -219,7 +218,7 @@
         <span class="optional-mark">
           Opcional
         </span>
-        <input name="colaboradores" placeholder="Busque ou digite nomes" >
+        <input name="colaboradores" placeholder="Busque ou digite nomes">
       </label>
     </div>
     <div class="ghost-credit-form">
@@ -238,7 +237,7 @@
       </div>
       <div class="ghost-entry-list" data-ghost-list>
       </div>
-      <button class="button button-outline small" type="button" data-add-ghost >
+      <button class="button button-outline small" type="button" data-add-ghost>
         <span class="lucide-icon" aria-hidden="true">
           <%- icones.plus %>
         </span>
@@ -266,14 +265,14 @@
         <span class="optional-mark">
           Opcional
         </span>
-        <input name="isrc" maxlength="20" placeholder="Código da gravação" >
+        <input name="isrc" maxlength="20" placeholder="Código da gravação">
       </label>
       <label>
         ISWC
         <span class="optional-mark">
           Opcional
         </span>
-        <input name="iswc" maxlength="20" placeholder="Código da obra" >
+        <input name="iswc" maxlength="20" placeholder="Código da obra">
       </label>
       <label>
         Data de lançamento
@@ -306,4 +305,4 @@
 </div>
 </main>
 </div>
-<%- include('../partials/fim-pagina' ) %>
+<%- include('../partials/fim-pagina') %>
