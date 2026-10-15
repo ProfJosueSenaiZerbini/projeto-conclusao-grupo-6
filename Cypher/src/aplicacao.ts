@@ -1,12 +1,14 @@
 import express from "express";
 import path from "node:path";
 import routes from "./app/routes/rotasCypher.js";
+import { inicializarDadosDemonstrativos } from "./app/models/modeloCypher.js";
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   AudioLines,
   BadgeCheck,
+  Bell,
   CalendarCheck2,
   CalendarDays,
   ChartNoAxesCombined,
@@ -44,8 +46,12 @@ import {
   X,
 } from "lucide-static";
 
+inicializarDadosDemonstrativos();
+
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
+
+app.set("trust proxy", 1);
 
 const icones = {
   arrowLeft: ArrowLeft,
@@ -53,6 +59,7 @@ const icones = {
   arrowUpRight: ArrowUpRight,
   audioLines: AudioLines,
   badgeCheck: BadgeCheck,
+  bell: Bell,
   calendarCheck: CalendarCheck2,
   calendarDays: CalendarDays,
   chart: ChartNoAxesCombined,

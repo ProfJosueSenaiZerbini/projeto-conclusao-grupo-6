@@ -16,13 +16,21 @@
       Beats cadastrados por produtores da cena, com informações claras de uso e licença.
     </p>
   </div>
-  <button class="button button-yellow" type="button" data-toast="O cadastro de beats ainda é demonstrativo">
+  <a class="button button-yellow" href="/beats/new">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.plus %>
     </span>
     Cadastrar beat
-  </button>
+  </a>
 </div>
+<% if (typeof resultado !== 'undefined' && resultado) { %>
+  <div class="form-feedback success-feedback" role="status">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.circleCheck %>
+    </span>
+    <%= resultado === 'criado' ? 'Beat cadastrado com sucesso.' : resultado === 'atualizado' ? 'Beat atualizado com sucesso.' : 'Beat excluído com sucesso.' %>
+  </div>
+<% } %>
 <div class="beats-toolbar">
   <label class="search-field" for="buscar-beats">
     <span class="lucide-icon" aria-hidden="true">
@@ -59,6 +67,16 @@
               por<%= beat.producer %>
             </p>
           </div>
+          <% if (beat.owned) { %>
+            <span class="beat-owner-badge">
+              SEU BEAT
+            </span>
+          <% } %>
+          <% if (beat.vendaExclusiva) { %>
+            <span class="beat-exclusive-badge">
+              VENDA EXCLUSIVA
+            </span>
+          <% } %>
         </div>
         <div class="beat-specs">
           <span>
@@ -81,12 +99,24 @@
           <span class="license license-<%= beat.color %>">
             <%= beat.license %>
           </span>
-          <button class="text-link" type="button" data-beat-detail data-beat-title="<%= beat.title %>" data-beat-producer="<%= beat.producer %>" data-beat-bpm="<%= beat.bpm %>" data-beat-key="<%= beat.key %>" data-beat-genre="<%= beat.genre %>" data-beat-license="<%= beat.license %>" data-beat-duration="<%= beat.duration %>" data-beat-description="<%= beat.description %>" data-beat-usage="<%= beat.usage %>">
-            Ver detalhe
-            <span class="lucide-icon" aria-hidden="true">
-              <%- icones.arrowUpRight %>
-            </span>
-          </button>
+          <div class="beat-actions">
+            <button class="text-link" type="button" data-beat-detail data-beat-title="<%= beat.title %>" data-beat-producer="<%= beat.producer %>" data-beat-bpm="<%= beat.bpm %>" data-beat-key="<%= beat.key %>" data-beat-genre="<%= beat.genre %>" data-beat-license="<%= beat.license %>" data-beat-duration="<%= beat.duration %>" data-beat-description="<%= beat.description %>" data-beat-usage="<%= beat.usage %>" data-beat-ofertas="<%= encodeURIComponent(JSON.stringify(beat.ofertas)) %>" data-beat-exclusive="<%= beat.vendaExclusiva ? 'true' : 'false' %>">
+              Ver detalhe
+              <span class="lucide-icon" aria-hidden="true">
+                <%- icones.arrowUpRight %>
+              </span>
+            </button>
+            <% if (beat.owned) { %>
+              <a class="text-link" href="/beats/<%= encodeURIComponent(beat.id) %>/edit">
+                Editar
+              </a>
+              <form method="post" action="/beats/<%= encodeURIComponent(beat.id) %>/delete" class="inline-form" data-confirm="Excluir este beat do seu catálogo?">
+                <button class="text-link danger-link" type="submit">
+                  Excluir
+                </button>
+              </form>
+            <% } %>
+          </div>
         </div>
       </div>
     </article>
@@ -97,6 +127,9 @@
 </div>
 <dialog class="detail-dialog beat-detail-dialog" id="detalhe-beat" aria-labelledby="detalhe-beat-titulo">
 <div class="detail-dialog-header">
+<span class="beat-exclusive-detail" data-beat-exclusive-detail hidden>
+VENDA EXCLUSIVA
+</span>
 <span class="detail-kicker">
 FICHA DO BEAT
 </span>
@@ -162,6 +195,13 @@ Sobre o beat
 </span>
 </p>
 </div>
+<section class="detail-section">
+<h3>
+Ofertas disponíveis
+</h3>
+<div data-beat-ofertas-detail>
+</div>
+</section>
 <div class="detail-actions">
 <button class="button button-dark" type="button" data-toast="Solicitação de contato demonstrativa">
 <span class="lucide-icon" aria-hidden="true">

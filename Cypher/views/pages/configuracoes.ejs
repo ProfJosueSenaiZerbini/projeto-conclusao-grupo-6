@@ -3,7 +3,7 @@
 <%- include('../partials/barra-lateral', { path }) %>
 <main class="main-shell">
 <%- include('../partials/barra-superior', { breadcrumb: 'Configurações' }) %>
-<div class="page-content">
+<div class="page-content settings-page">
 <div class="settings-intro">
   <div>
     <div class="eyebrow">
@@ -25,6 +25,16 @@
     </small>
   </div>
 </div>
+<% if (mensagem) { %>
+  <p class="settings-message settings-message-success" role="status">
+    <%= mensagem %>
+  </p>
+<% } %>
+<% if (erro) { %>
+  <p class="settings-message settings-message-error" role="alert">
+    <%= erro %>
+  </p>
+<% } %>
 <div class="settings-layout">
   <aside class="settings-index" aria-label="Seções de configurações">
     <div class="settings-index-label">
@@ -67,7 +77,7 @@
       Ajuda e sobre
     </a>
   </aside>
-  <main class="settings-content">
+  <div class="settings-content">
     <section id="conta" class="settings-section">
       <div class="eyebrow">
         01 · CONTA
@@ -102,7 +112,7 @@
             E-mail
           </span>
           <strong>
-            <%= usuario.email %>
+            <%= usuario.email || 'Não informado' %>
           </strong>
         </div>
         <div class="settings-data">
@@ -110,23 +120,23 @@
             Tipo de conta
           </span>
           <strong>
-            <%= usuario.role %>
+            <%= usuario.tipoConta === 'organizador' ? 'Organizador' : 'Profissional' %>
           </strong>
         </div>
         <div class="settings-data">
           <span>
-            Status
+            Status profissional
           </span>
           <strong>
-            Ativa · demonstração
+            <%= usuario.availabilityLabel %>
           </strong>
         </div>
         <div class="settings-data ctag-setting">
           <span>
-            C-Tag imutável
+            ID Cypher imutável
           </span>
           <strong>
-            <%= usuario.cTag %>
+            <%= usuario.publicCode %>
           </strong>
         </div>
       </div>
@@ -142,7 +152,7 @@
         Mantenha sua identidade profissional clara para a cena.
       </p>
       <div class="settings-link-list">
-        <a class="settings-link-row" href="/profile">
+        <a class="settings-link-row" href="/profile?editar=1#editar-perfil">
           <span class="settings-link-icon lucide-icon" aria-hidden="true">
             <%- icones.user %>
           </span>
@@ -151,7 +161,7 @@
               Editar perfil
             </strong>
             <small>
-              Identidade, biografia e C-Tag
+              Identidade, biografia, categorias e C-Tag
             </small>
           </span>
           <span class="lucide-icon" aria-hidden="true">
@@ -164,10 +174,10 @@
           </span>
           <span>
             <strong>
-              Informações profissionais
+              Obras
             </strong>
             <small>
-              Obras, créditos e participações
+              Consulte o catálogo de obras
             </small>
           </span>
           <span class="lucide-icon" aria-hidden="true">
@@ -184,32 +194,94 @@
         Você decide o que aparece
       </h2>
       <p>
-        Perfil público · Aparecer na busca · Localização visível · Disponível para colaboração
+        As opções abaixo controlam os dados exibidos na página pública do seu perfil.
       </p>
+      <% if (!usuario.demonstracao) { %>
+        <form method="post" action="/settings/privacy" class="privacy-form">
+          <label class="privacy-option">
+            <span>
+              <strong>
+                Perfil público
+              </strong>
+              <small>
+                Permite abrir seu perfil pelo link compartilhável.
+              </small>
+            </span>
+            <input type="checkbox" name="perfilPublico"<%= usuario.profilePublic ? 'checked' : '' %>>
+          </label>
+          <label class="privacy-option">
+            <span>
+              <strong>
+                Mostrar localização
+              </strong>
+              <small>
+                Exibe cidade e estado no perfil público.
+              </small>
+            </span>
+            <input type="checkbox" name="localizacaoPublica"<%= usuario.locationPublic ? 'checked' : '' %>>
+          </label>
+          <label class="privacy-option">
+            <span>
+              <strong>
+                Mostrar contato profissional
+              </strong>
+              <small>
+                Exibe o contato informado no seu perfil. Seu e-mail de acesso não é publicado.
+              </small>
+            </span>
+            <input type="checkbox" name="contatoPublico"<%= usuario.contactPublic ? 'checked' : '' %>>
+          </label>
+          <button class="button button-lime" type="submit">
+            Salvar visibilidade
+          </button>
+        </form>
+        <% if (usuario.profilePublic) { %>
+          <p class="public-profile-link">
+            Link do perfil:
+            <a href="/p/<%= usuario.handle.replace(/^@/, '') %>">
+              /p/<%= usuario.handle.replace(/^@/, '') %>
+            </a>
+          </p>
+        <% } %>
+      <% } else { %>
+        <p class="settings-note">
+          As preferências de visibilidade ficam disponíveis para contas pessoais.
+        </p>
+      <% } %>
     </section>
     <section id="descoberta" class="settings-section">
       <div class="eyebrow">
         04 · DESCOBERTA
       </div>
       <h2>
-        Oriente o que encontra
+        Informações profissionais
       </h2>
-      <label class="settings-field">
-        <span>
-          REGIÃO PRINCIPAL
-        </span>
-        <select>
-          <option>
-            São Paulo - SP
-          </option>
-          <option>
-            Campinas - SP
-          </option>
-        </select>
-      </label>
       <p>
-        Gêneros de interesse: Boom bap · Rap alternativo · Trap
+        Essas informações ajudam a apresentar seu trabalho no Cypher.
       </p>
+      <div class="settings-data-grid">
+        <div class="settings-data">
+          <span>
+            Região principal
+          </span>
+          <strong>
+            <%= usuario.city || 'Não informada' %>
+          </strong>
+        </div>
+        <div class="settings-data">
+          <span>
+            Gêneros e estilos
+          </span>
+          <strong>
+            <%= usuario.genres.length ? usuario.genres.join(' · ') : 'Não informados' %>
+          </strong>
+        </div>
+      </div>
+      <% if (!usuario.demonstracao) { %>
+        <a class="button button-outline" href="/profile?editar=1#editar-perfil">
+          Atualizar informações
+        </a>
+      <% } %>
     </section>
     <section id="aparencia" class="settings-section">
       <div class="eyebrow">
@@ -218,12 +290,14 @@
       <h2>
         Escolha o clima da interface
       </h2>
-      <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="light" aria-pressed="true">
-        Claro
-      </button>
-      <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="dark" aria-pressed="false">
-        Escuro
-      </button>
+      <div class="theme-mode-options">
+        <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="light" aria-pressed="true">
+          Claro
+        </button>
+        <button class="button button-outline theme-mode-choice" type="button" data-theme-mode="dark" aria-pressed="false">
+          Escuro
+        </button>
+      </div>
     </section>
     <section id="ajuda" class="settings-section">
       <div class="eyebrow">
@@ -268,7 +342,38 @@
         Sair da conta
       </button>
     </form>
-  </main>
+    <% if (!usuario.demonstracao) { %>
+      <section class="settings-section account-delete-section">
+        <div class="eyebrow">
+          ENCERRAMENTO DE CONTA
+        </div>
+        <h2>
+          Excluir conta
+        </h2>
+        <p>
+          A exclusão remove seu perfil e encerra suas sessões. Contas com obras, eventos ou beats próprios precisam remover ou transferir esses registros antes; créditos em obras de outras pessoas permanecem identificados pelo nome registrado.
+        </p>
+        <details class="account-delete-details">
+          <summary>
+            Continuar com a exclusão
+          </summary>
+          <form method="post" action="/settings/delete-account" class="account-delete-form">
+            <label>
+              Senha atual
+              <input type="password" name="password" autocomplete="current-password" maxlength="128" required>
+            </label>
+            <label>
+              Digite EXCLUIR para confirmar
+              <input type="text" name="confirmacao" autocomplete="off" required>
+            </label>
+            <button class="button button-outline danger-button" type="submit">
+              Excluir minha conta
+            </button>
+          </form>
+        </details>
+      </section>
+    <% } %>
+  </div>
 </div>
 </div>
 </main>

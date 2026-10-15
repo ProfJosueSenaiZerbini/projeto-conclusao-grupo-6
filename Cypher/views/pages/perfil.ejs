@@ -14,16 +14,142 @@
     </h1>
     <p>
       <%= usuario.role %>
-      ·<%= usuario.city %>
+      <%= usuario.city ? ` · ${usuario.city}` : '' %>
     </p>
   </div>
-  <button class="button button-outline" type="button" data-toast="Edição do perfil disponível em uma próxima etapa">
-    <span class="lucide-icon" aria-hidden="true">
-      <%- icones.settings %>
-    </span>
-    Editar perfil
-  </button>
+  <div class="profile-header-actions">
+    <% if (!usuario.demonstracao) { %>
+      <% if (editando) { %>
+        <a class="button button-outline" href="/profile">
+          Cancelar edição
+        </a>
+      <% } else { %>
+        <a class="button button-outline" href="/profile?editar=1#editar-perfil">
+          <span class="lucide-icon" aria-hidden="true">
+            <%- icones.settings %>
+          </span>
+          Editar perfil
+        </a>
+      <% } %>
+      <% if (usuario.profilePublic) { %>
+        <a class="button button-dark" href="/p/<%= publicSlug %>">
+          Ver perfil público
+        </a>
+      <% } %>
+    <% } %>
+  </div>
 </div>
+<% if (salvo) { %>
+  <p class="profile-message profile-message-success" role="status">
+    Perfil atualizado.
+  </p>
+<% } %>
+<% if (erro) { %>
+  <p class="profile-message profile-message-error" role="alert">
+    <%= erro %>
+  </p>
+<% } %>
+<% if (editando && !usuario.demonstracao) { %>
+  <section class="profile-edit-panel card-surface" id="editar-perfil" aria-labelledby="profile-edit-title">
+    <div class="eyebrow">
+      INFORMAÇÕES PROFISSIONAIS
+    </div>
+    <h2 id="profile-edit-title">
+      Editar perfil
+    </h2>
+    <p>
+      Atualize as informações que ajudam outros profissionais a conhecer seu trabalho.
+    </p>
+    <form method="post" action="/profile" class="profile-edit-form" data-register-form>
+      <div class="form-grid">
+        <label>
+          Nome artístico
+          <input name="nome" value="<%= valores.nome %>" minlength="2" maxlength="80" autocomplete="nickname" required>
+        </label>
+        <label>
+          Cidade e estado
+          <input name="cidade" value="<%= valores.cidade %>" maxlength="100" placeholder="Ex.: São Paulo, SP" autocomplete="address-level2">
+        </label>
+      </div>
+      <label>
+        Biografia
+        <textarea name="biografia" maxlength="500" rows="4" placeholder="Conte um pouco sobre sua trajetória e seu trabalho">
+          <%= valores.biografia %>
+        </textarea>
+      </label>
+      <label>
+        Contato profissional
+        <input name="contato" value="<%= valores.contato %>" maxlength="200" placeholder="E-mail, Instagram ou outro canal de contato">
+      </label>
+      <fieldset class="profile-category-fieldset category-fieldset">
+        <legend>
+          Categorias profissionais
+        </legend>
+        <div class="profile-category-grid">
+          <% categoriasDisponiveis.forEach(categoria => { %>
+            <label class="profile-category-option category-option">
+              <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoria === 'Outros' ? 'data-category-other' : '' %><%= valores.categorias.includes(categoria) ? 'checked' : '' %>>
+              <span>
+                <%= categoria %>
+              </span>
+            </label>
+          <% }) %>
+        </div>
+        <p class="category-validation" data-category-validation role="alert" hidden>
+          Selecione pelo menos uma categoria.
+        </p>
+      </fieldset>
+      <div class="profile-other-category" data-other-category-field<%= valores.categorias.includes('Outros') ? '' : 'hidden' %>>
+        <label>
+          Categoria personalizada
+          <input id="categoria-personalizada" name="outraCategoria" value="<%= valores.outraCategoria %>" maxlength="60" minlength="2"<%= valores.categorias.includes('Outros') ? 'required' : '' %>>
+        </label>
+      </div>
+      <label>
+        Status profissional
+        <select name="disponibilidade" data-profile-status>
+          <option value="">
+            Não informar um status agora
+          </option>
+          <% statusOptions.forEach(opcao => { %>
+            <option value="<%= opcao.value %>" data-categorias="<%= opcao.categorias.join('|') %>"<%= valores.disponibilidade === opcao.value ? 'selected' : '' %>>
+              <%= opcao.label %>
+            </option>
+          <% }) %>
+        </select>
+        <small>
+          As opções consideram as categorias selecionadas acima.
+        </small>
+      </label>
+      <label>
+        Gêneros e estilos musicais
+        <span class="profile-field-optional">
+          (um por linha, até 8)
+        </span>
+        <textarea name="generos" maxlength="400" rows="3" placeholder="Rap alternativo&#10;Boom bap">
+          <%= valores.generos %>
+        </textarea>
+      </label>
+      <label id="equipamentos">
+        Equipamentos e ferramentas profissionais
+        <span class="profile-field-optional">
+          (um por linha, até 12)
+        </span>
+        <textarea name="equipamentos" maxlength="1000" rows="4" placeholder="Microfone, interface, DAW ou outra ferramenta">
+          <%= valores.equipamentos %>
+        </textarea>
+      </label>
+      <div class="profile-edit-actions">
+        <button class="button button-lime" type="submit">
+          Salvar alterações
+        </button>
+        <a class="button button-outline" href="/profile">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </section>
+<% } %>
 <section class="profile-hero">
   <div class="profile-hero-main">
     <div class="avatar avatar-hero">
@@ -33,16 +159,12 @@
       <div class="profile-kicker">
         <span class="status-dot" aria-hidden="true">
         </span>
-        Disponível para colaboração
+        <%= usuario.availabilityLabel %>
       </div>
       <h2>
         <%= usuario.name %>
       </h2>
       <p>
-        OG Emicê
-        <span>
-          ·
-        </span>
         <%= usuario.handle %>
       </p>
       <div class="tag-line big">
@@ -51,20 +173,27 @@
             <%= genero %>
           </span>
         <% }) %>
+        <% if (!usuario.genres.length) { %>
+          <span>
+            Adicione seus gêneros no perfil
+          </span>
+        <% } %>
       </div>
     </div>
   </div>
-  <div class="profile-rep">
-    <span>
-      REPUTAÇÃO
-    </span>
-    <strong>
-      <%= usuario.reputation %>
-    </strong>
-    <small>
-      profissional
-    </small>
-  </div>
+  <% if (usuario.reputation > 0) { %>
+    <div class="profile-rep">
+      <span>
+        REPUTAÇÃO
+      </span>
+      <strong>
+        <%= usuario.reputation %>
+      </strong>
+      <small>
+        profissional
+      </small>
+    </div>
+  <% } %>
 </section>
 <div class="profile-id-strip">
   <span class="lucide-icon" aria-hidden="true">
@@ -72,10 +201,10 @@
   </span>
   <div>
     <small>
-      C-TAG · IDENTIFICADOR ÚNICO
+      ID CYPHER · IDENTIFICADOR PÚBLICO
     </small>
     <strong>
-      <%= usuario.cTag %>
+      <%= usuario.publicCode %>
     </strong>
   </div>
   <span class="immutable-label">
@@ -92,23 +221,23 @@
         Biografia
       </h3>
       <p class="bio">
-        Artista independente construindo pontes entre o rap alternativo e a cidade. Gosto de transformar vivências em letra e encontrar gente que leva o processo a sério.
+        <%= usuario.biography || 'Adicione uma apresentação para contar sobre seu trabalho.' %>
       </p>
       <div class="profile-info-grid">
         <div>
           <span>
-            Frequência de lançamentos
+            Categorias profissionais
           </span>
           <strong>
-            A cada 3 meses
+            <%= usuario.role %>
           </strong>
         </div>
         <div>
           <span>
-            Interesse em colaboração
+            Status profissional
           </span>
           <strong>
-            Sim, especialmente feats
+            <%= usuario.availabilityLabel %>
           </strong>
         </div>
         <div>
@@ -116,7 +245,7 @@
             Contato
           </span>
           <strong>
-            <%= usuario.email %>
+            <%= usuario.contact || 'Não informado' %>
           </strong>
         </div>
         <div>
@@ -124,27 +253,28 @@
             No Cypher desde
           </span>
           <strong>
-            Março de 2023
-          </strong>
-        </div>
+          <%= new Date(usuario.createdAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) %>
+        </strong>
       </div>
-    </section>
-    <section class="profile-section card-surface">
-      <div class="profile-catalog-heading">
-        <div class="eyebrow">
-          CATÁLOGO
-        </div>
-        <a href="/works" class="text-link">
-          Abrir Obras
-          <span class="lucide-icon" aria-hidden="true">
-            <%- icones.arrowUpRight %>
-          </span>
-        </a>
+    </div>
+  </section>
+  <section class="profile-section card-surface">
+    <div class="profile-catalog-heading">
+      <div class="eyebrow">
+        CATÁLOGO
       </div>
-      <h3>
-        Últimos 30 dias
-      </h3>
-      <% obras.slice(0,2).forEach((obra, i) => { %>
+      <a href="/works" class="text-link">
+        Ver catálogo completo
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.arrowUpRight %>
+        </span>
+      </a>
+    </div>
+    <h3>
+      Obras recentes
+    </h3>
+    <% if (obras.length) { %>
+      <% obras.slice(0, 5).forEach((obra, i) => { %>
         <a class="profile-work" href="/works" aria-label="Abrir catálogo de Obras:<%= obra.title %>">
           <div class="work-index index-<%= i %>">
             0<%= i + 1 %>
@@ -155,65 +285,71 @@
             </strong>
             <span>
               <%= obra.meta %>
-              ·<%= obra.role %>
+              <%= obra.role ? ` · ${obra.role}` : '' %>
             </span>
           </div>
           <span class="status-label">
-            <i>
-            </i>
             <%= obra.status %>
           </span>
         </a>
       <% }) %>
-    </section>
+    <% } else { %>
+    <%- include('../partials/componentes/estado-vazio', {
+                classe: 'profile-empty-state',
+                variacao: 'compacta',
+                titulo: 'Nenhuma obra vinculada',
+                descricao: 'Cadastre uma obra para acompanhar seu catálogo.'
+              }) %>
+  <% } %>
+</section>
+</div>
+<aside class="profile-column-side">
+<div class="profile-section card-surface">
+  <div class="eyebrow">
+    EQUIPAMENTOS
   </div>
-  <aside class="profile-column-side">
-    <div class="profile-section card-surface">
-      <div class="eyebrow">
-        EQUIPAMENTOS
-      </div>
-      <h3>
-        Meu setup
-      </h3>
-      <div class="gear-list">
+  <h3>
+    Meu setup
+  </h3>
+  <% if (usuario.equipment.length) { %>
+    <div class="gear-list">
+      <% usuario.equipment.forEach((equipamento, index) => { %>
         <span>
           <i class="lucide-icon" aria-hidden="true">
-            <%- icones.mic %>
+            <%- index === 0 ? icones.mic : (index === 1 ? icones.audioLines : icones.music) %>
           </i>
-          Shure SM58
+          <%= equipamento %>
         </span>
-        <span>
-          <i class="lucide-icon" aria-hidden="true">
-            <%- icones.audioLines %>
-          </i>
-          Focusrite Scarlett
-        </span>
-        <span>
-          <i class="lucide-icon" aria-hidden="true">
-            <%- icones.music %>
-          </i>
-          Ableton Live
-        </span>
-      </div>
-      <button class="button button-outline full" type="button" data-toast="Edição de equipamentos demonstrativa">
-        <span class="lucide-icon" aria-hidden="true">
-          <%- icones.settings %>
-        </span>
-        Gerenciar setup
-      </button>
+      <% }) %>
     </div>
-    <div class="profile-section lime-mini">
-      <span>
-        PRÓXIMA META
-      </span>
-      <strong>
-        Registrar o próximo crédito
-      </strong>
-      <p>
-        Complete os créditos de suas obras para fortalecer sua trajetória.
-      </p>
-    </div>
-  </aside>
+  <% } else { %>
+  <%- include('../partials/componentes/estado-vazio', {
+                classe: 'profile-empty-state',
+                variacao: 'compacta',
+                titulo: 'Nenhum equipamento informado'
+              }) %>
+<% } %>
+<% if (!usuario.demonstracao) { %>
+  <a class="button button-outline full" href="/profile?editar=1#equipamentos">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.settings %>
+    </span>
+    Gerenciar setup
+  </a>
+<% } %>
+</div>
+<div class="profile-section lime-mini">
+<span>
+  SEU ESPAÇO PROFISSIONAL
+</span>
+<strong>
+  Informações atualizadas
+</strong>
+<p>
+  Mantenha seus dados profissionais claros para facilitar novas colaborações.
+</p>
+</div>
+</aside>
 </div>
 </div>
 </main>

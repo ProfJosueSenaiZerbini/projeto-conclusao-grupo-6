@@ -16,18 +16,106 @@
       Eventos, encontros e espaços para colocar seu trabalho em movimento.
     </p>
   </div>
-  <button class="button button-yellow" type="button" data-interest-button aria-pressed="false">
-    <span class="lucide-icon" aria-hidden="true">
-      <%- icones.calendarCheck %>
-    </span>
-    <span data-interest-label>
-      Demonstrar interesse
-    </span>
-  </button>
+  <div class="page-header-actions">
+    <% if (podeGerenciar) { %>
+      <a class="button button-lime" href="/events/new">
+        <span class="lucide-icon" aria-hidden="true">
+          <%- icones.plus %>
+        </span>
+        Cadastrar evento
+      </a>
+    <% } %>
+    <button class="button button-yellow" type="button" data-interest-button aria-pressed="false">
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.calendarCheck %>
+      </span>
+      <span data-interest-label>
+        Demonstrar interesse
+      </span>
+    </button>
+  </div>
 </div>
+<% if (mensagem) { %>
+  <div class="form-feedback success-feedback" role="status">
+    <%= mensagem %>
+  </div>
+<% } %>
+<% if (erro) { %>
+  <div class="form-feedback error-feedback" role="alert">
+    <%= erro === 'permissao' ? 'Somente contas de organizador podem cadastrar e gerenciar eventos.' : erro === 'evento' ? 'O evento não foi encontrado ou não pertence à sua conta.' : erro %>
+  </div>
+<% } %>
 <p class="interest-explainer" data-interest-notice role="status" hidden>
   Ao marcar interesse, você sinaliza aos organizadores que está ativo na cena. Eles poderão notificar você antes ou depois do lançamento do evento. Este protótipo não envia notificações.
 </p>
+<form class="events-filters" method="get" action="/events">
+  <label>
+    Categoria
+    <select name="categoria">
+      <option value="">
+        Todas
+      </option>
+      <% opcoesCategorias.forEach(categoria => { %>
+        <option value="<%= categoria %>"<%= filtros.categoria === categoria ? 'selected' : '' %>>
+          <%= categoria %>
+        </option>
+      <% }) %>
+    </select>
+  </label>
+  <label>
+    Localização
+    <input name="localizacao" value="<%= filtros.localizacao %>" placeholder="Cidade ou espaço">
+  </label>
+  <label>
+    Formato
+    <select name="formato">
+      <option value="">
+        Todos
+      </option>
+      <% opcoesFormatos.forEach(formato => { %>
+        <option value="<%= formato %>"<%= filtros.formato === formato ? 'selected' : '' %>>
+          <%= formato %>
+        </option>
+      <% }) %>
+    </select>
+  </label>
+  <label>
+    Período
+    <select name="periodo">
+      <option value="todos"<%= filtros.periodo === 'todos' ? 'selected' : '' %>>
+        Todos
+      </option>
+      <option value="proximos"<%= filtros.periodo === 'proximos' ? 'selected' : '' %>>
+        Próximos
+      </option>
+      <option value="passados"<%= filtros.periodo === 'passados' ? 'selected' : '' %>>
+        Passados
+      </option>
+    </select>
+  </label>
+  <label>
+    Ordenar
+    <select name="ordem">
+      <option value="recentes"<%= filtros.ordem === 'recentes' ? 'selected' : '' %>>
+        Mais recentes
+      </option>
+      <option value="data"<%= filtros.ordem === 'data' ? 'selected' : '' %>>
+        Data do evento
+      </option>
+      <option value="titulo"<%= filtros.ordem === 'titulo' ? 'selected' : '' %>>
+        Título
+      </option>
+    </select>
+  </label>
+  <div class="events-filter-actions">
+    <button class="button button-dark small" type="submit">
+      Filtrar
+    </button>
+    <a class="text-link" href="/events">
+      Limpar
+    </a>
+  </div>
+</form>
 <div class="tabs-row" role="group" aria-label="Filtrar oportunidades">
   <button class="tab active" type="button" data-event-filter="Todos" aria-pressed="true">
     Todos
@@ -48,111 +136,135 @@
 <div class="events-layout">
   <div class="events-list">
     <% eventos.forEach((evento, i) => { %>
-      <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
-        <span class="event-card-band band-<%= evento.color %>">
-          <span>
-            0<%= i + 1 %>
-          </span>
-          <span>
-            <%= evento.category %>
-          </span>
-        </span>
-        <span class="event-card-content">
-          <span class="event-date-large">
-            <strong>
-              <%= evento.date.split(' ')[0] %>
-            </strong>
+      <div class="event-card-wrapper">
+        <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
+          <span class="event-card-band band-<%= evento.color %>">
             <span>
-              <%= evento.date.split(' ')[1] %>
+              0<%= i + 1 %>
+            </span>
+            <span>
+              <%= evento.category %>
             </span>
           </span>
-          <span class="event-main">
-            <strong class="event-title">
-              <%= evento.title %>
-            </strong>
-            <span class="event-org">
-              <%= evento.org %>
-            </span>
-            <span class="event-meta">
+          <span class="event-card-content">
+            <span class="event-date-large">
+              <strong>
+                <%= evento.date.split(' ')[0] %>
+              </strong>
               <span>
-                <i class="lucide-icon" aria-hidden="true">
-                  <%- icones.mapPin %>
-                </i>
-                <%= evento.location %>
-              </span>
-              <span>
-                <i class="lucide-icon" aria-hidden="true">
-                  <%- icones.clock %>
-                </i>
-                <%= evento.status %>
+                <%= evento.date.split(' ')[1] %>
               </span>
             </span>
-          </span>
-          <span class="event-open-hint">
-            <span>
-              Ver oportunidade
+            <span class="event-main">
+              <strong class="event-title">
+                <%= evento.title %>
+              </strong>
+              <span class="event-org">
+                <%= evento.org %>
+              </span>
+              <span class="event-meta">
+                <span>
+                  <i class="lucide-icon" aria-hidden="true">
+                    <%- icones.mapPin %>
+                  </i>
+                  <%= evento.location %>
+                </span>
+                <span>
+                  <i class="lucide-icon" aria-hidden="true">
+                    <%- icones.clock %>
+                  </i>
+                  <%= evento.status %>
+                </span>
+              </span>
             </span>
-            <i class="lucide-icon" aria-hidden="true">
-              <%- icones.arrowUpRight %>
-            </i>
+            <span class="event-open-hint">
+              <span>
+                Ver oportunidade
+              </span>
+              <i class="lucide-icon" aria-hidden="true">
+                <%- icones.arrowUpRight %>
+              </i>
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
+        <% if (evento.owned) { %>
+          <div class="event-management-actions">
+            <a class="text-link" href="/events/<%= encodeURIComponent(evento.id) %>/edit">
+              Editar
+            </a>
+            <form method="post" action="/events/<%= encodeURIComponent(evento.id) %>/delete" onsubmit="return confirm('Excluir este evento?')">
+              <button class="text-link danger-link" type="submit">
+                Excluir
+              </button>
+            </form>
+          </div>
+        <% } %>
+      </div>
     <% }) %>
+    <% if (!eventos.length) { %>
+    <%- include('../partials/componentes/estado-vazio', {
+        classe: 'events-empty-state',
+        variacao: 'destaque',
+        icone: icones.calendarDays,
+        titulo: 'Nenhum evento encontrado',
+        descricao: 'Ajuste os filtros ou cadastre uma nova oportunidade para a comunidade.',
+        acaoPrincipal: podeGerenciar ? { href: '/events/new', label: 'Cadastrar evento' } : null
+      }) %>
+  <% } %>
+</div>
+<aside class="event-side history-card">
+  <div class="history-card-top">
+    <span class="history-icon lucide-icon" aria-hidden="true">
+      <%- icones.chart %>
+    </span>
+    <span class="eyebrow">
+      HISTÓRICO
+    </span>
   </div>
-  <aside class="event-side history-card">
-    <div class="history-card-top">
-      <span class="history-icon lucide-icon" aria-hidden="true">
-        <%- icones.chart %>
-      </span>
-      <span class="eyebrow">
-        HISTÓRICO
-      </span>
-    </div>
-    <h2>
-      Seu rastro na cena
-    </h2>
-    <div class="history-number">
-      07
-      <span>
-        participações
-      </span>
-    </div>
-    <div class="history-meter" role="img" aria-label="Participações distribuídas em três categorias">
-      <i>
-      </i>
-      <i>
-      </i>
-      <i>
-      </i>
-    </div>
-    <p>
-      Você esteve em 3 categorias diferentes este ano.
-    </p>
-    <div class="history-categories">
-      <span>
-        Batalhas
-        <b>
-          03
-        </b>
-      </span>
-      <span>
-        Cyphers
-        <b>
-          02
-        </b>
-      </span>
-      <span>
-        Formação
-        <b>
-          02
-        </b>
-      </span>
-    </div>
-    <small class="history-demo-note">
-      Resumo demonstrativo do perfil.
-    </small>
-  </aside>
+  <h2>
+    Seu rastro na cena
+  </h2>
+  <div class="history-number">
+    07
+    <span>
+      participações
+    </span>
+  </div>
+  <div class="history-meter" role="img" aria-label="Participações distribuídas em três categorias">
+    <i>
+    </i>
+    <i>
+    </i>
+    <i>
+    </i>
+  </div>
+  <p>
+    Você esteve em 3 categorias diferentes este ano.
+  </p>
+  <div class="history-categories">
+    <span>
+      Batalhas
+      <b>
+        03
+      </b>
+    </span>
+    <span>
+      Cyphers
+      <b>
+        02
+      </b>
+    </span>
+    <span>
+      Formação
+      <b>
+        02
+      </b>
+    </span>
+  </div>
+  <small class="history-demo-note">
+    Resumo demonstrativo do perfil.
+  </small>
+</aside>
 </div>
 </div>
 </main>
@@ -164,7 +276,7 @@ OPORTUNIDADE
 </span>
 <button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe">
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.x %>
+<%- icones.x %>
 </span>
 </button>
 </div>
@@ -173,26 +285,26 @@ OPORTUNIDADE
 <div class="detail-meta">
 <span>
 <i class="lucide-icon" aria-hidden="true">
-  <%- icones.users %>
+<%- icones.users %>
 </i>
 <b data-event-org-detail>
 </b>
 </span>
 <span>
 <i class="lucide-icon" aria-hidden="true">
-  <%- icones.calendarDays %>
+<%- icones.calendarDays %>
 </i>
 <b>
-  <span data-event-date-detail>
-  </span>
-  ·
-  <span data-event-time-detail>
-  </span>
+<span data-event-date-detail>
+</span>
+·
+<span data-event-time-detail>
+</span>
 </b>
 </span>
 <span>
 <i class="lucide-icon" aria-hidden="true">
-  <%- icones.mapPin %>
+<%- icones.mapPin %>
 </i>
 <b data-event-location-detail>
 </b>
@@ -215,30 +327,30 @@ Sobre a oportunidade
 <div class="detail-facts">
 <div>
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.mic %>
+<%- icones.mic %>
 </span>
 <small>
-  FORMATO
+FORMATO
 </small>
 <b data-event-format-detail>
 </b>
 </div>
 <div>
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.calendarCheck %>
+<%- icones.calendarCheck %>
 </span>
 <small>
-  INSCRIÇÕES
+INSCRIÇÕES
 </small>
 <b data-event-registration-detail>
 </b>
 </div>
 <div>
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.trophy %>
+<%- icones.trophy %>
 </span>
 <small>
-  DESTAQUE
+DESTAQUE
 </small>
 <b data-event-prize-detail>
 </b>
@@ -249,15 +361,15 @@ Sobre a oportunidade
 <div class="detail-actions">
 <button class="button button-lime" type="button" data-interest-button aria-pressed="false">
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.calendarCheck %>
+<%- icones.calendarCheck %>
 </span>
 <span data-interest-label>
-  Demonstrar interesse
+Demonstrar interesse
 </span>
 </button>
 <button class="button button-outline" type="button" data-toast="Link copiado nesta demonstração">
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.share %>
+<%- icones.share %>
 </span>
 Compartilhar
 </button>

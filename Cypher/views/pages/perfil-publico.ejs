@@ -1,0 +1,187 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<main class="public-profile-page">
+<div class="public-profile-brand">
+  <a class="logo" href="/login" aria-label="Cypher — entrar">
+    <span class="logo-mark" aria-hidden="true">
+      <span>
+      </span>
+      <span>
+      </span>
+      <span>
+      </span>
+    </span>
+    <span class="logo-word">
+      CYPHER
+    </span>
+  </a>
+  <a class="button button-outline" href="/login">
+    Entrar
+  </a>
+</div>
+<% if (!perfil) { %>
+<%- include('../partials/componentes/estado-vazio', {
+      classe: 'profile-section card-surface',
+      variacao: 'destaque',
+      titulo: 'Este perfil não está disponível',
+      descricao: 'O endereço pode estar incorreto ou a pessoa optou por manter o perfil privado.',
+      acaoPrincipal: { href: '/login', label: 'Acessar Cypher' }
+    }) %>
+<% } else { %>
+<section class="profile-hero">
+  <div class="profile-hero-main">
+    <div class="avatar avatar-hero">
+      <%= perfil.initials %>
+    </div>
+    <div>
+      <div class="profile-kicker">
+        <span class="status-dot" aria-hidden="true">
+        </span>
+        <%= perfil.availabilityLabel %>
+      </div>
+      <h2>
+        <%= perfil.name %>
+      </h2>
+      <p>
+        <%= perfil.handle %>
+        <%= perfil.city ? ` · ${perfil.city}` : '' %>
+      </p>
+      <div class="tag-line big">
+        <% perfil.genres.forEach(genero => { %>
+          <span>
+            <%= genero %>
+          </span>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="profile-id-strip">
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.badgeCheck %>
+  </span>
+  <div>
+    <small>
+      ID CYPHER · IDENTIFICADOR PÚBLICO
+    </small>
+    <strong>
+      <%= perfil.publicCode %>
+    </strong>
+  </div>
+  <span class="immutable-label">
+    Imutável
+  </span>
+</div>
+<div class="profile-columns">
+  <div class="profile-column-main">
+    <section class="profile-section card-surface">
+      <div class="eyebrow">
+        PERFIL PROFISSIONAL
+      </div>
+      <h3>
+        <%= perfil.role %>
+      </h3>
+      <p class="bio">
+        <%= perfil.biography || 'Apresentação profissional não informada.' %>
+      </p>
+      <% if (perfil.contact) { %>
+        <div class="profile-public-contact">
+          <span>
+            Contato profissional
+          </span>
+          <strong>
+            <%= perfil.contact %>
+          </strong>
+        </div>
+      <% } %>
+    </section>
+  </div>
+  <aside class="profile-column-side">
+    <section class="profile-section card-surface">
+      <div class="eyebrow">
+        EQUIPAMENTOS
+      </div>
+      <h3>
+        Ferramentas de trabalho
+      </h3>
+      <% if (perfil.equipment.length) { %>
+        <div class="gear-list">
+          <% perfil.equipment.forEach(equipamento => { %>
+            <span>
+              <i class="lucide-icon" aria-hidden="true">
+                <%- icones.audioLines %>
+              </i>
+              <%= equipamento %>
+            </span>
+          <% }) %>
+        </div>
+      <% } else { %>
+      <%- include('../partials/componentes/estado-vazio', {
+              classe: 'profile-empty-state',
+              variacao: 'compacta',
+              titulo: 'Nenhum equipamento informado'
+            }) %>
+    <% } %>
+  </section>
+</aside>
+</div>
+<section class="profile-section card-surface public-works-section" aria-labelledby="public-works-title">
+<div class="eyebrow">
+  CATÁLOGO PÚBLICO
+</div>
+<h3 id="public-works-title">
+  Obras lançadas
+</h3>
+<% if (obras.length) { %>
+  <div class="public-works-list">
+    <% obras.forEach((obra, index) => { %>
+      <article class="public-work-card">
+        <div class="public-work-heading">
+          <div>
+            <span class="work-index index-<%= index %>">
+              0<%= index + 1 %>
+            </span>
+            <h4>
+              <%= obra.title %>
+            </h4>
+          </div>
+          <span class="status-label">
+            <%= obra.type %>
+          </span>
+        </div>
+        <p class="public-work-meta">
+          <%= obra.genre || 'Gênero não informado' %>
+          <%= obra.releaseDate ? ` · ${obra.releaseDate.split('-').reverse().join('/')}` : '' %>
+          <%= obra.role ? ` · ${obra.role}` : '' %>
+        </p>
+        <% if (obra.listenLink) { %>
+          <a class="text-link" href="<%= obra.listenLink %>" target="_blank" rel="noopener noreferrer">
+            Ouvir obra
+            <span class="lucide-icon" aria-hidden="true">
+              <%- icones.arrowUpRight %>
+            </span>
+          </a>
+        <% } %>
+        <% if (obra.lyrics) { %>
+          <div class="public-work-lyrics">
+            <span>
+              LETRA
+            </span>
+            <p>
+              <%= obra.lyrics %>
+            </p>
+          </div>
+        <% } %>
+      </article>
+    <% }) %>
+  </div>
+<% } else { %>
+<%- include('../partials/componentes/estado-vazio', {
+          classe: 'profile-empty-state',
+          variacao: 'compacta',
+          titulo: 'Nenhuma obra lançada publicada'
+        }) %>
+<% } %>
+</section>
+<% } %>
+</main>
+<%- include('../partials/fim-pagina') %>

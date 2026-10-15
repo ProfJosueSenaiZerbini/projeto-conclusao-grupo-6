@@ -1,8 +1,56 @@
+import {
+  atualizarObraCypher,
+  buscarPerfisPublicosCypher,
+  criarObraCypher,
+  estatisticasObrasDemo,
+  estatisticasObrasUsuarioCypher,
+  excluirObraCypher,
+  listarObrasContaCypher,
+  listarPerfisParaCreditoCypher,
+  inicializarBancoCypher,
+  atualizarBeatCypher,
+  criarBeatCypher,
+  excluirBeatCypher,
+  listarBeatsCypher,
+  obterBeatCypher,
+  listarEventosCypher,
+  listarEventosDemo,
+  criarEventoCypher,
+  atualizarEventoCypher,
+  excluirEventoCypher,
+  obterEventoCypher,
+  listarObrasDemo,
+  listarPessoasDemo,
+  listarNotificacoesCypher,
+  contarNotificacoesNaoLidasCypher,
+  criarNotificacaoCypher,
+  marcarNotificacaoLidaCypher,
+  marcarTodasNotificacoesLidasCypher,
+  obterObraContaCypher,
+  obterUsuarioDemo,
+  type CreditoObraEntrada,
+  type DadosObraCypher,
+  type BeatDemoInicial,
+  type EventoDemoInicial,
+  type DadosEventoCypher,
+  type DadosBeatCypher,
+  type FiltrosEventos,
+  type EventoContaPersistido,
+  type BeatContaPersistido,
+  type FiltrosBuscaPerfisPublicos,
+  type FiltrosCatalogoObras,
+  type ObraContaPersistida,
+  type ObraDemoInicial,
+  type PerfilDemoInicial,
+  type DadosNovaNotificacao,
+} from "./bancoDados.js";
+
 export type DemoUser = Readonly<{
   name: string;
   role: string;
   city: string;
   handle: string;
+  publicCode: string;
   email: string;
   initials: string;
   cTag: string;
@@ -15,6 +63,7 @@ export const usuarioDemo: DemoUser = Object.freeze({
   role: "Rapper / MC",
   city: "São Paulo, SP",
   handle: "@ogemice",
+  publicCode: "CYP-FANTASMA",
   email: "og.emice@cypher.art",
   initials: "OE",
   cTag: "CYP-OGE-0001",
@@ -74,6 +123,31 @@ export type Work = {
   iswc: string;
   published: boolean;
 };
+
+export const tiposObra = [
+  "Obra",
+  "Música",
+  "Beat",
+  "Single",
+  "EP",
+  "Álbum",
+  "Mixtape",
+  "Outro",
+];
+export const generosObra = ["Rap", "Boom bap", "Trap", "R&B", "Lo-fi", "Outro"];
+export const statusObra = ["Em produção", "Rascunho", "Lançado"];
+export const papeisObra = [
+  "Artista principal",
+  "Composição",
+  "Produção musical",
+  "Instrumentação",
+  "Participação como feat",
+  "Outro crédito",
+];
+
+export type { CreditoObraEntrada, DadosObraCypher, ObraContaPersistida };
+export type { DadosEventoCypher, FiltrosEventos, EventoContaPersistido };
+export type { DadosBeatCypher, BeatContaPersistido };
 
 const people: Person[] = [
   {
@@ -284,21 +358,234 @@ const works: Work[] = [
   },
 ];
 
+const usuarioDemoId = "demo-og-emice";
+
+function slugDemonstrativo(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function idPerfilDemo(
+  tipo: "profissional" | "organizador",
+  nome: string
+): string {
+  return `demo-${tipo}-${slugDemonstrativo(nome)}`;
+}
+
+function criarPerfilDemo(
+  id: string,
+  nome: string,
+  funcao: string,
+  cidade: string,
+  iniciais: string,
+  etiqueta: string,
+  tom: string,
+  generos: string[],
+  cTag?: string,
+  email: string | null = null,
+  tipoConta: "profissional" | "organizador" = "profissional",
+  reputacao = 0
+): PerfilDemoInicial {
+  return {
+    id,
+    ordem: 0,
+    email,
+    codigoPublico: id === usuarioDemoId ? "CYP-FANTASMA" : "",
+    tipoConta,
+    nome,
+    funcao,
+    cidade,
+    identificador: `@${slugDemonstrativo(nome)}`,
+    iniciais,
+    cTag: cTag ?? `CYP-DEMO-${slugDemonstrativo(nome).toUpperCase()}`,
+    reputacao,
+    generos,
+    categorias: [funcao],
+    outraCategoria: "",
+    etiqueta,
+    tom,
+  };
+}
+
+export function inicializarDadosDemonstrativos(): void {
+  const perfis: PerfilDemoInicial[] = [
+    criarPerfilDemo(
+      usuarioDemoId,
+      usuarioDemo.name,
+      usuarioDemo.role,
+      usuarioDemo.city,
+      usuarioDemo.initials,
+      usuarioDemo.genres.join(" · "),
+      "yellow",
+      [...usuarioDemo.genres],
+      usuarioDemo.cTag,
+      usuarioDemo.email,
+      "profissional",
+      usuarioDemo.reputation
+    ),
+    ...people.map(person =>
+      criarPerfilDemo(
+        idPerfilDemo("profissional", person.name),
+        person.name,
+        person.role,
+        person.city,
+        person.initials,
+        person.tag,
+        person.tone,
+        [person.tag]
+      )
+    ),
+  ];
+
+  const nomesDePerfil = new Set(
+    perfis.map(perfil => perfil.nome.toLowerCase())
+  );
+  for (const beat of beats) {
+    if (nomesDePerfil.has(beat.producer.toLowerCase())) continue;
+    perfis.push(
+      criarPerfilDemo(
+        idPerfilDemo("profissional", beat.producer),
+        beat.producer,
+        "Beatmaker",
+        "Brasil",
+        beat.producer
+          .split(/\s+/)
+          .map(parte => parte[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+        beat.genre,
+        beat.color,
+        [beat.genre]
+      )
+    );
+    nomesDePerfil.add(beat.producer.toLowerCase());
+  }
+
+  const nomesOrganizadores = [...new Set(events.map(event => event.org))];
+  for (const nome of nomesOrganizadores) {
+    perfis.push(
+      criarPerfilDemo(
+        idPerfilDemo("organizador", nome),
+        nome,
+        "Organizador de eventos",
+        "Brasil",
+        nome
+          .split(/\s+/)
+          .map(parte => parte[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+        "Organização",
+        "green",
+        [],
+        undefined,
+        null,
+        "organizador"
+      )
+    );
+  }
+
+  let numeroDemo = 0;
+  perfis.forEach((perfil, ordem) => {
+    perfil.ordem = ordem;
+    if (!perfil.codigoPublico) {
+      numeroDemo += 1;
+      perfil.codigoPublico = `CYP-DEMO${String(numeroDemo).padStart(4, "0")}`;
+    }
+  });
+
+  const eventosIniciais: EventoDemoInicial[] = events.map((event, index) => ({
+    ...event,
+    id: `demo-evento-${String(index + 1).padStart(2, "0")}`,
+    proprietarioId: idPerfilDemo("organizador", event.org),
+    ordem: index,
+  }));
+  const beatsIniciais: BeatDemoInicial[] = beats.map((beat, index) => ({
+    ...beat,
+    vendaExclusiva: false,
+    id: `demo-beat-${String(index + 1).padStart(2, "0")}`,
+    produtorId: idPerfilDemo("profissional", beat.producer),
+    ordem: index,
+  }));
+  const obrasIniciais: ObraDemoInicial[] = works.map((work, index) => ({
+    ...work,
+    proprietarioId: usuarioDemoId,
+    ordem: index,
+  }));
+
+  inicializarBancoCypher({
+    perfis,
+    eventos: eventosIniciais,
+    beats: beatsIniciais,
+    obras: obrasIniciais,
+    usuarioDemoId,
+  });
+}
+
 export const CypherModel = {
-  usuario: () => usuarioDemo,
-  pessoas: () => people,
-  eventos: () => events,
-  beats: () => beats,
-  obras: () => works,
-  estatisticasObras: () => ({
-    publicadasComoArtista: works.filter(
-      work => work.published && work.role === "Artista principal"
-    ).length,
-    participacoesComoFeat: works.filter(
-      work => work.published && work.role === "Participação como feat"
-    ).length,
-    emAndamento: works.filter(work => work.status === "Em produção").length,
-  }),
+  usuario: () => obterUsuarioDemo(usuarioDemoId) ?? usuarioDemo,
+  pessoas: () => listarPessoasDemo(people.map(person => person.name)),
+  buscarPessoasPublicas: (
+    filtros: FiltrosBuscaPerfisPublicos,
+    usuarioId: string
+  ) => buscarPerfisPublicosCypher(filtros, usuarioId),
+  eventos: () => listarEventosDemo(),
+  eventosDisponiveis: (filtros: FiltrosEventos, usuarioId: string) =>
+    listarEventosCypher(filtros, usuarioId),
+  evento: (id: string, usuarioId: string) => obterEventoCypher(id, usuarioId),
+  criarEvento: (usuarioId: string, dados: DadosEventoCypher) =>
+    criarEventoCypher(usuarioId, dados),
+  atualizarEvento: (id: string, usuarioId: string, dados: DadosEventoCypher) =>
+    atualizarEventoCypher(id, usuarioId, dados),
+  excluirEvento: (id: string, usuarioId: string) =>
+    excluirEventoCypher(id, usuarioId),
+  beats: (usuarioId?: string) => listarBeatsCypher(usuarioId),
+  criarBeat: (produtorId: string, dados: DadosBeatCypher) =>
+    criarBeatCypher(produtorId, dados),
+  obterBeat: (id: string, produtorId: string) =>
+    obterBeatCypher(id, produtorId),
+  atualizarBeat: (id: string, produtorId: string, dados: DadosBeatCypher) =>
+    atualizarBeatCypher(id, produtorId, dados),
+  excluirBeat: (id: string, produtorId: string) =>
+    excluirBeatCypher(id, produtorId),
+  obras: () => listarObrasDemo(),
+  estatisticasObras: () => estatisticasObrasDemo(),
+  obrasDoUsuario: (usuarioId: string, filtros?: FiltrosCatalogoObras) =>
+    listarObrasContaCypher(usuarioId, filtros),
+  obraDoUsuario: (id: string, usuarioId: string) =>
+    obterObraContaCypher(id, usuarioId),
+  perfisParaCredito: (usuarioId: string) =>
+    listarPerfisParaCreditoCypher(usuarioId),
+  criarObra: (
+    usuarioId: string,
+    dados: DadosObraCypher,
+    creditos: CreditoObraEntrada[]
+  ) => criarObraCypher(usuarioId, dados, creditos),
+  atualizarObra: (
+    id: string,
+    usuarioId: string,
+    dados: DadosObraCypher,
+    creditos: CreditoObraEntrada[]
+  ) => atualizarObraCypher(id, usuarioId, dados, creditos),
+  excluirObra: (id: string, usuarioId: string) =>
+    excluirObraCypher(id, usuarioId),
+  estatisticasObrasDoUsuario: (usuarioId: string) =>
+    estatisticasObrasUsuarioCypher(usuarioId),
+  notificacoes: (usuarioId: string, limite?: number) =>
+    listarNotificacoesCypher(usuarioId, limite),
+  quantidadeNotificacoesNaoLidas: (usuarioId: string) =>
+    contarNotificacoesNaoLidasCypher(usuarioId),
+  criarNotificacao: (dados: DadosNovaNotificacao) =>
+    criarNotificacaoCypher(dados),
+  marcarNotificacaoLida: (id: string, usuarioId: string) =>
+    marcarNotificacaoLidaCypher(id, usuarioId),
+  marcarTodasNotificacoesLidas: (usuarioId: string) =>
+    marcarTodasNotificacoesLidasCypher(usuarioId),
   hitDoMes: () => ({
     titulo: "Metrô depois das duas",
     artista: usuarioDemo.name,

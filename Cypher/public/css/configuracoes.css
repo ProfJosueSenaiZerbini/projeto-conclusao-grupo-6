@@ -598,3 +598,154 @@
   border-color: var(--lime);
   background: var(--lime);
 }
+
+.settings-message {
+  margin: 0 0 17px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.settings-message-success {
+  color: #315b21;
+  background: #eff9c9;
+}
+
+.settings-message-error {
+  color: #8b342b;
+  background: #fff0ed;
+}
+
+.privacy-form {
+  display: grid;
+  gap: 0;
+  margin-top: 20px;
+}
+
+.privacy-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eceee8;
+  cursor: pointer;
+}
+
+.privacy-option:first-child {
+  border-top: 1px solid #eceee8;
+}
+
+.privacy-option span,
+.privacy-option strong,
+.privacy-option small {
+  display: block;
+}
+
+.privacy-option strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.privacy-option small {
+  margin-top: 4px;
+  color: #8b9589;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.privacy-option input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: #8ea91b;
+}
+
+.privacy-form > .button {
+  justify-self: start;
+  margin-top: 14px;
+}
+
+.public-profile-link,
+.settings-note {
+  margin: 15px 0 0;
+  color: #7c8579;
+  font-size: 11px;
+}
+
+.public-profile-link a {
+  color: #718d19;
+  font-weight: 700;
+}
+
+.theme-mode-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.account-delete-section {
+  border-color: #e1c8c2;
+}
+
+.account-delete-section > p {
+  max-width: 760px;
+  color: #856d68;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.account-delete-details {
+  margin-top: 17px;
+  padding-top: 15px;
+  border-top: 1px solid #f0ded9;
+}
+
+.account-delete-details summary {
+  color: #9a5d53;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-delete-form {
+  display: grid;
+  gap: 13px;
+  max-width: 430px;
+  margin-top: 16px;
+}
+
+.account-delete-form label {
+  display: grid;
+  gap: 6px;
+  color: #697568;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.account-delete-form input {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #e1c8c2;
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 12px;
+}
+
+.account-delete-form .button {
+  justify-self: start;
+}
+
+@media (max-width: 640px) {
+  .privacy-option {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .privacy-form > .button,
+  .account-delete-form .button {
+    width: 100%;
+  }
+}

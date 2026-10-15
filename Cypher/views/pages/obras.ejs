@@ -23,18 +23,26 @@
     Cadastrar obra
   </a>
 </div>
+<% if (mensagem) { %>
+  <div class="form-feedback success-feedback" role="status">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.circleCheck %>
+    </span>
+    <%= mensagem %>
+  </div>
+<% } %>
 <div class="works-overview">
   <section class="work-overview-card catalog-summary">
     <div>
       <span>
-        OBRAS NO PERFIL · PRINCIPAL / FEAT
+        CATÁLOGO · PRINCIPAL / PARTICIPAÇÕES
       </span>
       <strong>
         <%= estatisticasObras.publicadasComoArtista %>
         /<%= estatisticasObras.participacoesComoFeat %>
       </strong>
       <p>
-        Obras concluídas e publicadas no perfil / participações como feat
+        Lançamentos como artista principal / participações em obras
       </p>
     </div>
     <a href="#catalogo-obras" class="overview-link">
@@ -49,7 +57,7 @@
       EM ANDAMENTO
     </span>
     <strong>
-      <%= String( estatisticasObras.emAndamento ).padStart(2, '0') %>
+      <%= String(estatisticasObras.emAndamento).padStart(2, '0') %>
     </strong>
     <p>
       Obras que ainda pedem atenção
@@ -65,68 +73,147 @@
       SEU CATÁLOGO
     </div>
     <h2>
-      Obras recentes
+      Obras e trabalhos musicais
     </h2>
   </div>
   <span class="catalog-count">
     <%= obras.length %>
-    registros demonstrativos
+    <%= obras.length === 1 ? 'obra' : 'obras' %>
   </span>
 </div>
-<div class="works-card-list">
-  <% obras.forEach((obra, i) => { %>
-    <button class="work-card" type="button" data-work-card data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>">
-      <span class="work-card-index index-<%= i %>">
-        0<%= i + 1 %>
-      </span>
-      <span class="work-card-main">
-        <strong>
-          <%= obra.title %>
-        </strong>
-        <span>
-          <%= obra.meta %>
-        </span>
-        <span class="work-card-badges">
-          <span class="type-label">
-            <%= obra.type %>
-          </span>
-          <span class="status-label">
-            <i>
-            </i>
-            <%= obra.status %>
-          </span>
-        </span>
-      </span>
-      <span class="work-card-role">
-        <small>
-          PARTICIPAÇÃO
-        </small>
-        <b>
-          <%= obra.role %>
-        </b>
-        <small>
-          <span class="lucide-icon" aria-hidden="true">
-            <%- icones.users %>
-          </span>
-          <%= obra.credits %>
-          créditos associados
-        </small>
-      </span>
-      <span class="work-card-open">
-        Ver ficha
-        <span class="lucide-icon" aria-hidden="true">
-          <%- icones.arrowUpRight %>
-        </span>
-      </span>
+<form class="catalog-filters card-surface" method="get" action="/works">
+  <div class="catalog-filter-heading">
+    <div>
+      <div class="eyebrow">
+        ORGANIZAÇÃO
+      </div>
+      <strong>
+        Filtrar catálogo
+      </strong>
+    </div>
+    <% if (Object.values(filtrosCatalogo).some(Boolean)) { %>
+      <a class="text-link" href="/works#catalogo-obras">
+        Limpar filtros
+      </a>
+    <% } %>
+  </div>
+  <div class="catalog-filter-grid">
+    <label>
+      Status
+      <select name="status">
+        <option value="">
+          Todos os status
+        </option>
+        <% opcoesFiltroCatalogo.status.forEach(opcao => { %>
+          <option value="<%= opcao.value %>"<%= filtrosCatalogo.status === opcao.value ? 'selected' : '' %>>
+            <%= opcao.label %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Tipo de obra
+      <select name="tipo">
+        <option value="">
+          Todos os tipos
+        </option>
+        <% opcoesFiltroCatalogo.tipo.forEach(opcao => { %>
+          <option value="<%= opcao.value %>"<%= filtrosCatalogo.tipo === opcao.value ? 'selected' : '' %>>
+            <%= opcao.label %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Gênero musical
+      <select name="genero">
+        <option value="">
+          Todos os gêneros
+        </option>
+        <% opcoesFiltroCatalogo.genero.forEach(opcao => { %>
+          <option value="<%= opcao.value %>"<%= filtrosCatalogo.genero === opcao.value ? 'selected' : '' %>>
+            <%= opcao.label %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Papel na obra
+      <select name="papel">
+        <option value="">
+          Todos os papéis
+        </option>
+        <% opcoesFiltroCatalogo.papel.forEach(opcao => { %>
+          <option value="<%= opcao.value %>"<%= filtrosCatalogo.papel === opcao.value ? 'selected' : '' %>>
+            <%= opcao.label %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <label>
+      Ordenar por
+      <select name="ordem">
+        <% opcoesFiltroCatalogo.ordem.forEach(opcao => { %>
+          <option value="<%= opcao.value %>"<%= filtrosCatalogo.ordem === opcao.value ? 'selected' : '' %>>
+            <%= opcao.label %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <button class="button button-dark catalog-filter-submit" type="submit">
+      Aplicar filtros
     </button>
+  </div>
+</form>
+<% if (obras.length) { %>
+  <div class="catalog-sections">
+    <% catalogoGrupos.forEach(grupo => { %>
+      <section class="catalog-section" aria-labelledby="catalogo-<%= grupo.id %>">
+        <div class="catalog-section-heading">
+          <div>
+            <div class="eyebrow">
+              <%= grupo.titulo.toUpperCase() %>
+            </div>
+            <h3 id="catalogo-<%= grupo.id %>">
+              <%= grupo.titulo %>
+            </h3>
+            <p>
+              <%= grupo.descricao %>
+            </p>
+          </div>
+          <span class="catalog-section-count">
+            <%= grupo.obras.length %>
+          </span>
+        </div>
+        <% if (grupo.obras.length) { %>
+          <div class="works-card-list">
+            <% grupo.obras.forEach((obra, i) => { %>
+            <%- include('../partials/cartao-obra', { obra, i }) %>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="catalog-section-empty">
+          Nenhum registro nesta seção.
+        </p>
+      <% } %>
+    </section>
   <% }) %>
 </div>
-<p class="prototype-note">
-  <span class="lucide-icon" aria-hidden="true">
-    <%- icones.circleHelp %>
-  </span>
-  Os registros e contadores acima são dados de demonstração. O protótipo não salva novas obras.
-</p>
+<% } else { %>
+<%- include('../partials/componentes/estado-vazio', {
+          classe: 'works-empty-state card-surface',
+          variacao: 'destaque',
+          icone: icones.fileMusic,
+          eyebrow: 'SEU CATÁLOGO',
+          titulo: 'Nenhuma obra encontrada',
+          descricao: Object.values(filtrosCatalogo).some(Boolean)
+            ? 'Nenhum registro corresponde aos filtros atuais. Ajuste a busca ou limpe os filtros.'
+            : 'Registre uma obra para acompanhar seus dados, créditos e participações neste espaço.',
+          acaoPrincipal: Object.values(filtrosCatalogo).some(Boolean)
+            ? { href: '/works#catalogo-obras', label: 'Limpar filtros' }
+            : { href: '/works/new', label: 'Cadastrar primeira obra' }
+        }) %>
+<% } %>
 </div>
 </main>
 </div>
@@ -137,7 +224,7 @@ FICHA DA OBRA
 </span>
 <button class="icon-button detail-close" type="button" data-dialog-close aria-label="Fechar detalhe">
 <span class="lucide-icon" aria-hidden="true">
-  <%- icones.x %>
+<%- icones.x %>
 </span>
 </button>
 </div>
@@ -157,25 +244,31 @@ Sobre
 </h3>
 <p data-work-description-detail>
 </p>
+<a class="text-link work-listen-link" data-work-listen-link target="_blank" rel="noopener noreferrer" hidden>
+Abrir link de escuta
+<span class="lucide-icon" aria-hidden="true">
+<%- icones.arrowUpRight %>
+</span>
+</a>
 </section>
 <div class="detail-facts work-detail-facts">
 <div>
 <small>
-  PARTICIPAÇÃO
+PAPEL NA OBRA
 </small>
 <b data-work-role-detail>
 </b>
 </div>
 <div>
 <small>
-  CRÉDITOS ASSOCIADOS
+CRÉDITOS ASSOCIADOS
 </small>
 <b data-work-credits-detail>
 </b>
 </div>
 <div>
 <small>
-  BPM
+BPM
 </small>
 <b data-work-bpm-detail>
 </b>
@@ -184,24 +277,35 @@ Sobre
 <div class="detail-facts work-detail-facts">
 <div>
 <small>
-  ISRC
+ISRC
 </small>
 <b data-work-isrc-detail>
 </b>
 </div>
 <div>
 <small>
-  ISWC
+ISWC
 </small>
 <b data-work-iswc-detail>
 </b>
 </div>
 </div>
-<p class="prototype-note">
-<span class="lucide-icon" aria-hidden="true">
-<%- icones.circleHelp %>
-</span>
-Códigos e créditos precisam de conferência; este é um detalhe demonstrativo.
-</p>
+<section class="detail-section">
+<h3>
+Créditos e participações
+</h3>
+<div class="work-credit-detail-list" data-work-credit-list aria-live="polite">
+</div>
+</section>
+<div class="work-detail-actions">
+<a class="button button-outline" data-work-edit href="#">
+Editar obra
+</a>
+<form method="post" action="#" data-work-delete>
+<button class="button button-outline danger-button" type="submit">
+Excluir obra
+</button>
+</form>
+</div>
 </dialog>
 <%- include('../partials/fim-pagina') %>

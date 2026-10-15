@@ -17,62 +17,149 @@
     </p>
   </div>
 </div>
-<div class="search-toolbar">
+<form class="people-search-form" method="get" action="/search">
   <label class="search-field" for="busca-profissionais">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.search %>
     </span>
-    <input id="busca-profissionais" type="search" data-filter placeholder="Busque por nome, função, cidade ou estilo" aria-label="Buscar profissionais">
+    <input id="busca-profissionais" name="q" type="search" value="<%= filtros.q %>" maxlength="100" placeholder="Busque por nome, função, cidade ou estilo" aria-label="Buscar profissionais" >
   </label>
-</div>
+  <label class="people-search-filter" for="filtro-categoria">
+    <span>
+      Categoria profissional
+    </span>
+    <select id="filtro-categoria" name="categoria">
+      <option value="">
+        Todas as categorias
+      </option>
+      <% opcoesFiltros.categorias.forEach(categoria => { %>
+        <option value="<%= categoria %>"<%= filtros.categoria === categoria ? 'selected' : '' %>>
+          <%= categoria %>
+        </option>
+      <% }) %>
+    </select>
+  </label>
+  <label class="people-search-filter" for="filtro-genero">
+    <span>
+      Gênero musical
+    </span>
+    <select id="filtro-genero" name="genero">
+      <option value="">
+        Todos os gêneros
+      </option>
+      <% opcoesFiltros.generos.forEach(genero => { %>
+        <option value="<%= genero %>"<%= filtros.genero === genero ? 'selected' : '' %>>
+          <%= genero %>
+        </option>
+      <% }) %>
+    </select>
+  </label>
+  <label class="people-search-filter" for="filtro-localizacao">
+    <span>
+      Localização
+    </span>
+    <select id="filtro-localizacao" name="localizacao">
+      <option value="">
+        Todas as localidades
+      </option>
+      <% opcoesFiltros.localizacoes.forEach(localizacao => { %>
+        <option value="<%= localizacao %>"<%= filtros.localizacao === localizacao ? 'selected' : '' %>>
+          <%= localizacao %>
+        </option>
+      <% }) %>
+    </select>
+  </label>
+  <div class="people-search-actions">
+    <button class="button button-dark" type="submit">
+      Buscar
+    </button>
+    <% if (filtrosAtivos) { %>
+      <a class="button button-outline" href="/search">
+        Limpar
+      </a>
+    <% } %>
+  </div>
+</form>
 <div class="results-meta">
   <span>
-    Profissionais encontrados
+    <strong>
+      <%= pessoas.length %>
+    </strong>
+    <%= pessoas.length === 1 ? 'perfil público encontrado' : 'perfis públicos encontrados' %>
   </span>
   <span>
-    Mais relevantes
+    Ordem alfabética
   </span>
 </div>
-<div class="people-grid">
-  <% pessoas.forEach(pessoa => { %>
-    <article class="profile-card" data-search-item>
-      <div class="profile-card-top tone-<%= pessoa.tone %>">
-        <div class="avatar avatar-<%= pessoa.tone %>">
-          <%= pessoa.initials %>
-        </div>
-        <span class="availability">
-          <i>
-          </i>
-          Disponível
-        </span>
-      </div>
-      <div class="profile-card-body">
-        <h3>
-          <%= pessoa.name %>
-        </h3>
-        <p class="role-line">
-          <%= pessoa.role %>
-        </p>
-        <div class="profile-detail">
-          <span class="lucide-icon" aria-hidden="true">
-            <%- icones.mapPin %>
-          </span>
-          <%= pessoa.city %>
-        </div>
-        <div class="tag-line">
-          <span>
-            <%= pessoa.tag %>
+<% if (pessoas.length) { %>
+  <div class="people-grid">
+    <% pessoas.forEach(pessoa => { %>
+      <article class="profile-card">
+        <div class="profile-card-top tone-<%= pessoa.tone %>">
+          <div class="avatar avatar-<%= pessoa.tone %>">
+            <%= pessoa.initials %>
+          </div>
+          <span class="availability status-<%= pessoa.statusClass %>" title="<%= pessoa.availabilityLabel %>">
+            <i aria-hidden="true">
+            </i>
+            <%= pessoa.availabilityLabel %>
           </span>
         </div>
-        <div class="profile-card-actions">
-          <button class="button button-dark small" type="button" data-toast="Solicitação enviada para<%= pessoa.name %>">
-            Conectar
-          </button>
+        <div class="profile-card-body">
+          <h3>
+            <a href="/p/<%= encodeURIComponent(pessoa.publicSlug) %>">
+              <%= pessoa.name %>
+            </a>
+          </h3>
+          <p class="role-line">
+            <%= pessoa.role %>
+          </p>
+          <% if (pessoa.city) { %>
+            <div class="profile-detail">
+              <span class="lucide-icon" aria-hidden="true">
+                <%- icones.mapPin %>
+              </span>
+              <%= pessoa.city %>
+            </div>
+          <% } %>
+          <% if (pessoa.categoryLabels.length || pessoa.genres.length) { %>
+            <div class="tag-line" aria-label="Categorias e gêneros musicais">
+              <% pessoa.categoryLabels.slice(0, 2).forEach(categoria => { %>
+                <span>
+                  <%= categoria %>
+                </span>
+              <% }) %>
+              <% pessoa.genres.slice(0, 2).forEach(genero => { %>
+                <span>
+                  <%= genero %>
+                </span>
+              <% }) %>
+            </div>
+          <% } %>
+          <div class="profile-card-actions">
+            <a class="button button-dark small" href="/p/<%= encodeURIComponent(pessoa.publicSlug) %>">
+              Ver perfil
+              <span class="lucide-icon" aria-hidden="true">
+                <%- icones.arrowUpRight %>
+              </span>
+            </a>
+          </div>
         </div>
-      </div>
-    </article>
-  <% }) %>
-</div>
+      </article>
+    <% }) %>
+  </div>
+<% } else { %>
+<%- include('../partials/componentes/estado-vazio', {
+    classe: 'people-empty-state',
+    variacao: 'normal',
+    icone: icones.users,
+    titulo: 'Nenhum perfil público encontrado',
+    descricao: filtrosAtivos
+      ? 'Ajuste os filtros ou limpe a busca para ver outros profissionais.'
+      : 'Os profissionais aparecem aqui quando publicam seus perfis.',
+    acaoPrincipal: { href: '/settings', label: 'Ver configurações de visibilidade' }
+  }) %>
+<% } %>
 </div>
 </main>
 </div>

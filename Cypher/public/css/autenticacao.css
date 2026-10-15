@@ -184,6 +184,27 @@
   line-height: 1.5;
 }
 
+.auth-message {
+  margin: 0 0 18px;
+  padding: 11px 13px;
+  border: 1px solid #dce1d7;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.auth-message-error {
+  border-color: #e7c3bb;
+  color: #8b3628;
+  background: #fff4f1;
+}
+
+.auth-message-success {
+  border-color: #cfdec0;
+  color: #425d23;
+  background: #f3f8eb;
+}
+
 .auth-panel form {
   display: grid;
   gap: 17px;

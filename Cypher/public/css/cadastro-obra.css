@@ -48,6 +48,147 @@
 .form-feedback {
   margin: 0 0 18px;
 }
+
+.work-type-picker {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 15px;
+  padding: 23px clamp(16px, 3vw, 27px);
+  border: 1px solid #dfe6cc;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #f7faef 0%, #ffffff 70%);
+}
+
+.work-type-picker-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.work-type-picker h2 {
+  margin: 4px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 23px;
+  letter-spacing: -0.06em;
+}
+
+.work-type-picker p {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: #7e897c;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.work-type-context {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 999px;
+  color: #4c5e2a;
+  background: #e4efbd;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.work-type-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.work-type-option {
+  position: relative;
+  display: block;
+  min-height: 96px;
+  padding: 13px;
+  border: 1px solid #dfe3d9;
+  border-radius: 9px;
+  color: var(--ink);
+  background: #ffffff;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.work-type-option:hover,
+.work-type-option.selected {
+  border-color: #b5ca6b;
+  box-shadow: 0 5px 16px rgba(56, 74, 35, 0.08);
+  transform: translateY(-1px);
+}
+
+.work-type-option.selected {
+  background: #f7fbe9;
+}
+
+.work-type-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.work-type-option input:focus-visible + .work-type-option-content {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+
+.work-type-option-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.work-type-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  color: #526b2b;
+  background: #e8f1c9;
+}
+
+.work-type-option-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.work-type-option strong,
+.work-type-option small {
+  display: block;
+}
+
+.work-type-option strong {
+  font-size: 11px;
+}
+
+.work-type-option small {
+  margin-top: 4px;
+  color: #879184;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.work-type-suggestion {
+  margin: 0 !important;
+  padding: 10px 12px;
+  border-left: 3px solid #bdd470;
+  color: #617052 !important;
+  background: rgba(225, 237, 190, 0.45);
+}
+
+[data-work-field][hidden] {
+  display: none;
+}
+
 .success-feedback {
   border-color: #cee0a0;
   color: #445333;
@@ -193,7 +334,7 @@
   font-size: 9px;
 }
 .ghost-entry .form-grid {
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .ghost-remove {
   justify-self: start;
@@ -223,4 +364,74 @@
 .work-form label > select,
 .work-form label > textarea {
   grid-column: 1 / -1;
+}
+
+.offer-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.exclusive-toggle {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid rgba(122, 90, 22, 0.22);
+  border-radius: 14px;
+  background: rgba(247, 231, 170, 0.3);
+}
+
+.exclusive-toggle input {
+  width: auto !important;
+  margin-top: 3px;
+}
+
+.exclusive-toggle span {
+  display: grid;
+  gap: 4px;
+}
+
+.exclusive-toggle small {
+  color: var(--ink-muted, #697066);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.offer-card {
+  padding: 16px;
+  border: 1px solid rgba(40, 43, 36, 0.12);
+  border-radius: 14px;
+  background: rgba(250, 248, 241, 0.55);
+}
+.offer-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.offer-remove {
+  min-height: 30px;
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
+@media (max-width: 700px) {
+  .work-type-picker-heading {
+    display: grid;
+    gap: 10px;
+  }
+  .work-type-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ghost-entry .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 460px) {
+  .work-type-options {
+    grid-template-columns: 1fr;
+  }
 }

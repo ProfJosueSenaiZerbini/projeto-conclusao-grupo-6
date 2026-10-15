@@ -1,0 +1,49 @@
+<button class="work-card" type="button" data-work-card data-work-id="<%= obra.id %>" data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-owned="<%= obra.owned ? 'true' : 'false' %>" data-work-credit-details="<%= encodeURIComponent(JSON.stringify(obra.creditDetails)) %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>" data-work-link="<%= obra.listenLink %>" >
+  <span class="work-card-index index-<%= i % 5 %>">
+    <%= String(i + 1).padStart(2, '0') %>
+  </span>
+  <span class="work-card-main">
+    <strong>
+      <%= obra.title %>
+    </strong>
+    <span>
+      <%= obra.meta || 'Gênero e data não informados' %>
+    </span>
+    <span class="work-card-badges">
+      <span class="type-label">
+        <%= obra.type %>
+      </span>
+      <span class="status-label">
+        <i>
+        </i>
+        <%= obra.status %>
+      </span>
+      <% if (!obra.owned || obra.role === 'Participação como feat') { %>
+        <span class="participation-badge">
+          Participação
+        </span>
+      <% } %>
+    </span>
+  </span>
+  <span class="work-card-role">
+    <small>
+      PAPEL NA OBRA
+    </small>
+    <b>
+      <%= obra.role || 'Crédito associado' %>
+    </b>
+    <small>
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.users %>
+      </span>
+      <%= obra.credits %>
+      <%= obra.credits === 1 ? 'crédito associado' : 'créditos associados' %>
+    </small>
+  </span>
+  <span class="work-card-open">
+    Ver ficha
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.arrowUpRight %>
+    </span>
+  </span>
+</button>

@@ -207,6 +207,134 @@
 .event-card-trigger[hidden] {
   display: none !important;
 }
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.events-filters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: end;
+  gap: 10px;
+  margin: 22px 0 16px;
+  padding: 14px;
+  border: 1px solid #e0e3d9;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.events-filters label {
+  display: grid;
+  gap: 6px;
+  color: #788476;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.events-filters input,
+.events-filters select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #d7ddd1;
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--white);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.page-content > .form-feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid #d7ddd1;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.page-content > .success-feedback {
+  color: #4e6b38;
+  border-color: #bdd58c;
+  background: #f0f7df;
+}
+
+.page-content > .error-feedback {
+  color: #8a4d43;
+  border-color: #e5b6ad;
+  background: #fff0ed;
+}
+
+.events-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+}
+
+.event-card-wrapper {
+  display: grid;
+  gap: 5px;
+}
+
+.event-management-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 0 5px;
+}
+
+.event-management-actions form {
+  margin: 0;
+}
+
+.danger-link {
+  border: 0;
+  padding: 0;
+  color: #a45d51;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.events-empty-state {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .events-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .events-filter-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .page-header-actions {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+  .events-filters {
+    grid-template-columns: 1fr;
+  }
+  .events-filter-actions {
+    grid-column: auto;
+  }
+}
+
 .tabs-row .tab {
   border: 0;
 }

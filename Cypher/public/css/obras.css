@@ -259,6 +259,107 @@
   color: #899388;
   font-size: 10px;
 }
+.catalog-filters {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding: 17px 19px;
+}
+.catalog-filter-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.catalog-filter-heading strong {
+  display: block;
+  margin-top: 5px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+}
+.catalog-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+}
+.catalog-filter-grid label {
+  display: grid;
+  gap: 6px;
+  color: #697568;
+  font-size: 10px;
+  font-weight: 700;
+}
+.catalog-filter-grid select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 9px;
+  border: 1px solid #dfe3d9;
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 400;
+}
+.catalog-filter-submit {
+  min-height: 38px;
+  white-space: nowrap;
+}
+.catalog-sections {
+  display: grid;
+  gap: 28px;
+}
+.catalog-section {
+  display: grid;
+  gap: 12px;
+}
+.catalog-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.catalog-section-heading h3 {
+  margin: 5px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  letter-spacing: -0.05em;
+}
+.catalog-section-heading p {
+  margin: 5px 0 0;
+  color: #899388;
+  font-size: 10px;
+}
+.catalog-section-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  color: #697568;
+  background: #eef2e3;
+  font-size: 10px;
+  font-weight: 800;
+}
+.catalog-section-empty {
+  margin: 0;
+  padding: 15px;
+  border: 1px dashed #dfe3d9;
+  border-radius: 9px;
+  color: #899388;
+  font-size: 11px;
+}
+.participation-badge {
+  color: #756a3b;
+  background: #fff4bd;
+}
+.work-card-badges .participation-badge {
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 9px;
+}
 .works-card-list {
   display: grid;
   gap: 10px;
@@ -403,4 +504,114 @@
 .dark .work-card-index.index-3 {
   color: #dce8d6;
   background: #344331;
+}
+
+.works-empty-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 25px;
+}
+.works-empty-state > .lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: #66745e;
+  background: #eef2e7;
+}
+.works-empty-state h2 {
+  margin: 6px 0 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+}
+.works-empty-state p {
+  margin: 7px 0 15px;
+  color: #879182;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.work-credit-detail-list {
+  display: grid;
+  gap: 8px;
+}
+.work-credit-detail-list > p {
+  margin: 0;
+  color: #879182;
+  font-size: 11px;
+}
+.work-credit-detail {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(90px, 1fr);
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border: 1px solid #e5e9df;
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+.work-credit-detail strong {
+  overflow-wrap: anywhere;
+  font-size: 11px;
+}
+.work-credit-detail span {
+  color: #697568;
+  font-size: 10px;
+}
+.work-credit-detail small {
+  grid-column: 1 / -1;
+  color: #899287;
+  font-size: 9px;
+}
+.work-detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 22px;
+}
+.work-detail-actions form {
+  margin: 0;
+}
+.work-detail-actions .button {
+  min-height: 42px;
+}
+.work-listen-link {
+  margin-top: 10px;
+}
+.work-listen-link:not([hidden]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 700px) {
+  .catalog-filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .catalog-filter-submit {
+    width: 100%;
+  }
+  .catalog-section-heading h3 {
+    font-size: 18px;
+  }
+  .works-empty-state {
+    padding: 20px 17px;
+  }
+  .work-credit-detail {
+    grid-template-columns: 1fr;
+  }
+  .work-credit-detail small {
+    grid-column: auto;
+  }
+  .work-detail-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .work-detail-actions .button {
+    width: 100%;
+  }
 }

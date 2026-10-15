@@ -59,14 +59,24 @@
     <p class="auth-description">
       A cena continua se movendo enquanto você não para.
     </p>
+    <% if (mensagem) { %>
+      <p class="auth-message auth-message-success" role="status">
+        <%= mensagem %>
+      </p>
+    <% } %>
+    <% if (erro) { %>
+      <p class="auth-message auth-message-error" role="alert">
+        <%= erro %>
+      </p>
+    <% } %>
     <form method="post" action="/login">
       <label>
         E-mail
-        <input type="email" name="email" placeholder="voce@email.com" required>
+        <input type="email" name="email" value="<%= email ?? '' %>" placeholder="voce@email.com" autocomplete="email" required>
       </label>
       <label>
         Senha
-        <input type="password" name="password" placeholder="••••••••" required>
+        <input type="password" name="password" placeholder="••••••••" maxlength="128" autocomplete="current-password" required>
       </label>
       <button class="button button-lime full" type="submit">
         Entrar
@@ -75,17 +85,19 @@
         </span>
       </button>
     </form>
-    <div class="auth-divider">
-      <span>
-        ou
-      </span>
-    </div>
-    <form method="post" action="/login">
-      <input type="hidden" name="guest" value="true">
-      <button class="button button-outline full" type="submit">
-        Entrar como OG Emicê (demonstração)
-      </button>
-    </form>
+    <% if (allowOgAccess) { %>
+      <div class="auth-divider">
+        <span>
+          ou
+        </span>
+      </div>
+      <form method="post" action="/login">
+        <input type="hidden" name="guest" value="true">
+        <button class="button button-outline full" type="submit">
+          Acessar OG Emicê
+        </button>
+      </form>
+    <% } %>
     <p class="auth-switch">
       Ainda não está no Cypher?
       <a href="/register">

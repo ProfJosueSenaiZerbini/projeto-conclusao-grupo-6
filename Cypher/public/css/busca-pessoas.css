@@ -80,3 +80,85 @@
   gap: 7px;
   margin-top: 18px;
 }
+
+.people-search-form {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.4fr) repeat(3, minmax(135px, 0.8fr))
+    auto;
+  align-items: end;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.people-search-filter {
+  display: grid;
+  gap: 6px;
+  color: #697568;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.people-search-filter select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 11px;
+  border: 1px solid #dfe3d8;
+  border-radius: 10px;
+  color: var(--ink);
+  background: var(--white);
+  font-size: 11px;
+}
+
+.people-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.profile-card-body h3 a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.availability.status-searching i {
+  background: #d7a51b;
+}
+
+.availability.status-unavailable i,
+.availability.status-unknown i {
+  background: #9ba397;
+}
+
+.people-empty-state .lucide-icon {
+  color: #87927f;
+}
+
+.people-empty-state .button {
+  margin-top: 16px;
+}
+
+@media (max-width: 1120px) {
+  .people-search-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .people-search-form > .search-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .people-search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .people-search-form > .search-field {
+    grid-column: auto;
+  }
+
+  .people-search-actions {
+    flex-wrap: wrap;
+  }
+}

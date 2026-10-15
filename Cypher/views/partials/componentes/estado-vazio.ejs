@@ -1,0 +1,23 @@
+<% const variacaoEstado = typeof variacao !== 'undefined' && variacao ? variacao : 'normal'; %>
+<% const classeEstado = typeof classe !== 'undefined' && classe ? classe : ''; %>
+<% const idEstado = typeof id !== 'undefined' && id ? id : ''; %>
+<% const iconeEstado = typeof icone !== 'undefined' ? icone : ''; %>
+<% const descricaoEstado = typeof descricao !== 'undefined' ? descricao : ''; %>
+<% const principalEstado = typeof acaoPrincipal !== 'undefined' ? acaoPrincipal : null; %>
+<% const secundariaEstado = typeof acaoSecundaria !== 'undefined' ? acaoSecundaria : null; %>
+<section class="estado-vazio estado-vazio-<%= variacaoEstado %> <%= classeEstado %>"<%= idEstado ? ` id="${idEstado}"` : '' %> aria-labelledby="<%= idEstado ? `${idEstado}-titulo` : 'estado-vazio-titulo' %>">
+  <% if (iconeEstado) { %>
+    <span class="estado-vazio-icone lucide-icon" aria-hidden="true"><%- iconeEstado %></span>
+  <% } %>
+  <div class="estado-vazio-conteudo">
+    <% if (typeof eyebrow !== 'undefined' && eyebrow) { %><div class="eyebrow"><%= eyebrow %></div><% } %>
+    <h2 id="<%= idEstado ? `${idEstado}-titulo` : 'estado-vazio-titulo' %>"><%= titulo %></h2>
+    <% if (descricaoEstado) { %><p><%= descricaoEstado %></p><% } %>
+    <% if (principalEstado && principalEstado.href && principalEstado.label) { %>
+      <a class="button button-lime" href="<%= principalEstado.href %>"><%= principalEstado.label %></a>
+    <% } %>
+    <% if (secundariaEstado && secundariaEstado.href && secundariaEstado.label) { %>
+      <a class="button button-outline" href="<%= secundariaEstado.href %>"><%= secundariaEstado.label %></a>
+    <% } %>
+  </div>
+</section>

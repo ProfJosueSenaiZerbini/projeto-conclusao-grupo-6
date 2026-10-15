@@ -89,6 +89,7 @@
 .beat-title-row {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
 }
 
 .beat-title-row h3 {
@@ -102,6 +103,35 @@
   margin: 4px 0 0;
   color: #8d978a;
   font-size: 10px;
+}
+
+.beat-owner-badge {
+  align-self: flex-start;
+  padding: 5px 7px;
+  border-radius: 999px;
+  color: #536c25;
+  background: #e9f3b9;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.beat-exclusive-badge,
+.beat-exclusive-detail {
+  align-self: flex-start;
+  padding: 5px 7px;
+  border-radius: 999px;
+  color: #7a5a16;
+  background: #f7e7aa;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.beat-exclusive-detail {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: 9px;
 }
 
 .beat-specs {
@@ -124,6 +154,46 @@
   justify-content: space-between;
   padding-top: 13px;
   border-top: 1px solid #eceee8;
+}
+
+.beat-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.inline-form {
+  display: inline;
+}
+
+.danger-link {
+  color: #a14d42;
+}
+
+.beat-offer-detail {
+  display: grid;
+  gap: 3px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(40, 43, 36, 0.1);
+}
+
+.beat-offer-detail:last-child {
+  border-bottom: 0;
+}
+
+.beat-offer-detail span,
+.beat-offer-detail small {
+  color: var(--ink-muted, #697066);
+}
+
+.beat-form-notice {
+  margin-top: -4px;
+}
+
+.beat-form .button-yellow {
+  color: var(--ink);
 }
 
 .license-green {
