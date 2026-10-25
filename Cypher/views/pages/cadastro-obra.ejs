@@ -53,52 +53,38 @@
   </div>
 </div>
 <form class="work-form" method="post" action="<%= editando ? `/works/${encodeURIComponent(obraId)}/edit` : '/works/new' %>" data-work-form data-work-categories="<%= (usuario.categories ?? []).join('|') %>">
-  <section class="work-type-picker" aria-labelledby="work-type-title">
-    <div class="work-type-picker-heading">
-      <div>
-        <div class="eyebrow">
-          PRIMEIRO PASSO
-        </div>
-        <h2 id="work-type-title">
-          O que você deseja cadastrar?
-        </h2>
-        <p>
-          O tipo escolhido organiza o formulário e destaca os campos mais relevantes.
-        </p>
+  <section class="work-selected-type" aria-labelledby="work-selected-type-title">
+    <div class="work-selected-type-icon lucide-icon" aria-hidden="true">
+      <%- valores.tipo === 'Instrumental' ? icones.headphones : valores.tipo === 'Outro' ? icones.sparkles : icones.fileMusic %>
+    </div>
+    <div>
+      <div class="eyebrow">
+        FORMATO SELECIONADO
       </div>
-      <span class="work-type-context" data-work-type-context>
-        Escolha um formato
-      </span>
+      <h2 id="work-selected-type-title">
+        <%= valores.tipo || 'Obra' %>
+      </h2>
+      <p>
+        <%= valores.tipo === 'Instrumental'
+        ? 'Material instrumental sem estrutura de faixa tradicional.'
+        : valores.tipo === 'Música'
+          ? 'Faixa com letra, créditos e dados técnicos.'
+          : valores.tipo === 'Single'
+            ? 'Lançamento individual pronto para organizar.'
+            : valores.tipo === 'EP'
+              ? 'Lançamento curto com organização posterior das faixas.'
+              : valores.tipo === 'Álbum'
+                ? 'Lançamento completo com tracklist posterior.'
+                : valores.tipo === 'Outro'
+                  ? 'Projeto musical ou material relacionado.'
+                  : 'Organize os dados principais do seu registro.' %>
+      </p>
     </div>
-    <div class="work-type-options" role="radiogroup" aria-label="Tipo de conteúdo">
-      <% [
-              { value: 'Música', label: 'Música', description: 'Faixa com letra, créditos e dados técnicos.', icon: icones.fileMusic },
-              { value: 'Single', label: 'Single', description: 'Lançamento individual pronto para organizar.', icon: icones.disc },
-              { value: 'EP', label: 'EP', description: 'Lançamento curto com faixas organizadas depois.', icon: icones.listChecks },
-              { value: 'Álbum', label: 'Álbum', description: 'Lançamento completo com tracklist posterior.', icon: icones.music2 },
-              { value: 'Beat', label: 'Beat', description: 'Instrumental com BPM, licença e link.', icon: icones.headphones },
-              { value: 'Outro', label: 'Outro', description: 'Projeto musical ou material relacionado.', icon: icones.sparkles },
-            ].forEach(opcao => { %>
-        <label class="work-type-option" data-work-type-option="<%= opcao.value %>">
-          <input type="radio" name="tipoVisual" value="<%= opcao.value %>" data-work-type-choice<%= valores.tipo === opcao.value ? 'checked' : '' %>>
-          <span class="work-type-option-content">
-            <span class="work-type-option-icon lucide-icon" aria-hidden="true">
-              <%- opcao.icon %>
-            </span>
-            <span>
-              <strong>
-                <%= opcao.label %>
-              </strong>
-              <small>
-                <%= opcao.description %>
-              </small>
-            </span>
-          </span>
-        </label>
-      <% }) %>
-    </div>
-    <p class="work-type-suggestion" data-work-type-suggestion role="status">
-    </p>
+    <% if (!editando) { %>
+      <a class="button button-outline work-change-type" href="/works#cadastro-obra">
+        Trocar tipo
+      </a>
+    <% } %>
   </section>
   <input type="hidden" name="tipo" value="<%= valores.tipo %>" data-work-type-value>
   <section class="form-section">
@@ -108,10 +94,10 @@
       </span>
       <div>
         <h2>
-          Informações da obra
+          <%= valores.tipo === 'Instrumental' ? 'Informações do instrumental' : valores.tipo === 'Outro' ? 'Informações do projeto' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Informações do lançamento' : 'Informações da obra' %>
         </h2>
         <p>
-          Comece pelos dados que identificam a faixa.
+          <%= valores.tipo === 'Instrumental' ? 'Comece pelos dados que identificam o material.' : valores.tipo === 'Outro' ? 'Registre os dados gerais que ajudam a organizar este projeto.' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Comece pelos dados gerais do lançamento.' : 'Comece pelos dados que identificam a faixa.' %>
         </p>
       </div>
     </div>
@@ -124,253 +110,258 @@
         <input name="titulo" required minlength="2" maxlength="120" placeholder="Ex.: Metrô depois das duas" value="<%= valores.titulo %>">
       </label>
       <label>
-        Gênero principal
+        Gênero ou categoria<% if (valores.tipo !== 'Outro') { %>
         <span class="required-mark">
           *
         </span>
-        <select name="genero" required>
-          <option value="">
-            Selecione
+      <% } else { %>
+        <span class="optional-mark">
+          Opcional
+        </span>
+      <% } %>
+      <select name="genero"<%= valores.tipo !== 'Outro' ? ' required' : '' %>>
+        <option value="">
+          Selecione
+        </option>
+        <% generosObra.forEach(genero => { %>
+          <option value="<%= genero %>"<%= valores.genero === genero ? 'selected' : '' %>>
+            <%= genero %>
           </option>
-          <% generosObra.forEach(genero => { %>
-            <option value="<%= genero %>"<%= valores.genero === genero ? 'selected' : '' %>>
-              <%= genero %>
-            </option>
-          <% }) %>
-        </select>
-      </label>
-      <label data-work-field="bpm">
-        BPM
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <input type="number" name="bpm" min="30" max="300" step="1" placeholder="Ex.: 92" value="<%= valores.bpm %>">
-      </label>
-      <label>
-        Status
-        <span class="required-mark">
-          *
-        </span>
-        <select name="status" required>
-          <% statusObra.forEach(status => { %>
-            <option value="<%= status %>"<%= valores.status === status ? 'selected' : '' %>>
-              <%= status %>
-            </option>
-          <% }) %>
-        </select>
-      </label>
-      <label class="field-full" data-work-field="description">
-        Descrição
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <textarea name="descricao" rows="4" maxlength="500" placeholder="Conte sobre o contexto, estilo e fase atual da obra.">
-          <%= valores.descricao %>
-        </textarea>
-      </label>
-      <label class="field-full" data-work-field="lyrics">
-        Letra ou observações privadas
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <textarea name="letra" rows="5" maxlength="5000" placeholder="Adicione um trecho ou notas privadas da obra.">
-          <%= valores.letra %>
-        </textarea>
-      </label>
+        <% }) %>
+      </select>
+    </label>
+    <label data-work-field="bpm">
+      BPM
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <input type="number" name="bpm" min="30" max="300" step="1" placeholder="Ex.: 92" value="<%= valores.bpm %>">
+    </label>
+    <label>
+      Status
+      <span class="required-mark">
+        *
+      </span>
+      <select name="status" required>
+        <% statusObra.forEach(status => { %>
+          <option value="<%= status %>"<%= valores.status === status ? 'selected' : '' %>>
+            <%= status %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+    <label class="field-full" data-work-field="description">
+      Descrição
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <textarea name="descricao" rows="4" maxlength="500" placeholder="Conte sobre o contexto, estilo e fase atual da obra.">
+        <%= valores.descricao %>
+      </textarea>
+    </label>
+    <label class="field-full" data-work-field="lyrics">
+      Letra ou observações privadas
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <textarea name="letra" rows="5" maxlength="5000" placeholder="Adicione um trecho ou notas privadas da obra.">
+        <%= valores.letra %>
+      </textarea>
+    </label>
+  </div>
+</section>
+<section class="form-section" data-work-section="credits">
+  <div class="form-section-heading">
+    <span class="form-step">
+      02
+    </span>
+    <div>
+      <h2>
+        Créditos e participações
+      </h2>
+      <p>
+        Reconheça quem colaborou e identifique a função de cada pessoa.
+      </p>
     </div>
-  </section>
-  <section class="form-section" data-work-section="credits">
-    <div class="form-section-heading">
-      <span class="form-step">
-        02
+  </div>
+  <div class="form-grid">
+    <label class="field-full">
+      Seu papel na obra
+      <span class="required-mark">
+        *
+      </span>
+      <select name="papel" required>
+        <% papeisObra.forEach(papel => { %>
+          <option value="<%= papel %>"<%= valores.papel === papel ? 'selected' : '' %>>
+            <%= papel %>
+          </option>
+        <% }) %>
+      </select>
+    </label>
+  </div>
+  <div class="ghost-credit-form profile-credit-form">
+    <div>
+      <span class="ghost-icon lucide-icon" aria-hidden="true">
+        <%- icones.users %>
       </span>
       <div>
-        <h2>
-          Créditos e participações
-        </h2>
+        <strong>
+          Perfis Cypher
+        </strong>
         <p>
-          Reconheça quem colaborou e identifique a função de cada pessoa.
+          Use o identificador com @. Cada crédito fica associado ao perfil e identificado como não confirmado.
         </p>
       </div>
     </div>
-    <div class="form-grid">
-      <label class="field-full">
-        Seu papel na obra
-        <span class="required-mark">
-          *
-        </span>
-        <select name="papel" required>
-          <% papeisObra.forEach(papel => { %>
-            <option value="<%= papel %>"<%= valores.papel === papel ? 'selected' : '' %>>
-              <%= papel %>
-            </option>
-          <% }) %>
-        </select>
-      </label>
+    <datalist id="perfis-cypher">
+      <% perfisParaCredito.forEach(perfil => { %>
+        <option value="<%= perfil.handle %>" label="<%= perfil.name %>">
+        </option>
+      <% }) %>
+    </datalist>
+    <div class="ghost-entry-list" data-profile-credit-list>
+      <% creditosPerfil.forEach(credito => { %>
+        <fieldset class="ghost-entry credit-entry" data-credit-entry>
+          <legend>
+            Perfil Cypher
+          </legend>
+          <div class="form-grid">
+            <label>
+              Identificador do perfil
+              <input name="perfilCreditoHandle" type="text" list="perfis-cypher" maxlength="81" required placeholder="@identificador" value="<%= credito.handle %>">
+            </label>
+            <label>
+              Função
+              <input name="perfilCreditoPapel" type="text" maxlength="80" required placeholder="Ex.: composição" value="<%= credito.papel %>">
+            </label>
+            <label>
+              Participação
+              <span class="optional-mark">
+                Opcional
+              </span>
+              <input name="perfilCreditoParticipacao" type="text" maxlength="30" placeholder="Ex.: 50%" value="<%= credito.participacao %>">
+            </label>
+          </div>
+          <button class="text-link ghost-remove" type="button" data-remove-credit-entry>
+            Remover crédito
+          </button>
+        </fieldset>
+      <% }) %>
     </div>
-    <div class="ghost-credit-form profile-credit-form">
-      <div>
-        <span class="ghost-icon lucide-icon" aria-hidden="true">
-          <%- icones.users %>
-        </span>
-        <div>
-          <strong>
-            Perfis Cypher
-          </strong>
-          <p>
-            Use o identificador com @. Cada crédito fica associado ao perfil e identificado como não confirmado.
-          </p>
-        </div>
-      </div>
-      <datalist id="perfis-cypher">
-        <% perfisParaCredito.forEach(perfil => { %>
-          <option value="<%= perfil.handle %>" label="<%= perfil.name %>">
-          </option>
-        <% }) %>
-      </datalist>
-      <div class="ghost-entry-list" data-profile-credit-list>
-        <% creditosPerfil.forEach(credito => { %>
-          <fieldset class="ghost-entry credit-entry" data-credit-entry>
-            <legend>
-              Perfil Cypher
-            </legend>
-            <div class="form-grid">
-              <label>
-                Identificador do perfil
-                <input name="perfilCreditoHandle" type="text" list="perfis-cypher" maxlength="81" required placeholder="@identificador" value="<%= credito.handle %>">
-              </label>
-              <label>
-                Função
-                <input name="perfilCreditoPapel" type="text" maxlength="80" required placeholder="Ex.: composição" value="<%= credito.papel %>">
-              </label>
-              <label>
-                Participação
-                <span class="optional-mark">
-                  Opcional
-                </span>
-                <input name="perfilCreditoParticipacao" type="text" maxlength="30" placeholder="Ex.: 50%" value="<%= credito.participacao %>">
-              </label>
-            </div>
-            <button class="text-link ghost-remove" type="button" data-remove-credit-entry>
-              Remover crédito
-            </button>
-          </fieldset>
-        <% }) %>
-      </div>
-      <button class="button button-outline small" type="button" data-add-profile-credit>
-        <span class="lucide-icon" aria-hidden="true">
-          <%- icones.plus %>
-        </span>
-        Adicionar perfil Cypher
-      </button>
-    </div>
-    <div class="ghost-credit-form">
-      <div>
-        <span class="ghost-icon lucide-icon" aria-hidden="true">
-          <%- icones.user %>
-        </span>
-        <div>
-          <strong>
-            Menção sem perfil vinculado
-          </strong>
-          <p>
-            Registre o nome e a função; a menção ficará identificada como não confirmada.
-          </p>
-        </div>
-      </div>
-      <div class="ghost-entry-list" data-ghost-list>
-        <% mencoesFantasma.forEach(mencao => { %>
-          <fieldset class="ghost-entry" data-ghost-entry>
-            <legend>
-              Menção sem perfil vinculado
-            </legend>
-            <div class="form-grid">
-              <label>
-                Nome da pessoa
-                <input name="mencaoFantasmaNome" type="text" maxlength="100" required placeholder="Nome artístico ou profissional" value="<%= mencao.nome %>">
-              </label>
-              <label>
-                Crédito
-                <input name="mencaoFantasmaPapel" type="text" maxlength="80" required placeholder="Ex.: composição, produção, feat" value="<%= mencao.papel %>">
-              </label>
-              <label>
-                Participação
-                <span class="optional-mark">
-                  Opcional
-                </span>
-                <input name="mencaoFantasmaParticipacao" type="text" maxlength="30" placeholder="Ex.: 50%" value="<%= mencao.participacao %>">
-              </label>
-            </div>
-            <button class="text-link ghost-remove" type="button" data-remove-credit-entry>
-              Remover menção
-            </button>
-          </fieldset>
-        <% }) %>
-      </div>
-      <button class="button button-outline small" type="button" data-add-ghost>
-        <span class="lucide-icon" aria-hidden="true">
-          <%- icones.plus %>
-        </span>
-        Adicionar menção
-      </button>
-    </div>
-  </section>
-  <section class="form-section" data-work-section="release">
-    <div class="form-section-heading">
-      <span class="form-step">
-        03
-      </span>
-      <div>
-        <h2>
-          Identificação e lançamento
-        </h2>
-        <p>
-          Inclua códigos existentes ou deixe-os para preencher depois.
-        </p>
-      </div>
-    </div>
-    <div class="form-grid">
-      <label data-work-field="codes">
-        ISRC
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <input name="isrc" maxlength="20" placeholder="Código da gravação" value="<%= valores.isrc %>">
-      </label>
-      <label data-work-field="codes">
-        ISWC
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <input name="iswc" maxlength="20" placeholder="Código da obra" value="<%= valores.iswc %>">
-      </label>
-      <label data-work-field="release-date">
-        Data de lançamento
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <input type="date" name="dataLancamento" value="<%= valores.dataLancamento %>">
-      </label>
-      <label data-work-field="listen-link">
-        Link de escuta
-        <span class="optional-mark">
-          Opcional
-        </span>
-        <input type="url" name="link" maxlength="500" placeholder="https://" value="<%= valores.link %>">
-      </label>
-    </div>
-  </section>
-  <div class="work-form-actions">
-    <a class="button button-outline" href="/works">
-      Cancelar
-    </a>
-    <button class="button button-lime" type="submit">
+    <button class="button button-outline small" type="button" data-add-profile-credit>
       <span class="lucide-icon" aria-hidden="true">
-        <%- icones.fileMusic %>
+        <%- icones.plus %>
       </span>
-      <%= editando ? 'Salvar alterações' : 'Cadastrar obra' %>
+      Adicionar perfil Cypher
     </button>
   </div>
+  <div class="ghost-credit-form">
+    <div>
+      <span class="ghost-icon lucide-icon" aria-hidden="true">
+        <%- icones.user %>
+      </span>
+      <div>
+        <strong>
+          Menção sem perfil vinculado
+        </strong>
+        <p>
+          Registre o nome e a função; a menção ficará identificada como não confirmada.
+        </p>
+      </div>
+    </div>
+    <div class="ghost-entry-list" data-ghost-list>
+      <% mencoesFantasma.forEach(mencao => { %>
+        <fieldset class="ghost-entry" data-ghost-entry>
+          <legend>
+            Menção sem perfil vinculado
+          </legend>
+          <div class="form-grid">
+            <label>
+              Nome da pessoa
+              <input name="mencaoFantasmaNome" type="text" maxlength="100" required placeholder="Nome artístico ou profissional" value="<%= mencao.nome %>">
+            </label>
+            <label>
+              Crédito
+              <input name="mencaoFantasmaPapel" type="text" maxlength="80" required placeholder="Ex.: composição, produção, feat" value="<%= mencao.papel %>">
+            </label>
+            <label>
+              Participação
+              <span class="optional-mark">
+                Opcional
+              </span>
+              <input name="mencaoFantasmaParticipacao" type="text" maxlength="30" placeholder="Ex.: 50%" value="<%= mencao.participacao %>">
+            </label>
+          </div>
+          <button class="text-link ghost-remove" type="button" data-remove-credit-entry>
+            Remover menção
+          </button>
+        </fieldset>
+      <% }) %>
+    </div>
+    <button class="button button-outline small" type="button" data-add-ghost>
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.plus %>
+      </span>
+      Adicionar menção
+    </button>
+  </div>
+</section>
+<section class="form-section" data-work-section="release">
+  <div class="form-section-heading">
+    <span class="form-step">
+      03
+    </span>
+    <div>
+      <h2>
+        Identificação e lançamento
+      </h2>
+      <p>
+        Inclua códigos existentes ou deixe-os para preencher depois.
+      </p>
+    </div>
+  </div>
+  <div class="form-grid">
+    <label data-work-field="codes">
+      ISRC
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <input name="isrc" maxlength="20" placeholder="Código da gravação" value="<%= valores.isrc %>">
+    </label>
+    <label data-work-field="codes">
+      ISWC
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <input name="iswc" maxlength="20" placeholder="Código da obra" value="<%= valores.iswc %>">
+    </label>
+    <label data-work-field="release-date">
+      Data de lançamento
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <input type="date" name="dataLancamento" value="<%= valores.dataLancamento %>">
+    </label>
+    <label data-work-field="listen-link">
+      Link de escuta
+      <span class="optional-mark">
+        Opcional
+      </span>
+      <input type="url" name="link" maxlength="500" placeholder="https://" value="<%= valores.link %>">
+    </label>
+  </div>
+</section>
+<div class="work-form-actions">
+  <a class="button button-outline" href="/works">
+    Cancelar
+  </a>
+  <button class="button button-lime" type="submit">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.fileMusic %>
+    </span>
+    <%= editando ? 'Salvar alterações' : 'Cadastrar obra' %>
+  </button>
+</div>
 </form>
 </div>
 </main>

@@ -16,12 +16,12 @@
       Um lugar claro para guardar sua trajetória e reconhecer quem constrói com você.
     </p>
   </div>
-  <a class="button button-lime" href="/works/new">
+  <button class="button button-lime" type="button" data-work-type-open aria-controls="selecao-tipo-obra">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.plus %>
     </span>
     Cadastrar obra
-  </a>
+  </button>
 </div>
 <% if (mensagem) { %>
   <div class="form-feedback success-feedback" role="status">
@@ -168,7 +168,7 @@
 <% if (obras.length) { %>
   <div class="catalog-sections">
     <% catalogoGrupos.forEach(grupo => { %>
-      <section class="catalog-section" aria-labelledby="catalogo-<%= grupo.id %>">
+      <section class="catalog-section<%= grupo.obras.length ? '' : ' catalog-section-empty-group' %>" aria-labelledby="catalogo-<%= grupo.id %>">
         <div class="catalog-section-heading">
           <div>
             <div class="eyebrow">
@@ -211,12 +211,63 @@
             : 'Registre uma obra para acompanhar seus dados, créditos e participações neste espaço.',
           acaoPrincipal: Object.values(filtrosCatalogo).some(Boolean)
             ? { href: '/works#catalogo-obras', label: 'Limpar filtros' }
-            : { href: '/works/new', label: 'Cadastrar primeira obra' }
+            : { href: '#cadastro-obra', label: 'Cadastrar primeira obra' }
         }) %>
 <% } %>
 </div>
 </main>
 </div>
+<dialog class="work-type-dialog" id="selecao-tipo-obra" aria-modal="true" aria-labelledby="selecao-tipo-obra-titulo" aria-describedby="selecao-tipo-obra-descricao">
+<div class="work-type-dialog-header">
+<div>
+<span class="eyebrow">
+PRIMEIRO PASSO
+</span>
+<h2 id="selecao-tipo-obra-titulo">
+O que você deseja cadastrar?
+</h2>
+<p id="selecao-tipo-obra-descricao">
+Escolha um formato para abrir um cadastro focado no que você precisa organizar.
+</p>
+</div>
+<button class="icon-button detail-close" type="button" data-work-type-close aria-label="Fechar seleção de tipo">
+<span class="lucide-icon" aria-hidden="true">
+<%- icones.x %>
+</span>
+</button>
+</div>
+<div class="work-type-dialog-options" aria-label="Tipos de obra disponíveis">
+<% [
+      { value: 'Instrumental', description: 'Material instrumental sem estrutura de faixa tradicional.', icon: icones.headphones },
+      { value: 'Música', description: 'Faixa com letra, créditos e dados técnicos.', icon: icones.fileMusic },
+      { value: 'Single', description: 'Lançamento individual pronto para organizar.', icon: icones.disc },
+      { value: 'EP', description: 'Lançamento curto com organização posterior das faixas.', icon: icones.listChecks },
+      { value: 'Álbum', description: 'Lançamento completo com tracklist posterior.', icon: icones.music2 },
+      { value: 'Beat', description: 'Abra o cadastro completo do Banco de Beats.', icon: icones.headphones, beat: true },
+      { value: 'Outro', description: 'Projeto musical ou material relacionado.', icon: icones.sparkles },
+    ].forEach(opcao => { %>
+<a class="work-type-dialog-option<%= opcao.beat ? ' work-type-dialog-option-beat' : '' %>" href="<%= opcao.beat ? '/beats/new' : `/works/new?tipo=${encodeURIComponent(opcao.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))}` %>">
+<span class="work-type-dialog-option-icon lucide-icon" aria-hidden="true">
+<%- opcao.icon %>
+</span>
+<span class="work-type-dialog-option-copy">
+<strong>
+  <%= opcao.value %>
+</strong>
+<small>
+  <%= opcao.description %>
+</small>
+</span>
+<span class="lucide-icon work-type-dialog-option-arrow" aria-hidden="true">
+<%- icones.arrowUpRight %>
+</span>
+</a>
+<% }) %>
+</div>
+<button class="button button-outline work-type-dialog-cancel" type="button" data-work-type-close>
+Cancelar
+</button>
+</dialog>
 <dialog class="detail-dialog work-detail-dialog" id="detalhe-obra" aria-labelledby="detalhe-obra-titulo">
 <div class="detail-dialog-header">
 <span class="detail-kicker">

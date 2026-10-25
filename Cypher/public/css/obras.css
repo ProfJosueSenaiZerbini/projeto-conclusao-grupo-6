@@ -616,11 +616,14 @@
   }
 }
 
-
 /* Refinamento visual v17 — catálogo mais editorial e menos modularizado. */
 .in-progress-summary {
   background:
-    radial-gradient(circle at 90% 12%, rgba(200, 242, 43, 0.14), transparent 30%),
+    radial-gradient(
+      circle at 90% 12%,
+      rgba(200, 242, 43, 0.14),
+      transparent 30%
+    ),
     var(--surface-soft);
 }
 
@@ -669,4 +672,415 @@
   .catalog-filter-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Redesign v20 — catálogo de Obras mais editorial e organizado. */
+.works-overview {
+  gap: 18px;
+  margin-bottom: 38px;
+}
+
+.catalog-summary,
+.in-progress-summary {
+  min-height: 136px;
+  border-radius: 17px;
+}
+
+.catalog-summary {
+  padding: 24px 28px;
+  box-shadow: 0 12px 28px rgba(101, 133, 17, 0.12);
+}
+
+.catalog-summary strong,
+.in-progress-summary strong {
+  margin-top: 11px;
+}
+
+.catalog-summary p,
+.in-progress-summary p {
+  font-size: 11px;
+}
+
+.in-progress-summary {
+  padding: 22px 24px;
+  box-shadow: 0 10px 25px rgba(16, 20, 15, 0.04);
+}
+
+.works-toolbar {
+  margin-bottom: 13px;
+  padding: 0 2px;
+}
+
+.works-toolbar h2 {
+  font-size: 26px;
+}
+
+.catalog-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 0 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  background: var(--surface-raised);
+}
+
+.catalog-filters {
+  gap: 13px;
+  margin-bottom: 30px;
+  padding: 15px 17px;
+  border-radius: 15px;
+  box-shadow: 0 8px 22px rgba(16, 20, 15, 0.035);
+}
+
+.catalog-filter-heading {
+  min-height: 30px;
+}
+
+.catalog-filter-heading strong {
+  font-size: 16px;
+}
+
+.catalog-filter-grid {
+  gap: 8px;
+}
+
+.catalog-filter-grid label {
+  gap: 5px;
+}
+
+.catalog-filter-grid select {
+  min-height: 36px;
+}
+
+.catalog-filter-submit {
+  min-height: 36px;
+}
+
+.catalog-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.catalog-section {
+  gap: 11px;
+  min-width: 0;
+}
+
+.catalog-section:not(.catalog-section-empty-group) {
+  grid-column: 1 / -1;
+}
+
+.catalog-section:not(.catalog-section-empty-group) .catalog-section-heading {
+  padding: 0 2px 10px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.catalog-section-empty-group {
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 15px;
+  background: var(--surface-raised);
+}
+
+.catalog-section-empty-group .catalog-section-heading {
+  align-items: center;
+}
+
+.catalog-section-empty-group .catalog-section-heading h3 {
+  margin-top: 3px;
+  font-size: 17px;
+}
+
+.catalog-section-empty-group .catalog-section-heading p {
+  display: none;
+}
+
+.catalog-section-empty-group .catalog-section-count {
+  min-width: 25px;
+  height: 25px;
+  color: #6e7e5e;
+  background: #e8efda;
+}
+
+.catalog-section-empty {
+  padding: 11px 12px;
+  border: 0;
+  border-left: 2px solid #c8f22b;
+  border-radius: 0 8px 8px 0;
+  color: #7d897a;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.works-card-list {
+  gap: 9px;
+}
+
+.work-card {
+  min-height: 94px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: 0 7px 18px rgba(16, 20, 15, 0.025);
+}
+
+.work-card:hover {
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 0 14px 28px rgba(54, 77, 37, 0.1);
+}
+
+.work-card-index {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+
+.work-card-open {
+  padding: 7px 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: 7px;
+  background: var(--surface-raised);
+}
+
+.dark .catalog-section-empty-group {
+  border-color: #334232;
+  background: #1a2118;
+}
+
+.dark .catalog-section-empty-group .catalog-section-count {
+  color: #d8e8bd;
+  background: #2d4026;
+}
+
+.dark .catalog-section-empty {
+  color: #a9b9a1;
+  background: rgba(32, 43, 31, 0.7);
+}
+
+.dark .work-card-open {
+  color: #d1e6a1;
+  border-color: #3f543b;
+  background: #202b1f;
+}
+
+@media (max-width: 780px) {
+  .catalog-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-section:not(.catalog-section-empty-group) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .catalog-summary,
+  .in-progress-summary {
+    min-height: 128px;
+  }
+
+  .catalog-summary {
+    padding: 20px;
+  }
+
+  .in-progress-summary {
+    padding: 20px;
+  }
+
+  .catalog-section-empty-group {
+    padding: 14px;
+  }
+
+  .work-card-open {
+    justify-self: start;
+  }
+}
+
+/* Seleção de tipo antes do cadastro. */
+.work-type-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 32px));
+  padding: 28px;
+  border: 1px solid #dfe5d8;
+  border-radius: 18px;
+  color: var(--ink);
+  background: var(--white);
+  box-shadow: 0 24px 70px rgba(16, 20, 15, 0.22);
+}
+
+.work-type-dialog::backdrop {
+  background: rgba(16, 20, 15, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.work-type-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.work-type-dialog-header h2 {
+  margin: 5px 0 7px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(24px, 4vw, 34px);
+  letter-spacing: -0.04em;
+}
+
+.work-type-dialog-header p {
+  max-width: 540px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.work-type-dialog-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.work-type-dialog-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #dce3d5;
+  border-radius: 13px;
+  color: var(--ink);
+  background: #f7f9f3;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.work-type-dialog-option:hover,
+.work-type-dialog-option:focus-visible {
+  border-color: #94ae44;
+  color: var(--ink);
+  background: #eef6d9;
+  box-shadow: 0 8px 20px rgba(71, 105, 31, 0.12);
+  transform: translateY(-1px);
+}
+
+.work-type-dialog-option:focus-visible,
+.work-type-dialog-cancel:focus-visible {
+  outline: 3px solid rgba(200, 242, 43, 0.55);
+  outline-offset: 3px;
+}
+
+.work-type-dialog-option-beat {
+  border-color: #d5bd50;
+  background: #fff8d9;
+}
+
+.work-type-dialog-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #10140f;
+  background: var(--lime);
+}
+
+.work-type-dialog-option-beat .work-type-dialog-option-icon {
+  background: var(--yellow);
+}
+
+.work-type-dialog-option-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.work-type-dialog-option-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.work-type-dialog-option-copy strong {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+}
+
+.work-type-dialog-option-copy small {
+  color: #6e7969;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.work-type-dialog-option-arrow {
+  color: #76866d;
+}
+
+.work-type-dialog-option-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.work-type-dialog-cancel {
+  margin-top: 22px;
+}
+
+@media (max-width: 620px) {
+  .work-type-dialog {
+    padding: 20px;
+    border-radius: 15px;
+  }
+
+  .work-type-dialog-options {
+    grid-template-columns: 1fr;
+  }
+
+  .work-type-dialog-header {
+    gap: 12px;
+  }
+}
+
+.dark .work-type-dialog {
+  border-color: #3d503a;
+  color: var(--ink);
+  background: #141c15;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+}
+
+.dark .work-type-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.dark .work-type-dialog-header p,
+.dark .work-type-dialog-option-copy small {
+  color: #aab9a4;
+}
+
+.dark .work-type-dialog-option {
+  border-color: #3d503a;
+  color: #eef5ea;
+  background: #1a251a;
+}
+
+.dark .work-type-dialog-option:hover,
+.dark .work-type-dialog-option:focus-visible {
+  border-color: #91b34b;
+  color: #eef5ea;
+  background: #263525;
+}
+
+.dark .work-type-dialog-option-beat {
+  border-color: #76652d;
+  background: #302914;
+}
+
+.dark .work-type-dialog-option-arrow {
+  color: #b4c5ad;
 }

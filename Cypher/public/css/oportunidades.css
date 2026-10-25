@@ -526,3 +526,37 @@
   position: relative;
   z-index: 1;
 }
+
+
+/* Auditoria de contraste v18 — oportunidades e drawer. */
+.dark .detail-banner {
+  color: #10140f;
+  background: linear-gradient(120deg, #d7f458, #c8f22b 60%, #ffd529);
+}
+
+.dark .detail-banner .lucide-icon,
+.dark .detail-banner svg {
+  color: #10140f;
+}
+
+.dark .interest-explainer {
+  color: #dcebc9;
+  border-left-color: #c8f22b;
+  background: #26381f;
+}
+
+.dark .events-filters {
+  border-color: #3d503a;
+  background: #1a2118;
+}
+
+.dark .events-filters input,
+.dark .events-filters select {
+  color: #eef5ea;
+  border-color: #52664d;
+  background: #202b1f;
+}
+
+.dark .events-filters input::placeholder {
+  color: #91a38c;
+}

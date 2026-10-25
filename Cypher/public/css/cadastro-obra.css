@@ -435,3 +435,154 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Auditoria de contraste v18 — formulário de beat no tema escuro. */
+.dark .work-type-picker,
+.dark .form-section {
+  border-color: #3d503a;
+  background: #1a2118;
+}
+
+.dark .work-type-picker p,
+.dark .form-section-heading p,
+.dark .work-form label,
+.dark .work-form label small,
+.dark .work-type-option small,
+.dark .optional-mark {
+  color: #adbea7;
+}
+
+.dark .work-type-option,
+.dark .work-form label input,
+.dark .work-form label select,
+.dark .work-form label textarea,
+.dark .ghost-credit-form,
+.dark .offer-card,
+.dark .ghost-entry {
+  color: #eef5ea;
+  border-color: #465944;
+  background: #202b1f;
+}
+
+.dark .work-type-option:hover,
+.dark .work-type-option.selected {
+  border-color: #8eae45;
+  background: #293a24;
+}
+
+.dark .work-type-option strong,
+.dark .form-section-heading h2,
+.dark .ghost-credit-form strong,
+.dark .offer-card strong {
+  color: #eef5ea;
+}
+
+.dark .work-form label input::placeholder,
+.dark .work-form label textarea::placeholder {
+  color: #91a38c;
+}
+
+.dark .work-type-option-icon,
+.dark .ghost-credit-form .ghost-icon {
+  color: #d9ed91;
+  background: #304423;
+}
+
+.dark .work-type-context {
+  color: #e4f2b6;
+  background: #304421;
+}
+
+.dark .work-form-notice,
+.dark .form-feedback,
+.dark .work-type-suggestion {
+  color: #d6e8c1;
+  border-color: #536c39;
+  background: #26381f;
+}
+
+.dark .work-form-notice strong {
+  color: #eef7df;
+}
+
+.dark .exclusive-toggle {
+  border-color: #78672d;
+  background: #332b17;
+}
+
+.dark .exclusive-toggle small,
+.dark .ghost-credit-form p,
+.dark .ghost-entry legend {
+  color: #b6c6a9;
+}
+
+.dark .offer-card {
+  border-color: #4b5d46;
+}
+
+/* Contexto do formulário específico escolhido no passo anterior. */
+.work-selected-type {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+  padding: 17px 19px;
+  border: 1px solid #dce5cf;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f5f9e9, #edf4d9);
+}
+
+.work-selected-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #10140f;
+  background: var(--lime);
+}
+
+.work-selected-type-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.work-selected-type h2 {
+  margin: 3px 0 4px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+}
+
+.work-selected-type p {
+  margin: 0;
+  color: #697568;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.work-change-type {
+  white-space: nowrap;
+}
+
+.dark .work-selected-type {
+  border-color: #4c623e;
+  background: linear-gradient(135deg, #26351f, #1b291c);
+}
+
+.dark .work-selected-type p {
+  color: #b0c0aa;
+}
+
+@media (max-width: 620px) {
+  .work-selected-type {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .work-change-type {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}

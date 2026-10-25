@@ -117,6 +117,40 @@
     });
   });
 
+  const seletorTipoObra = document.querySelector("#selecao-tipo-obra");
+  let acionadorTipoObra = null;
+  const abrirSelecaoTipoObra = acionador => {
+    if (!seletorTipoObra) return;
+    acionadorTipoObra =
+      acionador ?? document.querySelector("[data-work-type-open]");
+    if (typeof seletorTipoObra.showModal === "function") {
+      if (!seletorTipoObra.open) seletorTipoObra.showModal();
+    } else {
+      seletorTipoObra.setAttribute("open", "");
+    }
+    seletorTipoObra.querySelector("a, button")?.focus();
+  };
+  const fecharSelecaoTipoObra = () => {
+    if (!seletorTipoObra) return;
+    if (typeof seletorTipoObra.close === "function" && seletorTipoObra.open) {
+      seletorTipoObra.close();
+    } else {
+      seletorTipoObra.removeAttribute("open");
+      acionadorTipoObra?.focus();
+    }
+  };
+  document.querySelectorAll("[data-work-type-open]").forEach(botao => {
+    botao.addEventListener("click", () => abrirSelecaoTipoObra(botao));
+  });
+  document.querySelectorAll("[data-work-type-close]").forEach(botao => {
+    botao.addEventListener("click", fecharSelecaoTipoObra);
+  });
+  seletorTipoObra?.addEventListener("click", evento => {
+    if (evento.target === seletorTipoObra) fecharSelecaoTipoObra();
+  });
+  seletorTipoObra?.addEventListener("close", () => acionadorTipoObra?.focus());
+  if (window.location.hash === "#cadastro-obra") abrirSelecaoTipoObra();
+
   const dialogos = new Map();
   const definirTexto = (dialogo, seletor, valor) => {
     dialogo.querySelectorAll(seletor).forEach(elemento => {
@@ -465,6 +499,14 @@
       campos: ["description", "listen-link"],
       creditos: "Colaboradores do projeto",
       lancamento: "Identificação do projeto",
+    },
+    Instrumental: {
+      contexto: "Material instrumental",
+      sugestao:
+        "Informe os dados essenciais do instrumental e, se quiser, um link para escuta.",
+      campos: ["bpm", "description", "release-date", "listen-link"],
+      creditos: "Créditos do instrumental",
+      lancamento: "Identificação e disponibilidade do instrumental",
     },
     Obra: {
       contexto: "Obra musical",

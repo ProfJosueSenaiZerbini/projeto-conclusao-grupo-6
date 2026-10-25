@@ -302,3 +302,16 @@ As iniciais de perfis e usuários foram padronizadas em um gradiente amarelo–v
 **Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
 
 O relatório detalhado está em `relatorios-incrementacao/melhoria-16-visao-geral-gradientes-jamaica.md`.
+
+
+## 18. Cadastro de Obras por tipo — 25 de outubro de 2026
+
+A página `/works` passou a iniciar o cadastro por um modal independente de seleção. O componente apresenta Instrumental, Música, Single, EP, Álbum, Beat e Outro, com descrições, ícones, contraste nos dois temas e comportamento acessível de foco, Escape e clique fora. O formulário não aparece junto com o modal.
+
+As opções de Obras comuns navegam para `/works/new?tipo=<slug>`. A rota aceita também o nome legível do tipo; quando nenhum tipo é informado, retorna para `/works#cadastro-obra`, que reabre a seleção no cliente. Beat é encaminhado para `/beats/new`, preservando o domínio já existente do Banco de Beats e evitando duplicação das regras de licença e ofertas.
+
+`cadastro-obra.ejs` agora recebe o tipo selecionado e apresenta um cartão de contexto com a ação de trocar tipo. A visibilidade de campos continua sendo controlada por `public/js/interacoes.js`, que recebeu o contexto de Instrumental. O tipo `Instrumental` foi acrescentado à lista textual de tipos de Obras e é agrupado junto aos instrumentais no catálogo. Para `Outro`, gênero/categoria passou a ser opcional, mantendo validação quando preenchido.
+
+**Alterações estruturais no banco:** nenhuma. O campo textual de tipo da tabela `obras` já suportava a extensão; não houve tabela, coluna, índice, constraint, backfill ou conversão. O schema permanece na versão 6 e obras existentes, edição, detalhes, filtros, créditos e participações continuam usando os contratos anteriores.
+
+O relatório completo está em `relatorios-incrementacao/melhoria-18-cadastro-obras-por-tipo.md`.

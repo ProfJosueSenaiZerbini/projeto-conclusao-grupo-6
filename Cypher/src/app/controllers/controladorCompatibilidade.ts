@@ -200,7 +200,7 @@ function gruposCatalogo(obras: ReturnType<typeof CypherModel.obrasDoUsuario>) {
   for (const obra of obras) {
     const grupo = !obra.owned
       ? grupos[3]
-      : obra.type === "Beat"
+      : obra.type === "Beat" || obra.type === "Instrumental"
         ? grupos[4]
         : obra.status === "Rascunho"
           ? grupos[2]
@@ -768,8 +768,14 @@ function validarFormularioObra(valores: ValoresFormularioObra): string | null {
     return "Informe um título entre 2 e 120 caracteres.";
   if (!tiposObra.includes(valores.tipo))
     return "Selecione um tipo de lançamento válido.";
-  if (!generosObra.includes(valores.genero))
+  if (valores.tipo !== "Outro" && !generosObra.includes(valores.genero))
     return "Selecione um gênero válido.";
+  if (
+    valores.tipo === "Outro" &&
+    valores.genero &&
+    !generosObra.includes(valores.genero)
+  )
+    return "Selecione uma categoria válida para o projeto.";
   if (!statusObra.includes(valores.status))
     return "Selecione um status válido.";
   if (!papeisObra.includes(valores.papel))
@@ -960,7 +966,15 @@ export const novaObra = (req: Request, res: Response) => {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao) return res.sendStatus(403);
-  return renderizarFormularioObra(res, usuario);
+  const tipoRecebido = parametroTexto(req, "tipo");
+  const tipo =
+    tiposObra.find(opcao => opcao === tipoRecebido) ??
+    valorCatalogo(tiposObra, tipoRecebido);
+  if (!tipo) return res.redirect(303, "/works#cadastro-obra");
+  if (tipo === "Beat") return res.redirect(303, "/beats/new");
+  return renderizarFormularioObra(res, usuario, {
+    valores: { ...formularioObraVazio, tipo },
+  });
 };
 
 export const editarObra = (req: Request, res: Response) => {

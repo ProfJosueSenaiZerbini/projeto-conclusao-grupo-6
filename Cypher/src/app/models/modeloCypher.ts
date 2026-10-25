@@ -120,6 +120,7 @@ export type Work = {
 
 export const tiposObra = [
   "Obra",
+  "Instrumental",
   "Música",
   "Beat",
   "Single",

@@ -1305,3 +1305,211 @@ body,
   border-color: #455541;
   background: #182219;
 }
+
+
+/* Auditoria de contraste v18 — correções pontuais dos prints de referência. */
+.detail-kicker,
+.detail-banner,
+.dark .detail-kicker,
+.dark .detail-banner,
+.dark .detail-banner span {
+  color: #10140f;
+}
+
+.dark .detail-close {
+  color: #eef5ea;
+  background: #202b1f;
+}
+
+.dark .detail-actions .button-outline {
+  color: #f0f7ec;
+  border-color: #718665;
+  background: #172318;
+}
+
+.dark .detail-actions .button-outline:hover {
+  color: #10140f;
+  border-color: var(--lime);
+  background: var(--lime);
+}
+
+.dark .settings-index-link.active {
+  color: #10140f;
+  background: var(--lime);
+}
+
+.dark .settings-index-link.active span {
+  color: #33451a;
+}
+
+.dark .beat-card-content {
+  color: #eef5ea;
+}
+
+.dark .beat-title-row p,
+.dark .beat-specs,
+.dark .beat-specs span,
+.dark .beat-owner-badge,
+.dark .beat-exclusive-badge {
+  color: #b8c8b0;
+}
+
+.dark .beat-owner-badge {
+  border: 1px solid #597343;
+  background: #263a25;
+}
+
+.dark .beat-exclusive-badge,
+.dark .beat-exclusive-detail {
+  color: #f0df9d;
+  border: 1px solid #76652d;
+  background: #3a3218;
+}
+
+.dark .beat-bottom {
+  border-color: #3b4d38;
+}
+
+.dark .beat-bottom .license-green,
+.dark .beat-bottom .license-yellow,
+.dark .beat-bottom .license-black {
+  color: #dbe9d3;
+  border: 1px solid #52664d;
+  background: #263525;
+}
+
+.dark .beat-actions .text-link {
+  color: #d1e6a1;
+}
+
+.dark .beat-actions .text-link:hover {
+  color: #f3f9e9;
+}
+
+.dark .in-progress-summary .summary-watermark {
+  color: #b8d76b;
+  opacity: 0.56;
+}
+
+.dark .in-progress-summary > span:first-child,
+.dark .in-progress-summary p {
+  color: #b6c6ae;
+}
+
+.dark .in-progress-summary strong {
+  color: #eef5ea;
+}
+
+.dark .profile-column-side .lime-mini span {
+  color: rgba(16, 20, 15, 0.78);
+  opacity: 1;
+}
+
+.dark .profile-column-side .lime-mini p {
+  color: rgba(16, 20, 15, 0.82);
+}
+
+.dark .profile-column-side .lime-mini strong {
+  color: #10140f;
+}
+
+.dark .people-grid .profile-card-actions .button-dark {
+  color: #f2f8ed;
+  border: 1px solid #4d6248;
+  background: #101a11;
+}
+
+.dark .people-grid .profile-card-actions .button-dark:hover {
+  color: #10140f;
+  border-color: var(--lime);
+  background: var(--lime);
+}
+
+
+/* Auditoria de contraste v19 — edição de perfil. */
+.dark .profile-edit-panel {
+  border-color: #3d503a;
+  background: #1a2118;
+}
+
+.dark .profile-edit-form > label,
+.dark .profile-edit-form > .form-grid label,
+.dark .profile-edit-form .profile-other-category label {
+  color: #b8c8b0;
+}
+
+.dark .profile-edit-form small,
+.dark .profile-edit-form .profile-field-optional {
+  color: #9fb19a;
+}
+
+.dark .profile-edit-form input,
+.dark .profile-edit-form select,
+.dark .profile-edit-form textarea {
+  color: #eef5ea;
+  border-color: #52664d;
+  background: #111810;
+}
+
+.dark .profile-edit-form input::placeholder,
+.dark .profile-edit-form textarea::placeholder {
+  color: #859985;
+}
+
+.dark .profile-category-fieldset {
+  border-color: #52664d;
+  background: #141d15;
+}
+
+.dark .profile-category-fieldset legend {
+  color: #c7d8c0;
+}
+
+.dark .profile-edit-form .profile-category-option,
+.dark .profile-edit-form .profile-category-option.category-option {
+  color: #d8e7d1;
+  border-color: #40543e;
+  background: #1c291d;
+}
+
+.dark .profile-edit-form .profile-category-option span {
+  color: #d8e7d1;
+}
+
+.dark .profile-edit-form .profile-category-option:hover {
+  color: #f0f7eb;
+  border-color: #75933e;
+  background: #263a25;
+}
+
+.dark .profile-edit-form .profile-category-option.selected,
+.dark .profile-edit-form .profile-category-option:has(input:checked) {
+  color: #10140f;
+  border-color: var(--lime);
+  background: #c8f22b;
+}
+
+.dark .profile-edit-form .profile-category-option.selected span,
+.dark .profile-edit-form .profile-category-option:has(input:checked) span {
+  color: #10140f;
+}
+
+.dark .profile-category-option input {
+  accent-color: #c8f22b;
+}
+
+.dark .profile-edit-form .category-validation {
+  color: #f0b5aa;
+}
+
+.dark .profile-message-success {
+  color: #d7edaa;
+  border: 1px solid #536e36;
+  background: #26381f;
+}
+
+.dark .profile-message-error {
+  color: #f0b5aa;
+  border: 1px solid #754e47;
+  background: #34201e;
+}

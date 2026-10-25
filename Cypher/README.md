@@ -61,3 +61,10 @@ Contas com a categoria `Organizador de eventos` podem criar, editar e excluir os
 - `views/partials/componentes/estado-vazio.ejs`: padrão acessível e responsivo para ausência de dados.
 - `public/css/` e `public/js/`: estilos e interações do navegador.
 - `scripts/`: utilitários de formatação.
+
+
+## Cadastro de obras por tipo
+
+A página `/works` inicia o cadastro por um modal de seleção entre Instrumental, Música, Single, EP, Álbum, Beat e Outro. Obras comuns seguem para `/works/new?tipo=<slug>` e recebem um formulário contextualizado. A opção Beat reutiliza o fluxo persistente do Banco de Beats em `/beats/new`, mantendo as regras próprias de licenças e ofertas. O tipo Instrumental utiliza o campo textual de tipo já existente em `obras`; não houve alteração estrutural no SQLite, que permanece na versão 6.
+
+O relatório detalhado desta melhoria está em `relatorios-incrementacao/melhoria-18-cadastro-obras-por-tipo.md`.
