@@ -32,6 +32,16 @@
 .events-list {
   display: grid;
   gap: 13px;
+  min-width: 0;
+  align-content: start;
+}
+
+.events-list-single {
+  align-content: start;
+}
+
+.events-list-single .event-card-wrapper {
+  width: 100%;
 }
 
 .event-card {
@@ -56,6 +66,7 @@
   align-items: center;
   gap: 19px;
   padding: 18px 19px;
+  min-height: 142px;
 }
 
 .event-side {
@@ -196,6 +207,11 @@
   font-size: 9px;
   white-space: nowrap;
 }
+
+.event-open-hint span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .event-open-hint svg {
   width: 15px;
   height: 15px;
@@ -313,6 +329,48 @@
   margin-top: 0;
 }
 
+.events-filter-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-height: 190px;
+  padding: 35px 24px;
+  border: 1px dashed #cfd7c7;
+  border-radius: var(--radius);
+  color: #72806e;
+  background: rgba(255, 254, 250, 0.72);
+  text-align: center;
+}
+
+.events-filter-empty[hidden] {
+  display: none !important;
+}
+
+.events-filter-empty > .lucide-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #6f8d19;
+  background: #eef5d5;
+}
+
+.events-filter-empty strong {
+  color: var(--ink);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 17px;
+  letter-spacing: -0.04em;
+}
+
+.events-filter-empty p {
+  max-width: 330px;
+  margin: 0;
+  color: #7d897b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 @media (max-width: 900px) {
   .events-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -332,6 +390,14 @@
   }
   .events-filter-actions {
     grid-column: auto;
+  }
+
+  .event-card-content {
+    min-height: 128px;
+  }
+
+  .event-open-hint {
+    margin-left: 0;
   }
 }
 

@@ -21,11 +21,6 @@ import {
   obterEventoCypher,
   listarObrasDemo,
   listarPessoasDemo,
-  listarNotificacoesCypher,
-  contarNotificacoesNaoLidasCypher,
-  criarNotificacaoCypher,
-  marcarNotificacaoLidaCypher,
-  marcarTodasNotificacoesLidasCypher,
   obterObraContaCypher,
   obterUsuarioDemo,
   type CreditoObraEntrada,
@@ -42,7 +37,6 @@ import {
   type ObraContaPersistida,
   type ObraDemoInicial,
   type PerfilDemoInicial,
-  type DadosNovaNotificacao,
 } from "./bancoDados.js";
 
 export type DemoUser = Readonly<{
@@ -576,16 +570,6 @@ export const CypherModel = {
     excluirObraCypher(id, usuarioId),
   estatisticasObrasDoUsuario: (usuarioId: string) =>
     estatisticasObrasUsuarioCypher(usuarioId),
-  notificacoes: (usuarioId: string, limite?: number) =>
-    listarNotificacoesCypher(usuarioId, limite),
-  quantidadeNotificacoesNaoLidas: (usuarioId: string) =>
-    contarNotificacoesNaoLidasCypher(usuarioId),
-  criarNotificacao: (dados: DadosNovaNotificacao) =>
-    criarNotificacaoCypher(dados),
-  marcarNotificacaoLida: (id: string, usuarioId: string) =>
-    marcarNotificacaoLidaCypher(id, usuarioId),
-  marcarTodasNotificacoesLidas: (usuarioId: string) =>
-    marcarTodasNotificacoesLidasCypher(usuarioId),
   hitDoMes: () => ({
     titulo: "Metrô depois das duas",
     artista: usuarioDemo.name,

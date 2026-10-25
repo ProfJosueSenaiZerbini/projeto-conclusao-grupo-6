@@ -457,3 +457,58 @@
     margin: 24px auto;
   }
 }
+
+
+/* Refinamento visual v17 — perfil com sinal editorial e estados mais vivos. */
+.lime-mini {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(93, 123, 19, 0.16);
+  background:
+    radial-gradient(circle at 94% 8%, rgba(255, 213, 41, 0.82), transparent 28%),
+    linear-gradient(135deg, #d8f55a 0%, var(--lime) 62%, #b9df24 100%);
+  box-shadow: 0 14px 32px rgba(103, 134, 18, 0.13);
+}
+
+.lime-mini::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 190px;
+  height: 190px;
+  right: -76px;
+  bottom: -114px;
+  border: 1px solid rgba(16, 20, 15, 0.14);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 18px rgba(16, 20, 15, 0.035),
+    0 0 0 36px rgba(16, 20, 15, 0.025);
+}
+
+.lime-mini > * {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-empty-state {
+  border-style: solid;
+  border-color: var(--border-soft);
+  background: var(--surface-raised);
+}
+
+.profile-empty-state h2 {
+  font-size: 16px;
+}
+
+.profile-work:hover {
+  padding-inline: 8px;
+  border-radius: 8px;
+  background: var(--surface-raised);
+}
+
+@media (max-width: 560px) {
+  .lime-mini {
+    box-shadow: 0 9px 22px rgba(103, 134, 18, 0.12);
+  }
+}

@@ -4,7 +4,6 @@ import * as beats from "../controllers/controladorBeats.js";
 import * as configuracoes from "../controllers/controladorConfiguracoes.js";
 import * as dashboard from "../controllers/controladorDashboard.js";
 import * as eventos from "../controllers/controladorEventos.js";
-import * as notificacoes from "../controllers/controladorNotificacoes.js";
 import * as obras from "../controllers/controladorObras.js";
 import * as perfis from "../controllers/controladorPerfis.js";
 import { middlewareAutorizacao } from "../controllers/controladorCompartilhado.js";
@@ -38,12 +37,6 @@ router.get("/beats/:id/edit", beats.editarBeat);
 router.post("/beats/:id/edit", beats.atualizarBeat);
 router.post("/beats/:id/delete", beats.excluirBeat);
 router.get("/central", beats.central);
-router.get("/notificacoes", notificacoes.paginaNotificacoes);
-router.post("/notificacoes/:id/lida", notificacoes.marcarNotificacaoLida);
-router.post(
-  "/notificacoes/marcar-todas-lidas",
-  notificacoes.marcarTodasNotificacoesLidas
-);
 router.get("/profile", perfis.perfil);
 router.post("/profile", perfis.atualizarPerfil);
 router.get("/settings", configuracoes.configuracoes);

@@ -1,7 +1,7 @@
 # Análise técnica do projeto Cypher
 
 **Pacote analisado:** `cypher-etapa-08.zip`  
-**Estado analisado:** Etapas anteriores concluídas; núcleo de notificações (Etapas 1–2 do prompt mestre) implementado; schema SQLite v7.  
+**Estado analisado:** Etapas 0–8 concluídas; schema SQLite v6.  
 **Data da análise:** 15 de outubro de 2026.
 
 ## 1. Visão geral
@@ -37,8 +37,7 @@ cypher/
 │   ├── controladorEventos.ts
 │   ├── controladorBeats.ts
 │   ├── controladorConfiguracoes.ts
-│   ├── controladorCompartilhado.ts
-│   └── controladorNotificacoes.ts
+│   └── controladorCompartilhado.ts
 ├── src/app/validators/              # validações puras por domínio
 ├── src/app/models/                  # persistência, domínio e autenticação
 │   ├── bancoDados.ts                # schema, migrações e queries SQLite
@@ -49,8 +48,7 @@ cypher/
 ├── views/partials/                  # cabeçalho, barras e shell compartilhado
 │   └── componentes/estado-vazio.ejs # estados vazios acessíveis e responsivos
 ├── public/css/                      # base, componentes, áreas, tema e responsivo
-├── public/js/app.js                 # entry point ES do frontend modular
-├── public/js/notificacoes.js        # sino, popover e leitura de notificações
+├── public/js/interacoes.js          # modais, menu, tema, filtros e campos dinâmicos
 ├── scripts/                         # formatação EJS/CSS
 └── data/cypher.sqlite               # criado em runtime; ignorado pelo Git
 ```
@@ -92,9 +90,6 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 | GET/POST | `/beats/:id/edit` | funcional | edição própria, com autorização por proprietário |
 | POST | `/beats/:id/delete` | funcional | exclusão própria |
 | GET | `/central` | funcional como conteúdo | FAQ/Cypher Central |
-| GET | `/notificacoes` | funcional | histórico persistente do usuário |
-| POST | `/notificacoes/:id/lida` | funcional | marca uma notificação própria como lida |
-| POST | `/notificacoes/marcar-todas-lidas` | funcional | marca todas as notificações próprias como lidas |
 | GET/POST | `/profile` | funcional | edição do próprio perfil |
 | GET/POST | `/settings` e `/settings/privacy` | funcional | preferências e privacidade |
 | POST | `/settings/delete-account` | funcional com pré-condições | encerramento da própria conta |
@@ -104,7 +99,7 @@ As rotas protegidas são verificadas tanto no middleware global quanto, em opera
 
 ## 5. Banco de dados e integridade
 
-O schema atual é a versão **7**. As tabelas são:
+O schema atual é a versão **6**. As tabelas são:
 
 - `usuarios`: identidade, e-mail, hash de senha, tipo de conta, flag de demonstração, ID público e número sequencial;
 - `perfis`: dados profissionais, categorias/gêneros/equipamentos serializados como JSON, status e flags de visibilidade;
@@ -113,7 +108,6 @@ O schema atual é a versão **7**. As tabelas são:
 - `eventos`: estrutura preparada para eventos, atualmente apenas fixtures;
 - `beats`: beats demonstrativos e registros reais com dados técnicos, condições de uso e modo de venda exclusiva;
 - `ofertas_beats`: uma ou mais ofertas ativas por Beat, com tipo de licença, preço opcional em centavos e descrição;
-- `notificacoes`: atividades persistentes por usuário, com tipo, título, mensagem, URL interna, referência opcional e estado de leitura;
 - `sessoes`: hash SHA-256 do token, usuário e expiração.
 
 A tabela `sequencias` controla o próximo número de contas reais dentro da transação de criação. Exclusões não liberam números para reutilização.
@@ -124,10 +118,9 @@ Relacionamentos relevantes:
 - obra pertence a usuário com `ON DELETE RESTRICT`;
 - crédito pertence a obra com `ON DELETE CASCADE`;
 - crédito ligado a usuário usa `ON DELETE SET NULL` para preservar o nome textual após exclusão;
-- notificação pertence ao usuário destinatário com `ON DELETE CASCADE`;
 - eventos e beats também bloqueiam exclusão do usuário enquanto forem próprios.
 
-As migrações são incrementais e condicionais. A v2 adicionou categorias e sessões; a v3 adicionou equipamentos/privacidade; a v4 adicionou gênero, letra, data de lançamento e link de escuta das obras; a v5 adicionou o ID público e a sequência de contas reais; a v6 adicionou a tabela `ofertas_beats` e a flag `venda_exclusiva` nos Beats; a v7 adicionou `notificacoes` e os índices por destinatário/data e destinatário/leitura. A migração v7 não faz backfill: bancos existentes começam com estado vazio e passam a receber registros apenas quando uma etapa de geração real for conectada.
+As migrações são incrementais e condicionais. A v2 adicionou categorias e sessões; a v3 adicionou equipamentos/privacidade; a v4 adicionou gênero, letra, data de lançamento e link de escuta das obras; a v5 adicionou o ID público e a sequência de contas reais; a v6 adicionou a tabela `ofertas_beats` e a flag `venda_exclusiva` nos Beats. Beats existentes recebem uma oferta legada derivada da licença e das condições anteriores, sem preço.
 
 Fixtures são marcadas com `demonstracao = 1`, atualizadas por conflito apenas quando continuam demonstrativas e não substituem registros reais.
 
@@ -187,14 +180,7 @@ Somente contas cujo `tipo_conta` é `organizador` — definido no cadastro pela 
 
 O cabeçalho inclui CSS base, stylesheet específico da página, tema e responsividade. `base.css`, `componentes.css` e `estrutura.css` formam a fundação; arquivos como `obras.css`, `perfil.css`, `configuracoes.css`, `oportunidades.css` e `banco-beats.css` tratam cada área; `tema.css` contém regras do modo escuro.
 
-O entry point modular `public/js/app.js` importa módulos ES por responsabilidade. Entre eles, `notificacoes.js` implementa:
-
-- abertura e fechamento do popover do sino;
-- fechamento por clique fora e `Escape`;
-- atualização visual do contador após leitura;
-- leitura individual e marcação em massa via POST persistente.
-
-Os demais módulos implementam:
+`interacoes.js` implementa:
 
 - toast demonstrativo;
 - filtros locais;
@@ -224,17 +210,6 @@ Executado no projeto extraído, em banco temporário isolado:
 - fluxo real isolado de cadastro, login, descoberta, criação, edição e exclusão de beat passou;
 - fluxo real isolado de cadastro, login, dashboard, perfil, criação de obra e logout passou;
 - após logout, o dashboard volta a redirecionar para `/login`.
-
-Para a etapa de notificações também foram validados:
-
-- migração de banco novo e banco existente para `user_version = 7`;
-- redirecionamento de `/notificacoes` sem sessão;
-- sino e popover renderizados no shell autenticado;
-- estado persistido lido/não lido;
-- marcação individual e em massa;
-- isolamento entre usuários ao marcar uma notificação;
-- histórico completo em `/notificacoes`;
-- build e sintaxe do novo módulo JavaScript.
 
 A execução gerou apenas o aviso conhecido da dependência transitiva `prebuild-install`.
 
@@ -272,7 +247,7 @@ A execução gerou apenas o aviso conhecido da dependência transitiva `prebuild
 
 ## 13. Próximo ponto natural do plano
 
-O próximo ponto natural do plano mestre é a **Etapa 3 — geradores reais de notificações**. Ela deve conectar ações existentes (criação/atualização de Beats, obras e eventos) ao núcleo sem criar notificações artificiais. Mensagens continuam em stand-by e compras continuam fora desta etapa.
+O próximo ponto natural é a **Etapa 7 — ofertas de instrumentais**. O CRUD básico já foi implementado; a próxima decisão deve tratar licenças múltiplas, preço, arquivos e player sem misturar compra com cadastro.
 
 A implementação atual preserva:
 
@@ -285,3 +260,45 @@ A implementação atual preserva:
 7. atualização do README e de um novo relatório de etapa.
 
 Nenhum arquivo-fonte do pacote original foi alterado nesta análise; a cópia de trabalho está em `/home/ubuntu/cypher-review/cypher`.
+
+
+## 14. Auditoria visual frontend — 24 de outubro de 2026
+
+Foi realizada uma rodada de harmonização visual com foco na página de Oportunidades, nos filtros por categoria, nos cards de eventos, no comportamento quando há apenas um resultado e na legibilidade dos temas claro e escuro. O filtro por abas agora apresenta um estado vazio específico quando nenhuma oportunidade corresponde à categoria selecionada. O grid também foi estabilizado para evitar distribuição visual inadequada em listas curtas, e os cards mantêm espaçamento mínimo coerente em telas menores.
+
+Foram adicionados overrides de tema escuro para superfícies, bordas, textos secundários, filtros, feedbacks, links de gerenciamento e estados vazios da página de Oportunidades. A interação existente por teclado, `aria-pressed`, modais e autorização não foi alterada.
+
+**Alterações estruturais no banco:** nenhuma. Esta melhoria alterou somente EJS, JavaScript, CSS e documentação. O schema permanece na versão 6; não foram criadas ou removidas tabelas, colunas, índices ou constraints.
+
+O relatório detalhado está em `relatorios-incrementacao/melhoria-13-auditoria-frontend-visual.md`.
+
+
+## 15. Correção de contraste e harmonização do sidebar — 24 de outubro de 2026
+
+Foi corrigida uma inversão semântica nos botões dos temas claro e escuro. O token `--ink` representa o texto principal e não deve ser usado diretamente como fundo de botões sem uma regra complementar. Foram definidas regras explícitas para que superfícies verde-lima e amarelas usem texto escuro, enquanto superfícies pretas e verde-profundas usem texto claro. A correção foi aplicada globalmente e reforçada nas telas de login e cadastro.
+
+O sidebar também foi harmonizado. No tema escuro, ele utiliza um verde quase preto discretamente mais profundo que a área principal, mantendo a separação visual sem contraste agressivo. O item ativo usa verde-lima e texto escuro de alto contraste. A paleta continua baseada em verde profundo, verde-lima, amarelo e preto, preservando a referência visual jamaicana.
+
+**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+
+O relatório detalhado está em `relatorios-incrementacao/melhoria-14-contraste-temas-autenticacao.md`.
+
+
+## 16. Refino do cadastro no tema escuro — 24 de outubro de 2026
+
+Após a revisão visual da tela de cadastro, foi corrigida a herança de cor dos textos das categorias. Uma regra genérica de `span` estava aplicando um verde-oliva escuro sobre os cards escuros, reduzindo significativamente a legibilidade. Foram adicionados seletores específicos para os nomes das categorias, indicadores de seleção, título da seção, texto auxiliar, bordas, placeholders e estados de foco dos campos.
+
+**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+
+O relatório detalhado está em `relatorios-incrementacao/melhoria-15-refino-cadastro-tema-escuro.md`.
+
+
+## 17. Visão geral e padronização de gradientes — 24 de outubro de 2026
+
+A Visão geral recebeu uma correção de contraste no card principal. O texto de “Descobrir. Conectar. Criar.” e a área de “Próximo passo” agora usam texto escuro sobre a superfície verde-lima, enquanto o selo numérico usa verde profundo com texto lime. O logo do sidebar recebeu apenas um reforço visual sutil.
+
+As iniciais de perfis e usuários foram padronizadas em um gradiente amarelo–verde da paleta Jamaica. No tema claro, o gradiente é claro e usa texto escuro; no tema escuro, utiliza uma versão mais profunda e texto claro. As datas exibidas em “Na sua rota” seguem o mesmo padrão, garantindo consistência entre avatares e tiles de data.
+
+**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+
+O relatório detalhado está em `relatorios-incrementacao/melhoria-16-visao-geral-gradientes-jamaica.md`.

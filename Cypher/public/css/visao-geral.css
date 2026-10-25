@@ -33,7 +33,7 @@
 }
 
 .hero-card h2 span {
-  color: var(--white);
+  color: #10140f;
 }
 
 .hero-card p {
@@ -63,8 +63,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  color: var(--lime);
-  background: var(--ink);
+  color: #c8f22b;
+  background: #10140f;
   font-size: 10px;
   font-weight: 800;
 }
@@ -221,19 +221,20 @@
   height: 43px;
   flex: 0 0 auto;
   border-radius: 7px;
-  color: var(--ink);
+  color: #10140f;
+  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
 }
 
 .date-yellow {
-  background: var(--yellow);
+  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
 }
 
 .date-green {
-  background: var(--lime);
+  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
 }
 
 .date-cream {
-  background: #edece5;
+  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
 }
 
 .date-tile strong {

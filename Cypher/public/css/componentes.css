@@ -136,24 +136,32 @@
   font-size: 11px;
 }
 
+/* Identidade visual única para iniciais de perfil. */
+.topbar-avatar,
+.avatar,
+.avatar-yellow,
+.avatar-green,
+.avatar-black,
+.avatar-cream,
+.avatar-hero {
+  color: #10140f;
+  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
+}
+
 .avatar-yellow {
-  color: var(--ink);
-  background: var(--yellow);
+  color: #10140f;
 }
 
 .avatar-green {
-  color: var(--ink);
-  background: var(--lime);
+  color: #10140f;
 }
 
 .avatar-black {
-  color: var(--white);
-  background: var(--ink);
+  color: #10140f;
 }
 
 .avatar-cream {
-  color: var(--ink);
-  background: #e8e5d9;
+  color: #10140f;
 }
 
 .round-arrow {
@@ -291,8 +299,6 @@
 .avatar-hero {
   width: 81px;
   height: 81px;
-  color: var(--ink);
-  background: var(--lime);
   font-size: 22px;
 }
 

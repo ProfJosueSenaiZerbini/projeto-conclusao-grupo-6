@@ -347,35 +347,11 @@ export type ResultadoExclusaoConta = {
   beats: number;
 };
 
-export type NotificacaoPersistida = {
-  id: string;
-  usuarioDestinoId: string;
-  tipo: string;
-  titulo: string;
-  mensagem: string;
-  url: string;
-  entidadeTipo: string;
-  entidadeId: string;
-  lida: boolean;
-  criadaEm: string;
-  lidaEm: string | null;
-};
-
-export type DadosNovaNotificacao = {
-  usuarioDestinoId: string;
-  tipo: string;
-  titulo: string;
-  mensagem?: string;
-  url?: string;
-  entidadeTipo?: string;
-  entidadeId?: string;
-};
-
 type BancoCypher = InstanceType<typeof Database>;
 
 let banco: BancoCypher | undefined;
 
-const versaoEsquema = 7;
+const versaoEsquema = 6;
 
 function iniciaisPublicas(nome: string): string {
   const partes = nome
@@ -551,26 +527,6 @@ const esquema = `
 
   CREATE INDEX IF NOT EXISTS indice_ofertas_beat
     ON ofertas_beats(beat_id, ativa);
-
-  CREATE TABLE IF NOT EXISTS notificacoes (
-    id TEXT PRIMARY KEY,
-    usuario_destino_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
-    tipo TEXT NOT NULL,
-    titulo TEXT NOT NULL,
-    mensagem TEXT NOT NULL DEFAULT '',
-    url TEXT NOT NULL DEFAULT '',
-    entidade_tipo TEXT NOT NULL DEFAULT '',
-    entidade_id TEXT NOT NULL DEFAULT '',
-    lida INTEGER NOT NULL DEFAULT 0 CHECK (lida IN (0, 1)),
-    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    lida_em TEXT
-  );
-
-  CREATE INDEX IF NOT EXISTS indice_notificacoes_usuario_data
-    ON notificacoes(usuario_destino_id, criada_em);
-
-  CREATE INDEX IF NOT EXISTS indice_notificacoes_usuario_lida
-    ON notificacoes(usuario_destino_id, lida, criada_em);
 
   CREATE TABLE IF NOT EXISTS sessoes (
     token_hash TEXT PRIMARY KEY,
@@ -2495,158 +2451,6 @@ export function estatisticasObrasUsuarioCypher(proprietarioId: string): {
     participacoesComoFeat: number;
     emAndamento: number;
   };
-}
-
-export function criarNotificacaoCypher(
-  dados: DadosNovaNotificacao
-): NotificacaoPersistida {
-  const notificacao = {
-    id: randomUUID(),
-    usuarioDestinoId: dados.usuarioDestinoId,
-    tipo: dados.tipo.trim(),
-    titulo: dados.titulo.trim(),
-    mensagem: dados.mensagem?.trim() ?? "",
-    url: dados.url?.trim() ?? "",
-    entidadeTipo: dados.entidadeTipo?.trim() ?? "",
-    entidadeId: dados.entidadeId?.trim() ?? "",
-  };
-  if (!notificacao.tipo || !notificacao.titulo) {
-    throw new Error("Uma notificação precisa de tipo e título.");
-  }
-
-  bancoAtivo()
-    .prepare(
-      `
-      INSERT INTO notificacoes (
-        id, usuario_destino_id, tipo, titulo, mensagem, url,
-        entidade_tipo, entidade_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `
-    )
-    .run(
-      notificacao.id,
-      notificacao.usuarioDestinoId,
-      notificacao.tipo,
-      notificacao.titulo,
-      notificacao.mensagem,
-      notificacao.url,
-      notificacao.entidadeTipo,
-      notificacao.entidadeId
-    );
-
-  return obterNotificacaoPorIdCypher(notificacao.id, dados.usuarioDestinoId)!;
-}
-
-function mapearNotificacao(
-  linha: Omit<NotificacaoPersistida, "lida"> & { lida: number }
-): NotificacaoPersistida {
-  return { ...linha, lida: Boolean(linha.lida) };
-}
-
-function obterNotificacaoPorIdCypher(
-  id: string,
-  usuarioDestinoId: string
-): NotificacaoPersistida | undefined {
-  const linha = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        id,
-        usuario_destino_id AS usuarioDestinoId,
-        tipo,
-        titulo,
-        mensagem,
-        url,
-        entidade_tipo AS entidadeTipo,
-        entidade_id AS entidadeId,
-        lida,
-        criada_em AS criadaEm,
-        lida_em AS lidaEm
-      FROM notificacoes
-      WHERE id = ? AND usuario_destino_id = ?
-      `
-    )
-    .get(id, usuarioDestinoId) as
-    (Omit<NotificacaoPersistida, "lida"> & { lida: number }) | undefined;
-  return linha ? mapearNotificacao(linha) : undefined;
-}
-
-export function listarNotificacoesCypher(
-  usuarioDestinoId: string,
-  limite = 50
-): NotificacaoPersistida[] {
-  const limiteSeguro = Math.min(Math.max(Math.trunc(limite), 1), 100);
-  const linhas = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        id,
-        usuario_destino_id AS usuarioDestinoId,
-        tipo,
-        titulo,
-        mensagem,
-        url,
-        entidade_tipo AS entidadeTipo,
-        entidade_id AS entidadeId,
-        lida,
-        criada_em AS criadaEm,
-        lida_em AS lidaEm
-      FROM notificacoes
-      WHERE usuario_destino_id = ?
-      ORDER BY datetime(criada_em) DESC, id DESC
-      LIMIT ?
-      `
-    )
-    .all(usuarioDestinoId, limiteSeguro) as Array<
-    Omit<NotificacaoPersistida, "lida"> & { lida: number }
-  >;
-  return linhas.map(mapearNotificacao);
-}
-
-export function contarNotificacoesNaoLidasCypher(
-  usuarioDestinoId: string
-): number {
-  const resultado = bancoAtivo()
-    .prepare(
-      `
-      SELECT COUNT(*) AS total
-      FROM notificacoes
-      WHERE usuario_destino_id = ? AND lida = 0
-      `
-    )
-    .get(usuarioDestinoId) as { total: number };
-  return resultado.total;
-}
-
-export function marcarNotificacaoLidaCypher(
-  id: string,
-  usuarioDestinoId: string
-): boolean {
-  const resultado = bancoAtivo()
-    .prepare(
-      `
-      UPDATE notificacoes
-      SET lida = 1, lida_em = CURRENT_TIMESTAMP
-      WHERE id = ? AND usuario_destino_id = ? AND lida = 0
-      `
-    )
-    .run(id, usuarioDestinoId);
-  return resultado.changes === 1;
-}
-
-export function marcarTodasNotificacoesLidasCypher(
-  usuarioDestinoId: string
-): number {
-  const resultado = bancoAtivo()
-    .prepare(
-      `
-      UPDATE notificacoes
-      SET lida = 1, lida_em = CURRENT_TIMESTAMP
-      WHERE usuario_destino_id = ? AND lida = 0
-      `
-    )
-    .run(usuarioDestinoId);
-  return resultado.changes;
 }
 
 export function excluirContaCypher(id: string): ResultadoExclusaoConta {

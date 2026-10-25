@@ -74,8 +74,6 @@ const caminhosProtegidos = new Set([
   "/beats",
   "/beats/new",
   "/central",
-  "/notificacoes",
-  "/notificacoes/marcar-todas-lidas",
   "/profile",
   "/settings",
   "/settings/privacy",
@@ -85,8 +83,7 @@ const caminhosProtegidos = new Set([
 function caminhoProtegido(caminho: string): boolean {
   return (
     caminhosProtegidos.has(caminho) ||
-    /^\/(?:works|events|beats)\/[^/]+\/(?:edit|delete)$/.test(caminho) ||
-    /^\/notificacoes\/[^/]+\/lida$/.test(caminho)
+    /^\/(?:works|events|beats)\/[^/]+\/(?:edit|delete)$/.test(caminho)
   );
 }
 
@@ -217,32 +214,6 @@ function gruposCatalogo(obras: ReturnType<typeof CypherModel.obrasDoUsuario>) {
   return grupos;
 }
 
-function tempoRelativoNotificacao(data: string): string {
-  const instante = Date.parse(`${data.replace(" ", "T")}Z`);
-  if (!Number.isFinite(instante)) return data;
-  const segundos = Math.max(0, Math.floor((Date.now() - instante) / 1000));
-  if (segundos < 60) return "agora";
-  if (segundos < 3600) return `há ${Math.floor(segundos / 60)} min`;
-  if (segundos < 86400) return `há ${Math.floor(segundos / 3600)} h`;
-  if (segundos < 604800) return `há ${Math.floor(segundos / 86400)} dias`;
-  return new Date(instante).toLocaleDateString("pt-BR");
-}
-
-function notificacoesParaView(usuarioId: string, limite = 5) {
-  return CypherModel.notificacoes(usuarioId, limite).map(notificacao => ({
-    ...notificacao,
-    dataRelativa: tempoRelativoNotificacao(notificacao.criadaEm),
-  }));
-}
-
-function dadosNotificacoes(usuarioId: string) {
-  return {
-    notificacoesRecentes: notificacoesParaView(usuarioId),
-    quantidadeNotificacoesNaoLidas:
-      CypherModel.quantidadeNotificacoesNaoLidas(usuarioId),
-  };
-}
-
 export function middlewareAutorizacao(
   req: Request,
   res: Response,
@@ -254,7 +225,6 @@ export function middlewareAutorizacao(
   if (!usuario) return res.redirect("/login");
 
   res.locals.usuario = usuario;
-  Object.assign(res.locals, dadosNotificacoes(usuario.id));
   return next();
 }
 
@@ -1359,48 +1329,4 @@ export async function excluirConta(req: Request, res: Response) {
     console.error("Falha ao encerrar conta Cypher:", erro);
     return res.redirect(303, "/settings?erro=indisponivel");
   }
-}
-
-export function paginaNotificacoes(req: Request, res: Response) {
-  const usuario = exigeAcesso(req, res);
-  if (!usuario) return;
-
-  return res.render("pages/notificacoes", {
-    title: "Notificações",
-    path: "/notificacoes",
-    stylesheet: "notificacoes",
-    authenticated: true,
-    usuario: usuarioParaView(usuario),
-    notificacoes: notificacoesParaView(usuario.id, 100),
-    quantidadeNotificacoesNaoLidas: CypherModel.quantidadeNotificacoesNaoLidas(
-      usuario.id
-    ),
-  });
-}
-
-function respostaAcaoNotificacao(
-  req: Request,
-  res: Response,
-  sucesso: boolean
-) {
-  if (req.get("accept")?.includes("application/json")) {
-    return res.json({ sucesso });
-  }
-  return res.redirect(303, "/notificacoes");
-}
-
-export function marcarNotificacaoLida(req: Request, res: Response) {
-  const usuario = exigeAcesso(req, res);
-  if (!usuario) return;
-  const id = String(req.params.id ?? "").trim();
-  if (!id || id.length > 120) return respostaAcaoNotificacao(req, res, false);
-  const sucesso = CypherModel.marcarNotificacaoLida(id, usuario.id);
-  return respostaAcaoNotificacao(req, res, sucesso);
-}
-
-export function marcarTodasNotificacoesLidas(req: Request, res: Response) {
-  const usuario = exigeAcesso(req, res);
-  if (!usuario) return;
-  CypherModel.marcarTodasNotificacoesLidas(usuario.id);
-  return respostaAcaoNotificacao(req, res, true);
 }

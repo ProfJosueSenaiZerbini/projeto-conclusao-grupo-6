@@ -456,6 +456,30 @@
   color: #10140f;
 }
 
+/* Ações de autenticação mantêm texto escuro sobre amarelo/verde vivo. */
+.auth-panel .button-lime,
+.auth-panel .button-yellow,
+.auth-panel .auth-theme-control button.active {
+  color: #10140f;
+}
+
+.auth-panel .button-dark {
+  color: #fffefa;
+  background: #10140f;
+}
+
+.auth-panel .button-outline {
+  color: #10140f;
+  border-color: #bfcbb8;
+  background: transparent;
+}
+
+.auth-panel .button-outline:hover {
+  color: #10140f;
+  border-color: #789b13;
+  background: #f0f5df;
+}
+
 .category-fieldset {
   min-width: 0;
   margin: 22px 0 13px;
@@ -615,10 +639,40 @@
   border-color: #40513d;
   background: #1a251a;
 }
+
+.dark .auth-panel .category-option > span:first-of-type {
+  color: #dce8d7;
+}
+
+.dark .auth-panel .category-option .category-check {
+  color: #d9ec91;
+}
 .dark .auth-panel .category-option.selected {
   color: #10140f;
   border-color: var(--lime);
   background: var(--lime);
+}
+
+.dark .auth-panel .button-lime,
+.dark .auth-panel .button-yellow {
+  color: #10140f;
+}
+
+.dark .auth-panel .button-dark {
+  color: #eef5ea;
+  background: #0a100b;
+}
+
+.dark .auth-panel .button-outline {
+  color: #eef5ea;
+  border-color: #52664d;
+  background: transparent;
+}
+
+.dark .auth-panel .button-outline:hover {
+  color: #f4faef;
+  border-color: #8eaf48;
+  background: #263525;
 }
 .dark .ctag-note {
   color: #c6d4bf;
@@ -627,6 +681,28 @@
 }
 .dark .ctag-note strong {
   color: #e4eedf;
+}
+
+.dark .auth-panel .category-label {
+  color: #d0ddca;
+}
+
+.dark .auth-panel .category-label span {
+  color: #aebda8;
+}
+
+.dark .auth-panel input {
+  border-color: #52664d;
+  background: #182219;
+}
+
+.dark .auth-panel input:focus {
+  border-color: #9cbd3a;
+  box-shadow: 0 0 0 3px rgba(200, 242, 43, 0.14);
+}
+
+.dark .auth-panel input::placeholder {
+  color: #aebeaa;
 }
 .dark .category-analysis-result {
   color: #cfddb8;

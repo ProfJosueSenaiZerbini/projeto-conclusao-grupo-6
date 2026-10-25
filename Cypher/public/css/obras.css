@@ -615,3 +615,58 @@
     width: 100%;
   }
 }
+
+
+/* Refinamento visual v17 — catálogo mais editorial e menos modularizado. */
+.in-progress-summary {
+  background:
+    radial-gradient(circle at 90% 12%, rgba(200, 242, 43, 0.14), transparent 30%),
+    var(--surface-soft);
+}
+
+.in-progress-summary .summary-watermark {
+  color: #789b13;
+  opacity: 0.3;
+}
+
+.catalog-filters {
+  border-color: var(--border-soft);
+  background: var(--surface-raised);
+}
+
+.catalog-filter-heading {
+  padding-bottom: 2px;
+}
+
+.catalog-section-empty {
+  border-style: solid;
+  border-color: var(--border-soft);
+  background: var(--surface-raised);
+}
+
+.dark .catalog-filters,
+.dark .catalog-section-empty {
+  border-color: #334232;
+  background: #202b1f;
+}
+
+.dark .in-progress-summary {
+  border-color: #334232;
+}
+
+@media (max-width: 700px) {
+  .catalog-filter-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalog-filter-submit {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .catalog-filter-grid {
+    grid-template-columns: 1fr;
+  }
+}

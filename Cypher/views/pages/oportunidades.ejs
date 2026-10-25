@@ -134,7 +134,7 @@
   </button>
 </div>
 <div class="events-layout">
-  <div class="events-list">
+  <div class="events-list<%= eventos.length === 1 ? ' events-list-single' : '' %>" data-events-list>
     <% eventos.forEach((evento, i) => { %>
       <div class="event-card-wrapper">
         <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
@@ -210,6 +210,19 @@
         descricao: 'Ajuste os filtros ou cadastre uma nova oportunidade para a comunidade.',
         acaoPrincipal: podeGerenciar ? { href: '/events/new', label: 'Cadastrar evento' } : null
       }) %>
+  <% } %>
+  <% if (eventos.length) { %>
+    <div class="events-filter-empty" data-events-filter-empty hidden>
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.calendarDays %>
+      </span>
+      <strong>
+        Nenhum evento nesta categoria
+      </strong>
+      <p>
+        Escolha outra aba ou limpe os filtros para ver mais oportunidades.
+      </p>
+    </div>
   <% } %>
 </div>
 <aside class="event-side history-card">

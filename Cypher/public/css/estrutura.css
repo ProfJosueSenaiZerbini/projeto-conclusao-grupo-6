@@ -19,7 +19,7 @@
   flex-direction: column;
   overflow-y: auto;
   padding: 26px 16px 17px;
-  background: #001403;
+  background: #061a09;
   color: #f1f2e9;
   scrollbar-width: thin;
   scrollbar-color: #29452d transparent;
@@ -57,8 +57,13 @@
 }
 
 .logo-compact {
-  color: var(--white);
-  font-size: 21px;
+  color: #f4faef;
+  font-size: 22px;
+  letter-spacing: -0.07em;
+}
+
+.sidebar .logo-mark {
+  filter: drop-shadow(0 0 7px rgba(200, 242, 43, 0.12));
 }
 
 .logo-mark {
@@ -171,6 +176,26 @@
   color: var(--ink);
   background: var(--lime);
   font-weight: 700;
+}
+
+/* O sidebar permanece mais profundo que a área principal, sem virar um bloco
+   preto isolado no tema escuro. */
+.dark .sidebar {
+  background: #0b120c;
+  scrollbar-color: #2b422f transparent;
+}
+
+.dark .sidebar::-webkit-scrollbar-thumb {
+  background: #2b422f;
+}
+
+.dark .sidebar .side-link:hover {
+  background: #17251a;
+}
+
+.dark .sidebar .side-link.active {
+  color: #10140f;
+  background: #c8f22b;
 }
 
 .side-link b {
@@ -511,4 +536,141 @@ a.topbar-avatar:hover {
 .settings-data.ctag-setting {
   grid-column: 1 / -1;
   background: #f7f9f0;
+}
+
+
+/* Refinamento visual v17 — navegação coerente nos dois temas. */
+.sidebar {
+  background: #eef2e7;
+  color: #172116;
+  box-shadow: 8px 0 28px rgba(34, 52, 31, 0.06);
+  scrollbar-color: #c1cfb9 transparent;
+}
+
+.sidebar .logo-compact {
+  color: #172116;
+}
+
+.sidebar .workspace-chip {
+  color: #697767;
+  border-color: #d4ddd0;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.sidebar .nav-label {
+  color: #7b8878;
+}
+
+.sidebar .side-link,
+.sidebar .resources-toggle {
+  color: #5f6e5d;
+}
+
+.sidebar .side-link:hover,
+.sidebar .resources-toggle:hover {
+  color: #172116;
+  background: #e0e9d8;
+}
+
+.sidebar .side-link.active {
+  color: #172116;
+  background: var(--lime);
+  box-shadow: 0 7px 16px rgba(112, 145, 21, 0.14);
+}
+
+.sidebar .reputation-mini {
+  border-color: #d1dccb;
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.sidebar .mini-heading,
+.sidebar .reputation-mini p {
+  color: #71806f;
+}
+
+.sidebar .rep-number span {
+  color: #71806f;
+}
+
+.sidebar .user-mini {
+  border-color: #d1dccb;
+}
+
+.sidebar .user-mini strong {
+  color: #172116;
+}
+
+.sidebar .user-mini span,
+.sidebar .user-mini-arrow {
+  color: #71806f;
+}
+
+.sidebar .reputation-link:hover {
+  border-color: #b7c99f;
+  background: #e4eddc;
+}
+
+.dark .sidebar {
+  background: #0b120c;
+  color: #eef5ea;
+  box-shadow: 8px 0 28px rgba(0, 0, 0, 0.18);
+  scrollbar-color: #2b422f transparent;
+}
+
+.dark .sidebar .logo-compact {
+  color: #f4faef;
+}
+
+.dark .sidebar .workspace-chip {
+  color: #b9c9b3;
+  border-color: #303a2e;
+  background: transparent;
+}
+
+.dark .sidebar .nav-label {
+  color: #9aaa95;
+}
+
+.dark .sidebar .side-link,
+.dark .sidebar .resources-toggle {
+  color: #c0ceba;
+}
+
+.dark .sidebar .side-link:hover,
+.dark .sidebar .resources-toggle:hover {
+  color: #f0f6ea;
+  background: #1d2b1e;
+}
+
+.dark .sidebar .side-link.active {
+  color: #10140f;
+  background: var(--lime);
+}
+
+.dark .sidebar .reputation-mini {
+  border-color: #303a2e;
+  background: transparent;
+}
+
+.dark .sidebar .user-mini {
+  border-color: #303a2e;
+}
+
+.dark .sidebar .user-mini strong {
+  color: #f4faef;
+}
+
+.dark .sidebar .reputation-link:hover {
+  border-color: #52644a;
+  background: #0a1c0d;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    box-shadow: 18px 0 45px rgba(20, 35, 19, 0.16);
+  }
+
+  .dark .sidebar {
+    box-shadow: 18px 0 45px rgba(0, 0, 0, 0.42);
+  }
 }

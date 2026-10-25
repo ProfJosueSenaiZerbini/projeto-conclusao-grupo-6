@@ -256,3 +256,104 @@
   font-size: 10px;
   line-height: 1.45;
 }
+
+
+/* Refinamento visual v17 — cards de beats com identidade de catálogo. */
+.beat-card {
+  border-color: var(--border-soft);
+  box-shadow: 0 10px 24px rgba(16, 20, 15, 0.035);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.beat-card:hover {
+  transform: translateY(-3px);
+  border-color: #b9cd78;
+  box-shadow: 0 16px 32px rgba(54, 77, 37, 0.1);
+}
+
+.beat-art {
+  background-image:
+    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.26), transparent 28%),
+    linear-gradient(140deg, transparent 0 48%, rgba(16, 20, 15, 0.08) 48% 49%, transparent 49% 100%);
+}
+
+.beat-art-lines {
+  opacity: 0.32;
+  transform: rotate(-12deg) scale(1.08);
+}
+
+.beat-card-content {
+  min-height: 185px;
+  display: flex;
+  flex-direction: column;
+}
+
+.beat-specs {
+  margin-bottom: 17px;
+}
+
+.beat-bottom {
+  margin-top: auto;
+}
+
+.beat-actions {
+  justify-content: flex-end;
+}
+
+.beat-exclusive-badge,
+.beat-owner-badge {
+  white-space: nowrap;
+}
+
+.dark .beat-card {
+  border-color: #334232;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+}
+
+.dark .beat-card:hover {
+  border-color: #75933e;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
+}
+
+.dark .beat-art-green {
+  background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.08), transparent 54%);
+}
+
+.dark .license-note {
+  color: #c9d9bb;
+  border: 1px solid #42553a;
+  background: #24351f;
+}
+
+@media (max-width: 560px) {
+  .beat-card-content {
+    min-height: 0;
+  }
+
+  .beat-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .beat-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+
+.demo-label-real {
+  color: #173018;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.beat-art-black .demo-label-real {
+  color: #10140f;
+  background: var(--lime);
+}
+
+.dark .demo-label-real {
+  color: #d9edb0;
+  background: rgba(20, 39, 21, 0.76);
+}

@@ -652,3 +652,49 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Refinamento visual v17 — composição portátil. */
+@media (max-width: 700px) {
+  .page-content {
+    padding-inline: 16px;
+  }
+
+  .profile-id-strip {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .profile-id-strip .immutable-label {
+    margin-left: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding-inline: 14px;
+  }
+
+  .page-content {
+    padding-top: 28px;
+    padding-bottom: 44px;
+  }
+
+  .page-header h1,
+  .settings-intro h1 {
+    font-size: 38px;
+  }
+
+  .profile-hero h2 {
+    font-size: 28px;
+  }
+
+  .profile-header-actions .button,
+  .profile-edit-actions .button {
+    width: 100%;
+  }
+
+  .profile-id-strip .immutable-label {
+    margin-left: 0;
+  }
+}
