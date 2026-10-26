@@ -18,6 +18,23 @@ const categoriasGerais = [
   "Outros",
 ];
 
+export type CategoriaProfissional = (typeof categoriasGerais)[number];
+
+export function temCategoria(
+  categorias: readonly string[],
+  categoria: CategoriaProfissional
+): boolean {
+  return categorias.includes(categoria);
+}
+
+export function podeCriarBeat(categorias: readonly string[]): boolean {
+  return temCategoria(categorias, "Beatmaker");
+}
+
+export function podeCriarEvento(categorias: readonly string[]): boolean {
+  return temCategoria(categorias, "Organizador de eventos");
+}
+
 const statusProfissionais: readonly StatusComCategorias[] = [
   {
     value: "buscando-feats",

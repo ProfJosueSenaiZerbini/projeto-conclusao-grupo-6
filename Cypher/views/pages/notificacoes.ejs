@@ -4,95 +4,74 @@
 <main class="main-shell">
 <%- include('../partials/barra-superior', { breadcrumb: 'Notificações' }) %>
 <div class="page-content notifications-page">
-<div class="page-header notifications-page-header">
+<div class="page-header">
   <div>
     <div class="eyebrow">
-      ATIVIDADE DO SEU ESPAÇO
+      CENTRAL DE ATIVIDADES
     </div>
     <h1>
       Notificações
     </h1>
     <p>
-      Acompanhe as atividades relevantes relacionadas ao seu espaço.
+      Acompanhe as atualizações reais relacionadas ao seu trabalho na Cypher.
     </p>
   </div>
-  <form method="post" action="/notificacoes/marcar-todas-lidas">
-    <button class="button button-outline" type="submit"<%= quantidadeNotificacoesNaoLidas === 0 ? ' disabled' : '' %>>
-      <span class="lucide-icon" aria-hidden="true">
-        <%- icones.check %>
-      </span>
-      Marcar todas como lidas
-    </button>
-  </form>
+  <% if (quantidadeNaoLidas > 0) { %>
+    <form method="post" action="/notificacoes/marcar-todas-lidas">
+      <button class="button button-outline" type="submit">
+        Marcar todas como lidas
+      </button>
+    </form>
+  <% } %>
 </div>
-<section class="notifications-history" aria-labelledby="notifications-history-title">
-  <div class="notifications-history-heading">
-    <div>
-      <span class="eyebrow">
-        HISTÓRICO
-      </span>
-      <h2 id="notifications-history-title">
-        <%= notificacoes.length ? `${notificacoes.length} atividade${notificacoes.length === 1 ? '' : 's'}` : 'Nenhuma atividade' %>
-      </h2>
-    </div>
-    <% if (quantidadeNotificacoesNaoLidas > 0) { %>
-      <span class="notifications-history-count">
-        <%= quantidadeNotificacoesNaoLidas %>
-        não lida<%= quantidadeNotificacoesNaoLidas === 1 ? '' : 's' %>
-      </span>
-    <% } %>
-  </div>
-  <% if (notificacoes.length === 0) { %>
-    <div class="notifications-empty notifications-empty-page">
-      <span class="notifications-empty-icon" aria-hidden="true">
-        <%- icones.bell %>
-      </span>
-      <h3>
-        Não há notificações ainda
-      </h3>
-      <p>
-        Você receberá notificações quando houver uma nova atividade relevante.
-      </p>
-    </div>
-  <% } else { %>
-    <div class="notifications-history-list">
-      <% notificacoes.forEach(notificacao => { %>
-        <article class="notification-history-item<%= notificacao.lida ? '' : ' is-unread' %>">
-          <a href="<%= notificacao.url || '/notificacoes' %>" class="notification-link">
-            <span class="notification-dot" aria-hidden="true">
-            </span>
-            <span class="notification-copy">
-              <strong>
-                <%= notificacao.titulo %>
-              </strong>
-              <% if (notificacao.mensagem) { %>
-                <span>
-                  <%= notificacao.mensagem %>
-                </span>
-              <% } %>
-              <small>
-                <%= notificacao.dataRelativa %>
-              </small>
-            </span>
-          </a>
+<% if (notificacoes.length) { %>
+  <section class="notifications-history card-surface" aria-label="Histórico de notificações">
+    <% notificacoes.forEach(notificacao => { %>
+      <article class="notification-history-item<%= notificacao.lida ? '' : ' notification-history-item-unread' %>">
+        <div class="notification-history-mark" aria-hidden="true">
+          <%- icones.bell %>
+        </div>
+        <div class="notification-history-copy">
+          <strong>
+            <%= notificacao.titulo %>
+          </strong>
+          <p>
+            <%= notificacao.mensagem %>
+          </p>
+          <small>
+            <%= notificacao.criadaEm %>
+          </small>
+        </div>
+        <div class="notification-history-actions">
+          <% if (notificacao.url) { %>
+            <a class="text-link" href="<%= notificacao.url %>">
+              Abrir
+            </a>
+          <% } %>
           <% if (!notificacao.lida) { %>
-            <form method="post" action="/notificacoes/<%= notificacao.id %>/lida">
-              <button class="notification-read" type="submit" aria-label="Marcar como lida" title="Marcar como lida">
-                <span class="lucide-icon" aria-hidden="true">
-                  <%- icones.check %>
-                </span>
+            <form method="post" action="/notificacoes/<%= encodeURIComponent(notificacao.id) %>/lida">
+              <button class="button button-outline" type="submit">
+                Marcar como lida
               </button>
             </form>
-          <% } else { %>
-            <span class="notification-read-state">
-              Lida
-            </span>
           <% } %>
-        </article>
-      <% }) %>
-    </div>
-  <% } %>
-</section>
+        </div>
+      </article>
+    <% }) %>
+  </section>
+<% } else { %>
+  <section class="notifications-empty card-surface">
+    <span class="lucide-icon" aria-hidden="true">
+      <%- icones.bell %>
+    </span>
+    <h2>
+      Nenhuma notificação por enquanto
+    </h2>
+    <p>
+      As atividades reais da sua conta aparecerão aqui quando acontecerem.
+    </p>
+  </section>
+<% } %>
 </div>
 </main>
 </div>

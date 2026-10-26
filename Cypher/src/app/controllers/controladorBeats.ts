@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { CypherModel, type DadosBeatCypher } from "../models/modeloCypher.js";
 import type { UsuarioDaSessao } from "../models/bancoDados.js";
+import { podeCriarBeat } from "../models/modeloPerfil.js";
 import {
   licencasBeat,
   validarBpm,
@@ -31,6 +32,17 @@ const tiposOfertaPermitidos = new Set([
 
 function usuarioAtual(res: Response): UsuarioDaSessao | undefined {
   return res.locals.usuario as UsuarioDaSessao | undefined;
+}
+
+function exigirCapacidadeBeat(
+  res: Response,
+  usuario: UsuarioDaSessao | undefined
+): usuario is UsuarioDaSessao {
+  if (!usuario || usuario.demonstracao || !podeCriarBeat(usuario.categories)) {
+    res.redirect("/beats?erro=permissao");
+    return false;
+  }
+  return true;
 }
 
 function dadosBeat(body: Request["body"]): DadosBeatCypher {
@@ -153,22 +165,40 @@ export function bancoBeats(req: Request, res: Response) {
     stylesheet: "banco-beats",
     authenticated: Boolean(usuario),
     beats: CypherModel.beats(usuario?.id),
+    podeCadastrarBeat: Boolean(
+      usuario && !usuario.demonstracao && podeCriarBeat(usuario.categories)
+    ),
     resultado:
-      typeof req.query.resultado === "string" ? req.query.resultado : "",
+      typeof req.query.resultado === "string"
+        ? req.query.resultado
+        : typeof req.query.erro === "string"
+          ? req.query.erro
+          : "",
   });
 }
 
 export function novoBeat(_req: Request, res: Response) {
+  if (!exigirCapacidadeBeat(res, usuarioAtual(res))) return;
   return renderizarFormularioBeat(res, valoresVazios);
 }
 
 export function criarBeat(req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario || usuario.demonstracao) return res.sendStatus(403);
+  if (!exigirCapacidadeBeat(res, usuario)) return;
   const dados = dadosBeat(req.body);
   const erro = validarBeat(dados);
   if (erro) return renderizarFormularioBeat(res, dados, { erro });
-  CypherModel.criarBeat(usuario.id, dados);
+  const beatId = CypherModel.criarBeat(usuario.id, dados);
+  CypherModel.criarNotificacao({
+    usuarioDestinoId: usuario.id,
+    tipo: "beat_criado",
+    titulo: "Novo Beat cadastrado",
+    mensagem: `“${dados.title}” foi adicionado ao Banco de Beats.`,
+    url: "/beats",
+    entidadeTipo: "beat",
+    entidadeId: beatId,
+    chaveOrigem: `beat-criado:${beatId}`,
+  });
   return res.redirect(303, "/beats?resultado=criado");
 }
 
@@ -219,6 +249,16 @@ export function atualizarBeat(req: Request, res: Response) {
     dados
   );
   if (!atualizado) return res.sendStatus(404);
+  CypherModel.criarNotificacao({
+    usuarioDestinoId: usuario.id,
+    tipo: "beat_atualizado",
+    titulo: "Beat atualizado",
+    mensagem: `As informações de “${dados.title}” foram salvas.`,
+    url: "/beats",
+    entidadeTipo: "beat",
+    entidadeId: req.params.id ?? "",
+    chaveOrigem: `beat-atualizado:${req.params.id}:${dados.title}:${dados.license}`,
+  });
   return res.redirect(303, "/beats?resultado=atualizado");
 }
 

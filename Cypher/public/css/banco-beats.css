@@ -257,12 +257,14 @@
   line-height: 1.45;
 }
 
-
 /* Refinamento visual v17 — cards de beats com identidade de catálogo. */
 .beat-card {
   border-color: var(--border-soft);
   box-shadow: 0 10px 24px rgba(16, 20, 15, 0.035);
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .beat-card:hover {
@@ -273,8 +275,17 @@
 
 .beat-art {
   background-image:
-    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.26), transparent 28%),
-    linear-gradient(140deg, transparent 0 48%, rgba(16, 20, 15, 0.08) 48% 49%, transparent 49% 100%);
+    radial-gradient(
+      circle at 82% 16%,
+      rgba(255, 255, 255, 0.26),
+      transparent 28%
+    ),
+    linear-gradient(
+      140deg,
+      transparent 0 48%,
+      rgba(16, 20, 15, 0.08) 48% 49%,
+      transparent 49% 100%
+    );
 }
 
 .beat-art-lines {
@@ -316,7 +327,11 @@
 }
 
 .dark .beat-art-green {
-  background-image: linear-gradient(140deg, rgba(255, 255, 255, 0.08), transparent 54%);
+  background-image: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.08),
+    transparent 54%
+  );
 }
 
 .dark .license-note {
@@ -341,7 +356,6 @@
     justify-content: flex-start;
   }
 }
-
 
 .demo-label-real {
   color: #173018;

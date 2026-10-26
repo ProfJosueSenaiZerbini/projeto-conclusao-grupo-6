@@ -16,19 +16,21 @@
       Beats cadastrados por produtores da cena, com informações claras de uso e licença.
     </p>
   </div>
-  <a class="button button-yellow" href="/beats/new">
-    <span class="lucide-icon" aria-hidden="true">
-      <%- icones.plus %>
-    </span>
-    Cadastrar beat
-  </a>
+  <% if (podeCadastrarBeat) { %>
+    <a class="button button-yellow" href="/beats/new">
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.plus %>
+      </span>
+      Cadastrar beat
+    </a>
+  <% } %>
 </div>
 <% if (typeof resultado !== 'undefined' && resultado) { %>
   <div class="form-feedback success-feedback" role="status">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.circleCheck %>
     </span>
-    <%= resultado === 'criado' ? 'Beat cadastrado com sucesso.' : resultado === 'atualizado' ? 'Beat atualizado com sucesso.' : 'Beat excluído com sucesso.' %>
+    <%= resultado === 'criado' ? 'Beat cadastrado com sucesso.' : resultado === 'atualizado' ? 'Beat atualizado com sucesso.' : resultado === 'excluido' ? 'Beat excluído com sucesso.' : resultado === 'permissao' ? 'Sua conta precisa ter a categoria Beatmaker para cadastrar novos Beats.' : resultado %>
   </div>
 <% } %>
 <div class="beats-toolbar">

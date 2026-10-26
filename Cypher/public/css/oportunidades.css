@@ -527,7 +527,6 @@
   z-index: 1;
 }
 
-
 /* Auditoria de contraste v18 — oportunidades e drawer. */
 .dark .detail-banner {
   color: #10140f;
@@ -559,4 +558,89 @@
 
 .dark .events-filters input::placeholder {
   color: #91a38c;
+}
+
+.event-interested-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 10px;
+  padding: 13px 15px;
+  border: 1px solid #e0e3d9;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.event-interested-list > strong {
+  color: #697565;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.event-interested-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #edf0e9;
+}
+
+.event-interested-row > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.event-interested-row b {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-interested-row small {
+  color: #879184;
+  font-size: 10px;
+}
+
+.event-interested-row form {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.event-interested-row select {
+  min-height: 30px;
+  max-width: 125px;
+  padding: 4px 7px;
+  border: 1px solid #d8ded2;
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.interest-count {
+  margin: 14px 0 0;
+  color: #7e897b;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .event-interested-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .event-interested-row form {
+    width: 100%;
+  }
+
+  .event-interested-row select {
+    flex: 1;
+    max-width: none;
+  }
 }

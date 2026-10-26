@@ -72,26 +72,41 @@
     if (evento.key === "Escape") fecharMenu();
   });
 
-  const atualizarInteresse = interessado => {
+  const atualizarInteresse = (status, eventoId, demonstracao = false) => {
+    const ativo = ["interessado", "inscrito", "confirmado"].includes(status);
+    const confirmado = status === "confirmado";
+    const rotulos = {
+      interessado: "Interesse demonstrado",
+      inscrito: "Inscrição em análise",
+      confirmado: "Participação confirmada",
+    };
     document.querySelectorAll("[data-interest-button]").forEach(botao => {
-      botao.setAttribute("aria-pressed", String(interessado));
+      botao.setAttribute("aria-pressed", String(ativo));
+      botao.disabled = !eventoId || confirmado || demonstracao;
       const rotulo = botao.querySelector("[data-interest-label]");
       if (rotulo)
-        rotulo.textContent = interessado
-          ? "Interesse demonstrado"
-          : "Demonstrar interesse";
-      botao.classList.toggle("is-interested", interessado);
+        rotulo.textContent = demonstracao
+          ? "Evento demonstrativo"
+          : (rotulos[status] ?? "Demonstrar interesse");
+      botao.classList.toggle("is-interested", ativo);
+    });
+    document.querySelectorAll("[data-interest-form]").forEach(formulario => {
+      if (eventoId && !demonstracao) {
+        formulario.action = ativo
+          ? `/events/${encodeURIComponent(eventoId)}/interest/cancel`
+          : `/events/${encodeURIComponent(eventoId)}/interest`;
+      } else {
+        formulario.removeAttribute("action");
+      }
     });
     document.querySelectorAll("[data-interest-notice]").forEach(aviso => {
-      aviso.hidden = !interessado;
+      aviso.hidden = !ativo || demonstracao;
+    });
+    document.querySelectorAll("[data-event-demo-notice]").forEach(aviso => {
+      aviso.hidden = !demonstracao;
     });
   };
-  document.querySelectorAll("[data-interest-button]").forEach(botao => {
-    botao.addEventListener("click", () => {
-      const novoEstado = botao.getAttribute("aria-pressed") !== "true";
-      atualizarInteresse(novoEstado);
-    });
-  });
+  atualizarInteresse(null, null, false);
 
   document.querySelectorAll("[data-event-filter]").forEach(botao => {
     botao.addEventListener("click", () => {
@@ -207,6 +222,16 @@
             listaTags.appendChild(elemento);
           });
       }
+      atualizarInteresse(
+        dados.detailInterestStatus || null,
+        dados.detailId || null,
+        dados.detailDemonstracao === "true"
+      );
+      definirTexto(
+        dialogo,
+        "[data-event-interest-total]",
+        dados.detailTotalInterested || "0"
+      );
       abrirDialogo(dialogo, cartao);
     });
   });
@@ -810,4 +835,35 @@
           .includes(consulta);
       });
     });
+
+  const centroNotificacoes = document.querySelector("[data-notification-center]");
+  const botaoNotificacoes = centroNotificacoes?.querySelector(
+    "[data-notification-open]"
+  );
+  const painelNotificacoes = centroNotificacoes?.querySelector(
+    "[data-notification-panel]"
+  );
+  const fecharNotificacoes = () => {
+    if (!painelNotificacoes || !botaoNotificacoes) return;
+    painelNotificacoes.hidden = true;
+    botaoNotificacoes.setAttribute("aria-expanded", "false");
+  };
+  botaoNotificacoes?.addEventListener("click", () => {
+    if (!painelNotificacoes) return;
+    const aberto = painelNotificacoes.hidden;
+    painelNotificacoes.hidden = !aberto;
+    botaoNotificacoes.setAttribute("aria-expanded", String(aberto));
+  });
+  document.addEventListener("click", evento => {
+    if (
+      centroNotificacoes &&
+      evento.target instanceof Node &&
+      !centroNotificacoes.contains(evento.target)
+    ) {
+      fecharNotificacoes();
+    }
+  });
+  document.addEventListener("keydown", evento => {
+    if (evento.key === "Escape") fecharNotificacoes();
+  });
 })();

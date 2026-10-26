@@ -15,10 +15,18 @@ import {
   obterBeatCypher,
   listarEventosCypher,
   listarEventosDemo,
+  demonstrarInteresseEventoCypher,
+  cancelarInteresseEventoCypher,
+  atualizarStatusInteresseEventoCypher,
   criarEventoCypher,
   atualizarEventoCypher,
   excluirEventoCypher,
   obterEventoCypher,
+  criarNotificacaoCypher,
+  listarNotificacoesCypher,
+  contarNotificacoesNaoLidasCypher,
+  marcarNotificacaoLidaCypher,
+  marcarTodasNotificacoesLidasCypher,
   listarObrasDemo,
   listarPessoasDemo,
   obterObraContaCypher,
@@ -31,6 +39,7 @@ import {
   type DadosBeatCypher,
   type FiltrosEventos,
   type EventoContaPersistido,
+  type StatusInteresseEvento,
   type BeatContaPersistido,
   type FiltrosBuscaPerfisPublicos,
   type FiltrosCatalogoObras,
@@ -179,117 +188,9 @@ const people: Person[] = [
   },
 ];
 
-const events: Event[] = [
-  {
-    title: "Batalha da Praça 011",
-    category: "Batalha",
-    date: "18 OUT",
-    time: "15h00",
-    location: "Praça Roosevelt · São Paulo, SP",
-    org: "Coletivo Linha 5",
-    status: "Inscrições abertas",
-    color: "yellow",
-    description:
-      "Ponto de encontro da nova geração do rap. MCs de toda a região se reúnem para trocar rimas e fortalecer a cultura de rua, com estrutura de som e premiação para os destaques.",
-    format: "Batalha de MCs · Solo · 1x1",
-    registration: "Gratuita · vagas limitadas",
-    prize: "R$ 500 e troféu",
-    tags: ["Batalha", "MCs", "Inscrições abertas", "Presencial"],
-  },
-  {
-    title: "Cypher Subsolo #08",
-    category: "Cypher",
-    date: "25 OUT",
-    time: "19h30",
-    location: "Galpão 9 · Belo Horizonte, MG",
-    org: "Núcleo Subsolo",
-    status: "Acontece em breve",
-    color: "green",
-    description:
-      "Encontro audiovisual colaborativo para artistas e produtores independentes. Os participantes criam uma faixa coletiva e registram o processo em uma sessão ao vivo.",
-    format: "Gravação coletiva · 8 artistas",
-    registration: "Inscrição gratuita · seleção por portfólio",
-    prize: "Vídeo-session e divulgação",
-    tags: ["Cypher", "Colaboração", "Presencial", "Seleção aberta"],
-  },
-  {
-    title: "Workshop: créditos sem ruído",
-    category: "Workshop",
-    date: "03 NOV",
-    time: "18h00",
-    location: "Online · Sala Cypher",
-    org: "Cypher Central",
-    status: "Vagas limitadas",
-    color: "cream",
-    description:
-      "Uma conversa prática sobre como organizar autoria, gravação e créditos antes de lançar uma música, com espaço para perguntas e exemplos de documentação.",
-    format: "Workshop online · 90 minutos",
-    registration: "Gratuita · 40 vagas",
-    prize: "Material de apoio e certificado de participação",
-    tags: ["Formação", "Direitos autorais", "Online", "Inscrições abertas"],
-  },
-  {
-    title: "Show: Margem Norte",
-    category: "Show",
-    date: "07 NOV",
-    time: "20h30",
-    location: "Casa Vazia · São Paulo, SP",
-    org: "Coletivo Margem",
-    status: "Pré-inscrições abertas",
-    color: "yellow",
-    description:
-      "Noite independente com palco compartilhado para artistas da cena. A organização busca propostas autorais e sets curtos para aproximar novos públicos.",
-    format: "Show independente · palco compartilhado",
-    registration: "Inscrição gratuita · curadoria por portfólio",
-    prize: "Apresentação ao vivo e registro de session",
-    tags: ["Show", "Música ao vivo", "São Paulo", "Inscrições abertas"],
-  },
-];
+const events: Event[] = [];
 
-const beats: Beat[] = [
-  {
-    title: "Semáforo quebrado",
-    producer: "Kota 47",
-    bpm: "92 BPM",
-    key: "Dm",
-    genre: "Boom bap",
-    license: "Uso gratuito",
-    duration: "2:48",
-    color: "green",
-    description:
-      "Bateria seca, baixo encorpado e espaço para versos narrativos. Beat demonstrativo para colaboração na cena.",
-    usage:
-      "Uso gratuito com crédito ao produtor; confirmar condições antes de qualquer lançamento.",
-  },
-  {
-    title: "Linha de fuga",
-    producer: "Léo Goma",
-    bpm: "140 BPM",
-    key: "F#m",
-    genre: "Trap",
-    license: "Disponível",
-    duration: "3:12",
-    color: "yellow",
-    description:
-      "Synths atmosféricos e groove marcado, pensado para uma faixa de energia crescente.",
-    usage:
-      "Disponível para contato. Licença e valores devem ser combinados diretamente com o produtor.",
-  },
-  {
-    title: "Domingo nublado",
-    producer: "Aisha Beats",
-    bpm: "78 BPM",
-    key: "Am",
-    genre: "Lo-fi rap",
-    license: "Disponível",
-    duration: "2:31",
-    color: "black",
-    description:
-      "Textura lo-fi com piano e bateria suave para composições intimistas.",
-    usage:
-      "Disponível para contato. Confirme os termos de uso com a produtora.",
-  },
-];
+const beats: Beat[] = [];
 
 const works: Work[] = [
   {
@@ -494,19 +395,8 @@ export function inicializarDadosDemonstrativos(): void {
     }
   });
 
-  const eventosIniciais: EventoDemoInicial[] = events.map((event, index) => ({
-    ...event,
-    id: `demo-evento-${String(index + 1).padStart(2, "0")}`,
-    proprietarioId: idPerfilDemo("organizador", event.org),
-    ordem: index,
-  }));
-  const beatsIniciais: BeatDemoInicial[] = beats.map((beat, index) => ({
-    ...beat,
-    vendaExclusiva: false,
-    id: `demo-beat-${String(index + 1).padStart(2, "0")}`,
-    produtorId: idPerfilDemo("profissional", beat.producer),
-    ordem: index,
-  }));
+  const eventosIniciais: EventoDemoInicial[] = [];
+  const beatsIniciais: BeatDemoInicial[] = [];
   const obrasIniciais: ObraDemoInicial[] = works.map((work, index) => ({
     ...work,
     proprietarioId: usuarioDemoId,
@@ -533,12 +423,38 @@ export const CypherModel = {
   eventosDisponiveis: (filtros: FiltrosEventos, usuarioId: string) =>
     listarEventosCypher(filtros, usuarioId),
   evento: (id: string, usuarioId: string) => obterEventoCypher(id, usuarioId),
+  demonstrarInteresseEvento: (eventoId: string, usuarioId: string) =>
+    demonstrarInteresseEventoCypher(eventoId, usuarioId),
+  cancelarInteresseEvento: (eventoId: string, usuarioId: string) =>
+    cancelarInteresseEventoCypher(eventoId, usuarioId),
+  atualizarStatusInteresseEvento: (
+    eventoId: string,
+    organizadorId: string,
+    usuarioInteressadoId: string,
+    status: Extract<
+      StatusInteresseEvento,
+      "interessado" | "inscrito" | "confirmado" | "rejeitado"
+    >
+  ) =>
+    atualizarStatusInteresseEventoCypher(
+      eventoId,
+      organizadorId,
+      usuarioInteressadoId,
+      status
+    ),
   criarEvento: (usuarioId: string, dados: DadosEventoCypher) =>
     criarEventoCypher(usuarioId, dados),
   atualizarEvento: (id: string, usuarioId: string, dados: DadosEventoCypher) =>
     atualizarEventoCypher(id, usuarioId, dados),
   excluirEvento: (id: string, usuarioId: string) =>
     excluirEventoCypher(id, usuarioId),
+  criarNotificacao: criarNotificacaoCypher,
+  notificacoes: (usuarioId: string, limite?: number) =>
+    listarNotificacoesCypher(usuarioId, limite),
+  notificacoesNaoLidas: (usuarioId: string) =>
+    contarNotificacoesNaoLidasCypher(usuarioId),
+  marcarNotificacaoLida: marcarNotificacaoLidaCypher,
+  marcarTodasNotificacoesLidas: marcarTodasNotificacoesLidasCypher,
   beats: (usuarioId?: string) => listarBeatsCypher(usuarioId),
   criarBeat: (produtorId: string, dados: DadosBeatCypher) =>
     criarBeatCypher(produtorId, dados),

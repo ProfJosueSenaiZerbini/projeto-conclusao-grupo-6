@@ -6,6 +6,7 @@ import * as dashboard from "../controllers/controladorDashboard.js";
 import * as eventos from "../controllers/controladorEventos.js";
 import * as obras from "../controllers/controladorObras.js";
 import * as perfis from "../controllers/controladorPerfis.js";
+import * as notificacoes from "../controllers/controladorNotificacoes.js";
 import { middlewareAutorizacao } from "../controllers/controladorCompartilhado.js";
 
 const router = Router();
@@ -15,12 +16,21 @@ router.get(["/login", "/register"], autenticacao.paginaAutenticacao);
 router.post("/login", autenticacao.login);
 router.post("/register", autenticacao.register);
 router.post("/logout", autenticacao.logout);
+router.get("/notificacoes", notificacoes.notificacoes);
+router.post("/notificacoes/marcar-todas-lidas", notificacoes.marcarTodasLidas);
+router.post("/notificacoes/:id/lida", notificacoes.marcarLida);
 router.post("/categories/analyze", dashboard.analisarCategoria);
 router.get(["/", "/dashboard"], dashboard.visaoGeral);
 router.get("/search", perfis.buscarPessoas);
 router.get("/events", eventos.oportunidades);
 router.get("/events/new", eventos.novoEvento);
 router.post("/events/new", eventos.criarEvento);
+router.post("/events/:id/interest", eventos.demonstrarInteresse);
+router.post("/events/:id/interest/cancel", eventos.cancelarInteresse);
+router.post(
+  "/events/:id/interests/:usuarioId/status",
+  eventos.atualizarInteresse
+);
 router.get("/events/:id/edit", eventos.editarEvento);
 router.post("/events/:id/edit", eventos.atualizarEvento);
 router.post("/events/:id/delete", eventos.excluirEvento);

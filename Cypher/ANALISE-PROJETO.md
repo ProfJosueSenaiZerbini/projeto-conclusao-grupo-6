@@ -1,7 +1,7 @@
 # Análise técnica do projeto Cypher
 
 **Pacote analisado:** `cypher-etapa-08.zip`  
-**Estado analisado:** Etapas 0–8 concluídas; schema SQLite v6.  
+**Estado analisado:** Etapas 0–8 concluídas e Etapa 1 de eventos implementada; schema SQLite v7.  
 **Data da análise:** 15 de outubro de 2026.
 
 ## 1. Visão geral
@@ -82,6 +82,9 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 | GET/POST | `/events/new` | funcional | criação de evento por organizador |
 | GET/POST | `/events/:id/edit` | funcional | edição do próprio evento |
 | POST | `/events/:id/delete` | funcional | exclusão do próprio evento |
+| POST | `/events/:id/interest` | funcional | demonstração persistente de interesse |
+| POST | `/events/:id/interest/cancel` | funcional | cancelamento do interesse |
+| POST | `/events/:id/interests/:usuarioId/status` | funcional | atualização do status pelo organizador |
 | GET/POST | `/works`, `/works/new` | funcional | catálogo e criação de obras |
 | GET/POST | `/works/:id/edit` | funcional | edição própria, com autorização por proprietário |
 | POST | `/works/:id/delete` | funcional | exclusão própria |
@@ -99,13 +102,14 @@ As rotas protegidas são verificadas tanto no middleware global quanto, em opera
 
 ## 5. Banco de dados e integridade
 
-O schema atual é a versão **6**. As tabelas são:
+O schema atual é a versão **7**. As tabelas são:
 
 - `usuarios`: identidade, e-mail, hash de senha, tipo de conta, flag de demonstração, ID público e número sequencial;
 - `perfis`: dados profissionais, categorias/gêneros/equipamentos serializados como JSON, status e flags de visibilidade;
 - `obras`: catálogo do proprietário, metadados, letra, códigos, data, link e estado de publicação;
 - `creditos`: créditos ligados a usuário ou menções textuais sem perfil;
-- `eventos`: estrutura preparada para eventos, atualmente apenas fixtures;
+- `eventos`: eventos demonstrativos e registros reais;
+- `interesses_eventos`: relação única entre usuário e evento, com status e timestamps;
 - `beats`: beats demonstrativos e registros reais com dados técnicos, condições de uso e modo de venda exclusiva;
 - `ofertas_beats`: uma ou mais ofertas ativas por Beat, com tipo de licença, preço opcional em centavos e descrição;
 - `sessoes`: hash SHA-256 do token, usuário e expiração.
@@ -174,7 +178,7 @@ A lista do catálogo completo calcula estatísticas a partir dos registros reais
 
 A tabela `eventos` já existente passou a atender também registros reais, sem nova migração de schema: fixtures usam `demonstracao = 1` e eventos criados por contas usam `demonstracao = 0`. A descoberta consulta ambos os conjuntos, mas somente o proprietário de um evento real recebe ações de edição e exclusão.
 
-Somente contas cujo `tipo_conta` é `organizador` — definido no cadastro pela categoria `Organizador de eventos` — podem criar e gerenciar eventos. Os campos são título, categoria, data, horário, local, organizador, situação, cor visual, descrição, formato, inscrição, destaque/prêmio e etiquetas. Os filtros de categoria, localização, formato e período, bem como a ordenação, são enviados por query parameters. A ação `Demonstrar interesse` continua visual e pertence a uma etapa posterior.
+Somente contas cujas categorias atuais incluem `Organizador de eventos` podem criar novos eventos. O campo `tipo_conta` continua preservado como agrupamento de compatibilidade, mas a capacidade especializada é verificada pelas categorias do perfil. Os campos são título, categoria, data, horário, local, organizador, situação, cor visual, descrição, formato, inscrição, destaque/prêmio e etiquetas. Os filtros de categoria, localização, formato e período, bem como a ordenação, são enviados por query parameters. A tabela `interesses_eventos` relaciona usuário e evento com unicidade, permite demonstrar ou cancelar interesse e mantém os estados `interessado`, `inscrito`, `confirmado`, `rejeitado` e `cancelado`. Novos interesses e alterações de status operacional só são aceitos em eventos reais e não encerrados. O proprietário de um evento real pode consultar os interessados e atualizar o status de cada participação; a administração dos próprios eventos existentes é preservada para evitar órfãos mesmo após remoção posterior da categoria de organizador.
 
 ## 10. Frontend e apresentação
 
@@ -218,7 +222,7 @@ A execução gerou apenas o aviso conhecido da dependência transitiva `prebuild
 ### Funcionalidades ainda demonstrativas
 
 - upload de áudio, capas, player real, compra e checkout de beats;
-- interesse em oportunidades;
+- eventos e Beats demonstrativos foram removidos dos dados carregados; novas oportunidades e instrumentais dependem de registros reais;
 - solicitações de conexão;
 - contato com produtores;
 - confirmação/rejeição de créditos;
@@ -243,7 +247,8 @@ A execução gerou apenas o aviso conhecido da dependência transitiva `prebuild
 - a propriedade deve continuar derivada da sessão, nunca de IDs enviados pelo navegador;
 - dados demonstrativos não devem ser tratados como dados reais em novas features;
 - beats reais usam `ON DELETE RESTRICT`; a exclusão de conta continua exigindo remoção ou transferência dos beats próprios;
-- o interesse em oportunidades ainda não possui tabela ou endpoint persistente.
+- a participação confirmada ainda não alimenta métricas históricas detalhadas por categoria e período;
+- a categoria `Produtor musical` ainda não habilita automaticamente o cadastro de Beats; a capacidade atual de criação exige `Beatmaker`;
 
 ## 13. Próximo ponto natural do plano
 

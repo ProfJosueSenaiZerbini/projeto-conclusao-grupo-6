@@ -46,9 +46,9 @@ O cadastro de obras possui uma etapa contextual que orienta a pessoa entre Músi
 
 Cadastro, login, logout, sessões, autorização, edição e privacidade de perfil, busca de profissionais e gerenciamento das próprias obras usam o SQLite.
 
-Cadastro, gerenciamento e descoberta de eventos agora usam o SQLite. Solicitações de conexão, interesse em oportunidades e contato com produtores ainda não gravam operações persistentes. O Banco de Beats agora permite cadastrar, editar, excluir e descobrir beats reais, com título, BPM, tonalidade, gênero, licença, duração, descrição e condições de uso. Upload de áudio, capa, player real, compra e checkout continuam fora do escopo atual.
+Cadastro, gerenciamento e descoberta de eventos agora usam o SQLite. O interesse em oportunidades é persistido por usuário e evento, pode ser cancelado e permite ao responsável pelo evento acompanhar e atualizar o status para interessado, inscrito, confirmado ou rejeitado. Novos interesses só são aceitos em eventos reais e não encerrados. Após a implementação das regras de cargos e eventos, fixtures demonstrativas de eventos e Beats não são mais carregadas nem mantidas no banco; esses módulos passam a depender de registros reais. Solicitações de conexão e contato com produtores ainda não gravam operações persistentes. O Banco de Beats permite descobrir beats reais por qualquer conta autenticada, mas o cadastro de novos Beats exige a categoria `Beatmaker`; a propriedade continua controlando edição, exclusão e ofertas. Upload de áudio, capa, player real, compra e checkout continuam fora do escopo atual.
 
-Contas com a categoria `Organizador de eventos` podem criar, editar e excluir os próprios eventos. Todas as contas autenticadas podem descobrir eventos, filtrar por categoria, localização, formato e período, e ordenar por criação, data ou título. Eventos demonstrativos permanecem separados dos eventos reais e não podem ser editados.
+Contas com a categoria `Organizador de eventos` podem criar novos eventos. Eventos reais próprios continuam podendo ser administrados com segurança para evitar recursos órfãos mesmo se a categoria for removida depois; eventos de terceiros não podem ser editados. Todas as contas autenticadas podem descobrir eventos reais e, quando o evento não está encerrado, demonstrar ou cancelar interesse. Filtros por categoria, localização, formato e período, além da ordenação por criação, data ou título, continuam disponíveis. A categoria `Beatmaker` habilita o cadastro de Beats; categorias múltiplas preservam capacidades cumulativas. Não há fixtures demonstrativas de eventos ou Beats ativas nesta versão.
 
 ## Estrutura
 
@@ -65,6 +65,6 @@ Contas com a categoria `Organizador de eventos` podem criar, editar e excluir os
 
 ## Cadastro de obras por tipo
 
-A página `/works` inicia o cadastro por um modal de seleção entre Instrumental, Música, Single, EP, Álbum, Beat e Outro. Obras comuns seguem para `/works/new?tipo=<slug>` e recebem um formulário contextualizado. A opção Beat reutiliza o fluxo persistente do Banco de Beats em `/beats/new`, mantendo as regras próprias de licenças e ofertas. O tipo Instrumental utiliza o campo textual de tipo já existente em `obras`; não houve alteração estrutural no SQLite, que permanece na versão 6.
+A página `/works` inicia o cadastro por um modal de seleção entre Instrumental, Música, Single, EP, Álbum, Beat e Outro. Obras comuns seguem para `/works/new?tipo=<slug>` e recebem um formulário contextualizado. A opção Beat reutiliza o fluxo persistente do Banco de Beats em `/beats/new`, mantendo as regras próprias de licenças e ofertas. O tipo Instrumental utiliza o campo textual de tipo já existente em `obras`; essa melhoria não alterou a tabela `obras`. O schema atual do SQLite é a versão 7 por causa da persistência de interesses em eventos.
 
 O relatório detalhado desta melhoria está em `relatorios-incrementacao/melhoria-18-cadastro-obras-por-tipo.md`.

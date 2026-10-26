@@ -27,6 +27,7 @@ import {
   type UsuarioDaSessao,
 } from "../models/bancoDados.js";
 import {
+  podeCriarBeat,
   opcoesStatusPorCategoria,
   rotuloStatusProfissional,
   todasOpcoesStatus,
@@ -78,12 +79,18 @@ const caminhosProtegidos = new Set([
   "/settings",
   "/settings/privacy",
   "/settings/delete-account",
+  "/notificacoes",
+  "/notificacoes/marcar-todas-lidas",
 ]);
 
 function caminhoProtegido(caminho: string): boolean {
   return (
     caminhosProtegidos.has(caminho) ||
-    /^\/(?:works|events|beats)\/[^/]+\/(?:edit|delete)$/.test(caminho)
+    /^\/(?:works|events|beats)\/[^/]+\/(?:edit|delete)$/.test(caminho) ||
+    /^\/events\/[^/]+\/(?:interest|interest\/cancel|interests\/[^/]+\/status)$/.test(
+      caminho
+    ) ||
+    /^\/notificacoes\/[^/]+\/lida$/.test(caminho)
   );
 }
 
@@ -225,6 +232,8 @@ export function middlewareAutorizacao(
   if (!usuario) return res.redirect("/login");
 
   res.locals.usuario = usuario;
+  res.locals.notificacoesRecentes = CypherModel.notificacoes(usuario.id, 5);
+  res.locals.quantidadeNaoLidas = CypherModel.notificacoesNaoLidas(usuario.id);
   return next();
 }
 
@@ -757,6 +766,7 @@ function renderizarFormularioObra(
     generosObra,
     statusObra,
     papeisObra,
+    podeCadastrarBeat: podeCriarBeat(usuario.categories),
     perfisParaCredito: CypherModel.perfisParaCredito(usuario.id),
     creditosPerfil: opcoes.creditosPerfil ?? [],
     mencoesFantasma: opcoes.mencoesFantasma ?? [],
@@ -919,8 +929,10 @@ export const obras = (req: Request, res: Response) => {
     criada: "A obra foi cadastrada.",
     atualizada: "As alterações da obra foram salvas.",
     excluida: "A obra e seus créditos associados foram removidos.",
+    permissao: "A categoria Beatmaker é necessária para cadastrar um Beat.",
   };
-  const resultado = parametroTexto(req, "resultado");
+  const resultado =
+    parametroTexto(req, "resultado") || parametroTexto(req, "erro");
   const filtros = filtrosCatalogo(req);
   const obrasDoCatalogo = CypherModel.obrasDoUsuario(usuario.id, filtros);
   return res.render("pages/obras", {
@@ -929,6 +941,7 @@ export const obras = (req: Request, res: Response) => {
     stylesheet: "obras",
     authenticated: true,
     usuario: usuarioParaView(usuario),
+    podeCadastrarBeat: podeCriarBeat(usuario.categories),
     obras: obrasDoCatalogo,
     catalogoGrupos: gruposCatalogo(obrasDoCatalogo),
     filtrosCatalogo: {
@@ -971,7 +984,12 @@ export const novaObra = (req: Request, res: Response) => {
     tiposObra.find(opcao => opcao === tipoRecebido) ??
     valorCatalogo(tiposObra, tipoRecebido);
   if (!tipo) return res.redirect(303, "/works#cadastro-obra");
-  if (tipo === "Beat") return res.redirect(303, "/beats/new");
+  if (tipo === "Beat") {
+    if (!podeCriarBeat(usuario.categories)) {
+      return res.redirect(303, "/works?erro=permissao");
+    }
+    return res.redirect(303, "/beats/new");
+  }
   return renderizarFormularioObra(res, usuario, {
     valores: { ...formularioObraVazio, tipo },
   });
@@ -999,6 +1017,12 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
   if (usuario.demonstracao) return res.sendStatus(403);
 
   const valores = formularioObraRecebido(req);
+  if (valores.tipo === "Beat") {
+    if (!podeCriarBeat(usuario.categories)) {
+      return res.redirect(303, "/works?erro=permissao");
+    }
+    return res.redirect(303, "/beats/new");
+  }
   const creditos = valoresDeCreditosRecebidos(req);
   const erro =
     validarFormularioObra(valores) ??
@@ -1035,9 +1059,29 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
         entradas
       );
       if (!atualizado) return res.sendStatus(404);
+      CypherModel.criarNotificacao({
+        usuarioDestinoId: usuario.id,
+        tipo: "obra_atualizada",
+        titulo: "Obra atualizada",
+        mensagem: `As informações de “${valores.titulo}” foram salvas.`,
+        url: "/works",
+        entidadeTipo: "obra",
+        entidadeId: obraId,
+        chaveOrigem: `obra-atualizada:${obraId}:${valores.titulo}:${valores.status}`,
+      });
       return res.redirect(303, "/works?resultado=atualizada");
     }
-    CypherModel.criarObra(usuario.id, dados, entradas);
+    const obraIdCriada = CypherModel.criarObra(usuario.id, dados, entradas);
+    CypherModel.criarNotificacao({
+      usuarioDestinoId: usuario.id,
+      tipo: "obra_criada",
+      titulo: "Nova obra cadastrada",
+      mensagem: `“${valores.titulo}” foi adicionada ao seu catálogo.`,
+      url: "/works",
+      entidadeTipo: "obra",
+      entidadeId: obraIdCriada,
+      chaveOrigem: `obra-criada:${obraIdCriada}`,
+    });
     return res.redirect(303, "/works?resultado=criada");
   } catch (erroGravacao) {
     const mensagemCredito = mensagemErroCredito(erroGravacao);

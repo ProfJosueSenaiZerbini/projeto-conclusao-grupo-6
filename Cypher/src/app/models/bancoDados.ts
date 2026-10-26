@@ -58,12 +58,29 @@ export type FiltrosEventos = {
   ordem: "recentes" | "data" | "titulo";
 };
 
+export type StatusInteresseEvento =
+  "interessado" | "inscrito" | "confirmado" | "rejeitado" | "cancelado";
+
+export type InteresseEventoPersistido = {
+  id: string;
+  eventoId: string;
+  usuarioId: string;
+  nome: string;
+  handle: string;
+  status: StatusInteresseEvento;
+  criadoEm: string;
+  atualizadoEm: string;
+};
+
 export type EventoContaPersistido = EventoPersistido & {
   id: string;
   proprietarioId: string;
   demonstracao: boolean;
   owned: boolean;
   criadoEm: string;
+  interesseStatus: StatusInteresseEvento | null;
+  totalInteressados: number;
+  interessados: InteresseEventoPersistido[];
 };
 
 export type BeatPersistido = {
@@ -347,11 +364,23 @@ export type ResultadoExclusaoConta = {
   beats: number;
 };
 
+export type NotificacaoPersistida = {
+  id: string;
+  tipo: string;
+  titulo: string;
+  mensagem: string;
+  url: string;
+  entidadeTipo: string;
+  entidadeId: string;
+  lida: boolean;
+  criadaEm: string;
+};
+
 type BancoCypher = InstanceType<typeof Database>;
 
 let banco: BancoCypher | undefined;
 
-const versaoEsquema = 6;
+const versaoEsquema = 8;
 
 function iniciaisPublicas(nome: string): string {
   const partes = nome
@@ -493,6 +522,22 @@ const esquema = `
   CREATE INDEX IF NOT EXISTS indice_eventos_proprietario
     ON eventos(proprietario_id, criado_em);
 
+  CREATE TABLE IF NOT EXISTS interesses_eventos (
+    id TEXT PRIMARY KEY,
+    evento_id TEXT NOT NULL REFERENCES eventos(id) ON DELETE CASCADE,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'interessado'
+      CHECK (status IN ('interessado', 'inscrito', 'confirmado', 'rejeitado', 'cancelado')),
+    criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (evento_id, usuario_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_interesses_evento
+    ON interesses_eventos(evento_id, status, criado_em);
+  CREATE INDEX IF NOT EXISTS indice_interesses_usuario
+    ON interesses_eventos(usuario_id, status, atualizado_em);
+
   CREATE TABLE IF NOT EXISTS beats (
     id TEXT PRIMARY KEY,
     produtor_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
@@ -537,6 +582,26 @@ const esquema = `
 
   CREATE INDEX IF NOT EXISTS indice_sessoes_expiracao ON sessoes(expira_em);
 
+  CREATE TABLE IF NOT EXISTS notificacoes (
+    id TEXT PRIMARY KEY,
+    usuario_destino_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    tipo TEXT NOT NULL,
+    titulo TEXT NOT NULL,
+    mensagem TEXT NOT NULL DEFAULT '',
+    url TEXT NOT NULL DEFAULT '',
+    entidade_tipo TEXT NOT NULL DEFAULT '',
+    entidade_id TEXT NOT NULL DEFAULT '',
+    lida INTEGER NOT NULL DEFAULT 0 CHECK (lida IN (0, 1)),
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lida_em TEXT,
+    chave_origem TEXT UNIQUE
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_notificacoes_usuario_data
+    ON notificacoes(usuario_destino_id, criada_em);
+  CREATE INDEX IF NOT EXISTS indice_notificacoes_usuario_lida
+    ON notificacoes(usuario_destino_id, lida, criada_em);
+
   CREATE TABLE IF NOT EXISTS sequencias (
     nome TEXT PRIMARY KEY,
     proximo_numero INTEGER NOT NULL CHECK (proximo_numero > 0)
@@ -550,6 +615,115 @@ function bancoAtivo(): BancoCypher {
     );
   }
   return banco;
+}
+
+export function criarNotificacaoCypher(dados: {
+  usuarioDestinoId: string;
+  tipo: string;
+  titulo: string;
+  mensagem: string;
+  url: string;
+  entidadeTipo?: string;
+  entidadeId?: string;
+  chaveOrigem?: string;
+}): void {
+  bancoAtivo()
+    .prepare(
+      `
+      INSERT INTO notificacoes (
+        id, usuario_destino_id, tipo, titulo, mensagem, url,
+        entidade_tipo, entidade_id, chave_origem
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(chave_origem) DO NOTHING
+      `
+    )
+    .run(
+      randomUUID(),
+      dados.usuarioDestinoId,
+      dados.tipo,
+      dados.titulo,
+      dados.mensagem,
+      dados.url,
+      dados.entidadeTipo ?? "",
+      dados.entidadeId ?? "",
+      dados.chaveOrigem ?? null
+    );
+}
+
+function linhaNotificacao(
+  linha: Record<string, unknown>
+): NotificacaoPersistida {
+  return {
+    id: String(linha.id),
+    tipo: String(linha.tipo),
+    titulo: String(linha.titulo),
+    mensagem: String(linha.mensagem),
+    url: String(linha.url),
+    entidadeTipo: String(linha.entidadeTipo),
+    entidadeId: String(linha.entidadeId),
+    lida: Boolean(linha.lida),
+    criadaEm: String(linha.criadaEm),
+  };
+}
+
+export function listarNotificacoesCypher(
+  usuarioId: string,
+  limite = 8
+): NotificacaoPersistida[] {
+  return bancoAtivo()
+    .prepare(
+      `
+      SELECT id, tipo, titulo, mensagem, url,
+             entidade_tipo AS entidadeTipo,
+             entidade_id AS entidadeId,
+             lida, criada_em AS criadaEm
+      FROM notificacoes
+      WHERE usuario_destino_id = ?
+      ORDER BY datetime(criada_em) DESC, id DESC
+      LIMIT ?
+      `
+    )
+    .all(usuarioId, Math.max(1, Math.min(50, limite)))
+    .map(linha => linhaNotificacao(linha as Record<string, unknown>));
+}
+
+export function contarNotificacoesNaoLidasCypher(usuarioId: string): number {
+  return (
+    bancoAtivo()
+      .prepare(
+        "SELECT COUNT(*) AS total FROM notificacoes WHERE usuario_destino_id = ? AND lida = 0"
+      )
+      .get(usuarioId) as { total: number }
+  ).total;
+}
+
+export function marcarNotificacaoLidaCypher(
+  notificacaoId: string,
+  usuarioId: string
+): boolean {
+  const resultado = bancoAtivo()
+    .prepare(
+      `
+      UPDATE notificacoes
+      SET lida = 1, lida_em = CURRENT_TIMESTAMP
+      WHERE id = ? AND usuario_destino_id = ? AND lida = 0
+      `
+    )
+    .run(notificacaoId, usuarioId);
+  return resultado.changes > 0;
+}
+
+export function marcarTodasNotificacoesLidasCypher(usuarioId: string): number {
+  const resultado = bancoAtivo()
+    .prepare(
+      `
+      UPDATE notificacoes
+      SET lida = 1, lida_em = CURRENT_TIMESTAMP
+      WHERE usuario_destino_id = ? AND lida = 0
+      `
+    )
+    .run(usuarioId);
+  return resultado.changes;
 }
 
 function ofertasDoBeat(beatId: string): OfertaBeatPersistida[] {
@@ -821,6 +995,13 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
     WHERE NOT EXISTS (
       SELECT 1 FROM ofertas_beats o WHERE o.beat_id = b.id
     )
+  `);
+
+  conexao.exec(`
+    DELETE FROM eventos WHERE demonstracao = 1;
+    DELETE FROM ofertas_beats
+    WHERE beat_id IN (SELECT id FROM beats WHERE demonstracao = 1);
+    DELETE FROM beats WHERE demonstracao = 1;
   `);
 
   banco = conexao;
@@ -1195,7 +1376,19 @@ export function listarEventosCypher(
         e.etiquetas_json AS tagsJson,
         e.demonstracao,
         e.criado_em AS criadoEm,
-        CASE WHEN e.proprietario_id = @usuarioId AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned
+        CASE WHEN e.proprietario_id = @usuarioId AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned,
+        (
+          SELECT ie.status
+          FROM interesses_eventos ie
+          WHERE ie.evento_id = e.id AND ie.usuario_id = @usuarioId
+        ) AS interesseStatus,
+        (
+          SELECT COUNT(*)
+          FROM interesses_eventos ie
+          WHERE ie.evento_id = e.id
+            AND e.demonstracao = 0
+            AND ie.status IN ('interessado', 'inscrito', 'confirmado')
+        ) AS totalInteressados
       FROM eventos e
       WHERE ${filtrosSql.length ? filtrosSql.join(" AND ") : "1 = 1"}
       ORDER BY ${ordenacao}
@@ -1206,14 +1399,29 @@ export function listarEventosCypher(
       tagsJson: string;
       demonstracao: number;
       owned: number;
+      interesseStatus: StatusInteresseEvento | null;
+      totalInteressados: number;
     }
   >;
-  return linhas.map(({ tagsJson, demonstracao, owned, ...evento }) => ({
-    ...evento,
-    tags: JSON.parse(tagsJson) as string[],
-    demonstracao: Boolean(demonstracao),
-    owned: Boolean(owned),
-  }));
+  return linhas.map(
+    ({
+      tagsJson,
+      demonstracao,
+      owned,
+      totalInteressados,
+      interessados = [],
+      ...evento
+    }) => ({
+      ...evento,
+      tags: JSON.parse(tagsJson) as string[],
+      demonstracao: Boolean(demonstracao),
+      owned: Boolean(owned),
+      totalInteressados: Number(totalInteressados),
+      interessados: owned
+        ? listarInteressesEventoCypher(evento.id)
+        : interessados,
+    })
+  );
 }
 
 export function obterEventoCypher(
@@ -1241,26 +1449,184 @@ export function obterEventoCypher(
         e.etiquetas_json AS tagsJson,
         e.demonstracao,
         e.criado_em AS criadoEm,
-        CASE WHEN e.proprietario_id = ? AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned
+        CASE WHEN e.proprietario_id = ? AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned,
+        (
+          SELECT ie.status
+          FROM interesses_eventos ie
+          WHERE ie.evento_id = e.id AND ie.usuario_id = ?
+        ) AS interesseStatus,
+        (
+          SELECT COUNT(*)
+          FROM interesses_eventos ie
+          WHERE ie.evento_id = e.id
+            AND e.demonstracao = 0
+            AND ie.status IN ('interessado', 'inscrito', 'confirmado')
+        ) AS totalInteressados
       FROM eventos e
       WHERE e.id = ?
       `
     )
-    .get(usuarioId, id) as
+    .get(usuarioId, usuarioId, id) as
     | (Omit<EventoContaPersistido, "tags" | "demonstracao" | "owned"> & {
         tagsJson: string;
         demonstracao: number;
         owned: number;
+        interesseStatus: StatusInteresseEvento | null;
+        totalInteressados: number;
       })
     | undefined;
   if (!linha) return undefined;
-  const { tagsJson, demonstracao, owned, ...evento } = linha;
+  const { tagsJson, demonstracao, owned, totalInteressados, ...evento } = linha;
   return {
     ...evento,
     tags: JSON.parse(tagsJson) as string[],
     demonstracao: Boolean(demonstracao),
     owned: Boolean(owned),
+    totalInteressados: Number(totalInteressados),
+    interessados: owned ? listarInteressesEventoCypher(evento.id) : [],
   };
+}
+
+export function listarInteressesEventoCypher(
+  eventoId: string
+): InteresseEventoPersistido[] {
+  return bancoAtivo()
+    .prepare(
+      `
+      SELECT
+        ie.id,
+        ie.evento_id AS eventoId,
+        ie.usuario_id AS usuarioId,
+        p.nome AS nome,
+        p.identificador AS handle,
+        ie.status,
+        ie.criado_em AS criadoEm,
+        ie.atualizado_em AS atualizadoEm
+      FROM interesses_eventos ie
+      JOIN perfis p ON p.usuario_id = ie.usuario_id
+      WHERE ie.evento_id = ?
+        AND ie.status <> 'cancelado'
+      ORDER BY
+        CASE ie.status
+          WHEN 'interessado' THEN 1
+          WHEN 'inscrito' THEN 2
+          WHEN 'confirmado' THEN 3
+          WHEN 'rejeitado' THEN 4
+          ELSE 5
+        END,
+        ie.criado_em ASC,
+        ie.id ASC
+      `
+    )
+    .all(eventoId) as InteresseEventoPersistido[];
+}
+
+export function demonstrarInteresseEventoCypher(
+  eventoId: string,
+  usuarioId: string
+): StatusInteresseEvento | null {
+  const db = bancoAtivo();
+  const evento = db
+    .prepare(
+      `
+      SELECT e.id
+      FROM eventos e
+      JOIN usuarios u ON u.id = ?
+      WHERE e.id = ?
+        AND e.demonstracao = 0
+        AND e.situacao <> 'Encerrado'
+        AND u.demonstracao = 0
+        AND e.proprietario_id <> ?
+      `
+    )
+    .get(usuarioId, eventoId, usuarioId) as { id: string } | undefined;
+  if (!evento) return null;
+
+  db.prepare(
+    `
+    INSERT INTO interesses_eventos (id, evento_id, usuario_id, status)
+    VALUES (?, ?, ?, 'interessado')
+    ON CONFLICT(evento_id, usuario_id) DO UPDATE SET
+      status = 'interessado',
+      atualizado_em = CURRENT_TIMESTAMP
+    `
+  ).run(randomUUID(), eventoId, usuarioId);
+  return "interessado";
+}
+
+export function cancelarInteresseEventoCypher(
+  eventoId: string,
+  usuarioId: string
+): boolean {
+  const resultado = bancoAtivo()
+    .prepare(
+      `
+      UPDATE interesses_eventos
+      SET status = 'cancelado', atualizado_em = CURRENT_TIMESTAMP
+      WHERE evento_id = ? AND usuario_id = ? AND status <> 'cancelado'
+      `
+    )
+    .run(eventoId, usuarioId);
+  return resultado.changes > 0;
+}
+
+export function atualizarStatusInteresseEventoCypher(
+  eventoId: string,
+  organizadorId: string,
+  usuarioInteressadoId: string,
+  status: Extract<
+    StatusInteresseEvento,
+    "interessado" | "inscrito" | "confirmado" | "rejeitado"
+  >
+): boolean {
+  const db = bancoAtivo();
+  const atual = db
+    .prepare(
+      `
+      SELECT ie.status
+      FROM interesses_eventos ie
+      JOIN eventos e ON e.id = ie.evento_id
+      WHERE ie.evento_id = ?
+        AND ie.usuario_id = ?
+        AND e.proprietario_id = ?
+        AND e.demonstracao = 0
+        AND e.situacao <> 'Encerrado'
+      `
+    )
+    .get(eventoId, usuarioInteressadoId, organizadorId) as
+    { status: StatusInteresseEvento } | undefined;
+  if (!atual || atual.status === "cancelado") return false;
+
+  const transicoes: Record<
+    Exclude<StatusInteresseEvento, "cancelado">,
+    readonly StatusInteresseEvento[]
+  > = {
+    interessado: ["interessado", "inscrito", "rejeitado"],
+    inscrito: ["interessado", "inscrito", "confirmado", "rejeitado"],
+    confirmado: ["confirmado"],
+    rejeitado: ["interessado", "rejeitado"],
+  };
+  if (!transicoes[atual.status].includes(status)) return false;
+
+  const resultado = db
+    .prepare(
+      `
+      UPDATE interesses_eventos
+      SET status = ?, atualizado_em = CURRENT_TIMESTAMP
+      WHERE evento_id = ?
+        AND usuario_id = ?
+        AND status <> 'cancelado'
+        AND EXISTS (
+          SELECT 1 FROM eventos e
+          WHERE e.id = interesses_eventos.evento_id
+            AND e.proprietario_id = ?
+            AND e.demonstracao = 0
+            AND e.situacao <> 'Encerrado'
+        )
+      `
+    )
+    .run(status, eventoId, usuarioInteressadoId, organizadorId);
+  return resultado.changes > 0;
 }
 
 export function criarEventoCypher(

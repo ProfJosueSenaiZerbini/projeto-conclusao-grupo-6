@@ -5,7 +5,10 @@ import {
   type EventoContaPersistido,
   type FiltrosEventos,
 } from "../models/modeloCypher.js";
-import { rotuloStatusProfissional } from "../models/modeloPerfil.js";
+import {
+  podeCriarEvento,
+  rotuloStatusProfissional,
+} from "../models/modeloPerfil.js";
 import type { UsuarioDaSessao } from "../models/bancoDados.js";
 import {
   categoriasEvento,
@@ -15,6 +18,7 @@ import {
   validarFormularioEvento,
   type ValoresFormularioEvento,
 } from "../validators/validarEvento.js";
+import type { StatusInteresseEvento } from "../models/bancoDados.js";
 
 const valoresVazios: ValoresFormularioEvento = {
   titulo: "",
@@ -168,11 +172,28 @@ function exigirOrganizador(
   res: Response
 ): UsuarioDaSessao | undefined {
   const usuario = usuarioAtual(res);
-  if (usuario.tipoConta !== "organizador") {
+  if (!podeCriarEvento(usuario.categories)) {
     res.redirect("/events?erro=permissao");
     return undefined;
   }
   return usuario;
+}
+
+function exigirResponsavelEvento(
+  req: Request,
+  res: Response
+): { usuario: UsuarioDaSessao; evento: EventoContaPersistido } | undefined {
+  const usuario = usuarioAtual(res);
+  if (usuario.demonstracao) {
+    res.redirect("/events?erro=permissao");
+    return undefined;
+  }
+  const evento = CypherModel.evento(String(req.params.id), usuario.id);
+  if (!evento || !evento.owned || evento.demonstracao) {
+    res.redirect("/events?erro=evento");
+    return undefined;
+  }
+  return { usuario, evento };
 }
 
 export function oportunidades(req: Request, res: Response) {
@@ -203,10 +224,87 @@ export function oportunidades(req: Request, res: Response) {
     opcoesFormatos: [
       ...new Set(todos.map(evento => evento.format).filter(Boolean)),
     ],
-    podeGerenciar: usuario.tipoConta === "organizador",
+    podeGerenciar: podeCriarEvento(usuario.categories),
     erro,
     mensagem,
   });
+}
+
+function redirecionarEventos(
+  res: Response,
+  sucesso: boolean,
+  mensagem: string,
+  erro: string
+) {
+  return res.redirect(
+    sucesso
+      ? `/events?mensagem=${encodeURIComponent(mensagem)}`
+      : `/events?erro=${encodeURIComponent(erro)}`
+  );
+}
+
+export function demonstrarInteresse(req: Request, res: Response) {
+  const usuario = usuarioAtual(res);
+  const status = CypherModel.demonstrarInteresseEvento(
+    String(req.params.id),
+    usuario.id
+  );
+  return redirecionarEventos(
+    res,
+    status !== null,
+    "Interesse demonstrado com sucesso.",
+    "Não foi possível demonstrar interesse neste evento."
+  );
+}
+
+export function cancelarInteresse(req: Request, res: Response) {
+  const usuario = usuarioAtual(res);
+  const cancelado = CypherModel.cancelarInteresseEvento(
+    String(req.params.id),
+    usuario.id
+  );
+  return redirecionarEventos(
+    res,
+    cancelado,
+    "Interesse cancelado.",
+    "Não havia um interesse ativo para cancelar."
+  );
+}
+
+export function atualizarInteresse(req: Request, res: Response) {
+  const responsavel = exigirResponsavelEvento(req, res);
+  if (!responsavel) return;
+  const { usuario } = responsavel;
+  const statusRecebido = String(req.body.status ?? "");
+  const statusPermitidos = new Set<StatusInteresseEvento>([
+    "interessado",
+    "inscrito",
+    "confirmado",
+    "rejeitado",
+  ]);
+  if (!statusPermitidos.has(statusRecebido as StatusInteresseEvento)) {
+    return redirecionarEventos(
+      res,
+      false,
+      "",
+      "Status de participação inválido."
+    );
+  }
+  const atualizado = CypherModel.atualizarStatusInteresseEvento(
+    String(req.params.id),
+    usuario.id,
+    String(req.params.usuarioId),
+    statusRecebido as Extract<
+      StatusInteresseEvento,
+      "interessado" | "inscrito" | "confirmado" | "rejeitado"
+    >
+  );
+  return redirecionarEventos(
+    res,
+    atualizado,
+    "Status de participação atualizado.",
+    "Não foi possível atualizar esta participação."
+  );
 }
 
 export function novoEvento(req: Request, res: Response) {
@@ -230,15 +328,27 @@ export function criarEvento(req: Request, res: Response) {
   const valores = dadosDoFormulario(req);
   const erro = validarFormularioEvento(valores);
   if (erro) return renderizarFormulario(req, res, valores, erro, false);
-  CypherModel.criarEvento(usuario.id, dadosPersistidos(valores));
+  const eventoId = CypherModel.criarEvento(
+    usuario.id,
+    dadosPersistidos(valores)
+  );
+  CypherModel.criarNotificacao({
+    usuarioDestinoId: usuario.id,
+    tipo: "evento_criado",
+    titulo: "Novo evento criado",
+    mensagem: `“${valores.titulo}” foi adicionado às suas oportunidades.`,
+    url: "/events",
+    entidadeTipo: "evento",
+    entidadeId: eventoId,
+    chaveOrigem: `evento-criado:${eventoId}`,
+  });
   return res.redirect("/events?mensagem=Evento criado com sucesso.");
 }
 
 export function editarEvento(req: Request, res: Response) {
-  const usuario = exigirOrganizador(req, res);
-  if (!usuario) return;
-  const evento = CypherModel.evento(String(req.params.id), usuario.id);
-  if (!evento || !evento.owned) return res.redirect("/events?erro=evento");
+  const responsavel = exigirResponsavelEvento(req, res);
+  if (!responsavel) return;
+  const { usuario, evento } = responsavel;
   return renderizarFormulario(
     req,
     res,
@@ -250,8 +360,9 @@ export function editarEvento(req: Request, res: Response) {
 }
 
 export function atualizarEvento(req: Request, res: Response) {
-  const usuario = exigirOrganizador(req, res);
-  if (!usuario) return;
+  const responsavel = exigirResponsavelEvento(req, res);
+  if (!responsavel) return;
+  const { usuario } = responsavel;
   const valores = dadosDoFormulario(req);
   const erro = validarFormularioEvento(valores);
   if (erro)
@@ -268,6 +379,18 @@ export function atualizarEvento(req: Request, res: Response) {
     usuario.id,
     dadosPersistidos(valores)
   );
+  if (atualizado) {
+    CypherModel.criarNotificacao({
+      usuarioDestinoId: usuario.id,
+      tipo: "evento_atualizado",
+      titulo: "Evento atualizado",
+      mensagem: `As informações de “${valores.titulo}” foram salvas.`,
+      url: "/events",
+      entidadeTipo: "evento",
+      entidadeId: String(req.params.id),
+      chaveOrigem: `evento-atualizado:${req.params.id}:${valores.titulo}:${valores.situacao}`,
+    });
+  }
   return res.redirect(
     atualizado
       ? "/events?mensagem=Evento atualizado com sucesso."
@@ -276,8 +399,9 @@ export function atualizarEvento(req: Request, res: Response) {
 }
 
 export function excluirEvento(req: Request, res: Response) {
-  const usuario = exigirOrganizador(req, res);
-  if (!usuario) return;
+  const responsavel = exigirResponsavelEvento(req, res);
+  if (!responsavel) return;
+  const { usuario } = responsavel;
   const excluido = CypherModel.excluirEvento(String(req.params.id), usuario.id);
   return res.redirect(
     excluido ? "/events?mensagem=Evento excluído." : "/events?erro=evento"
