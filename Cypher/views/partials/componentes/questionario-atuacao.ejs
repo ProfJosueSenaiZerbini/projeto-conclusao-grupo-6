@@ -1,0 +1,73 @@
+<%
+  const atual = atuacoesExistentes?.find(item => item.categoria === categoriaAtuacao);
+  const respostasAtuais = atual?.respostas ?? {};
+  const visibilidadesAtuais = atual?.visibilidades ?? {};
+  const valorResposta = pergunta => respostasAtuais[pergunta.campo];
+  const valorVisibilidade = pergunta => visibilidadesAtuais[pergunta.campo] ?? 'privado';
+%>
+<section class="professional-questionnaire" id="<%= idQuestionario %>" data-atuacao-questionario data-categoria="<%= categoriaAtuacao %>"<% if (legada) { %> data-categoria-legada<% } %> aria-label="Questionário de atuação: <%= categoriaAtuacao %>">
+  <header class="professional-questionnaire__header">
+    <div>
+      <h3><%= categoriaAtuacao %></h3>
+      <% if (legada) { %>
+        <p>Categoria mantida de um cadastro anterior. Ela não será convertida automaticamente em Rapper nem em MC.</p>
+      <% } else { %>
+        <p>Respostas desta função ficam separadas das demais categorias. As informações de trajetória não comprovam experiência.</p>
+      <% } %>
+    </div>
+    <% if (!legada) { %>
+      <label class="professional-questionnaire__category-visibility">
+        <span>Quem pode ver esta categoria?</span>
+        <select data-visibilidade-categoria="__categoria__" aria-label="Visibilidade da categoria <%= categoriaAtuacao %>">
+          <option value="publico" <%= visibilidadesAtuais.__categoria__ === 'publico' || !visibilidadesAtuais.__categoria__ ? 'selected' : '' %>>Público</option>
+          <option value="colaboradores" <%= visibilidadesAtuais.__categoria__ === 'colaboradores' ? 'selected' : '' %>>Somente colaboradores</option>
+          <option value="privado" <%= visibilidadesAtuais.__categoria__ === 'privado' ? 'selected' : '' %>>Privado</option>
+        </select>
+      </label>
+    <% } %>
+  </header>
+  <% if (!legada) { %>
+    <div class="professional-questionnaire__questions">
+      <% perguntasAtuacao.forEach(pergunta => {
+        const valor = valorResposta(pergunta);
+        const dependente = pergunta.dependeDe;
+      %>
+        <fieldset class="professional-questionnaire__field"<% if (dependente) { %> data-depende-campo="<%= dependente.campo %>" data-depende-valor="<%= dependente.valor %>" hidden<% } %>>
+          <legend><%= pergunta.pergunta %><% if (pergunta.obrigatoria) { %> <span>(obrigatória)</span><% } else { %> <span>(opcional)</span><% } %></legend>
+          <% if (pergunta.tipo === 'texto') { %>
+            <textarea data-resposta-atuacao="<%= pergunta.campo %>" maxlength="<%= pergunta.maximoCaracteres ?? 500 %>" rows="3"><%= typeof valor === 'string' ? valor : '' %></textarea>
+          <% } else if (pergunta.tipo === 'enum') { %>
+            <select data-resposta-atuacao="<%= pergunta.campo %>"<% if (pergunta.obrigatoria) { %> aria-required="true"<% } %>>
+              <option value="">Selecione uma opção</option>
+              <% (pergunta.opcoes ?? []).forEach(opcao => { %>
+                <option value="<%= opcao %>" <%= valor === opcao ? 'selected' : '' %>><%= formatarRespostaAtuacao(opcao) %></option>
+              <% }) %>
+            </select>
+          <% } else if (pergunta.tipo === 'multi-enum') { %>
+            <div class="professional-questionnaire__choices">
+              <% (pergunta.opcoes ?? []).forEach(opcao => { %>
+                <label class="professional-questionnaire__choice">
+                  <input type="checkbox" value="<%= opcao %>" data-resposta-atuacao="<%= pergunta.campo %>"<% if (Array.isArray(valor) && valor.includes(opcao)) { %> checked<% } %>>
+                  <span><%= formatarRespostaAtuacao(opcao) %></span>
+                </label>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <div class="professional-questionnaire__choices">
+              <label class="professional-questionnaire__choice"><input type="radio" name="<%= idQuestionario %>-<%= pergunta.campo %>" value="true" data-resposta-atuacao="<%= pergunta.campo %>" data-tipo-resposta-atuacao="booleano" <%= valor === true ? 'checked' : '' %>><span>Sim</span></label>
+              <label class="professional-questionnaire__choice"><input type="radio" name="<%= idQuestionario %>-<%= pergunta.campo %>" value="false" data-resposta-atuacao="<%= pergunta.campo %>" data-tipo-resposta-atuacao="booleano" <%= valor === false ? 'checked' : '' %>><span>Não</span></label>
+            </div>
+          <% } %>
+          <label class="professional-questionnaire__answer-visibility">
+            <span>Visibilidade desta resposta</span>
+            <select data-visibilidade-atuacao="<%= pergunta.campo %>">
+              <option value="publico" <%= valorVisibilidade(pergunta) === 'publico' ? 'selected' : '' %>>Público</option>
+              <option value="colaboradores" <%= valorVisibilidade(pergunta) === 'colaboradores' ? 'selected' : '' %>>Somente colaboradores</option>
+              <option value="privado" <%= valorVisibilidade(pergunta) === 'privado' ? 'selected' : '' %>>Privado</option>
+            </select>
+          </label>
+        </fieldset>
+      <% }) %>
+    </div>
+  <% } %>
+</section>

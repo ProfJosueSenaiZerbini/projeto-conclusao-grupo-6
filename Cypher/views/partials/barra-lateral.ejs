@@ -55,7 +55,7 @@
         <% } %>
       </a>
     <% }) %>
-    <% const recursosAtivos = ['/central', '/profile', '/settings'].includes(path); %>
+    <% const recursosAtivos = ['/central', '/profile', '/settings', '/notificacoes'].includes(path) || path.startsWith('/admin/revisao'); %>
     <div class="nav-label nav-label-spaced">
       RECURSOS
     </div>
@@ -71,14 +71,6 @@
       </span>
     </button>
     <div class="resource-links" id="recursos-menu"<%= recursosAtivos ? '' : 'hidden' %>>
-      <a class="side-link<%= path === '/central' ? ' active' : '' %>" href="/central">
-        <span class="side-icon lucide-icon" aria-hidden="true">
-          <%- icones.lightbulb %>
-        </span>
-        <span class="side-link-label">
-          Cypher Central
-        </span>
-      </a>
       <a class="side-link<%= path === '/profile' ? ' active' : '' %>" href="/profile">
         <span class="side-icon lucide-icon" aria-hidden="true">
           <%- icones.user %>
@@ -95,6 +87,32 @@
           Configurações
         </span>
       </a>
+      <a class="side-link<%= path === '/central' ? ' active' : '' %>" href="/central">
+        <span class="side-icon lucide-icon" aria-hidden="true">
+          <%- icones.lightbulb %>
+        </span>
+        <span class="side-link-label">
+          Cypher Central
+        </span>
+      </a>
+      <a class="side-link<%= path === '/notificacoes' ? ' active' : '' %>" href="/notificacoes">
+        <span class="side-icon lucide-icon" aria-hidden="true">
+          <%- icones.bell %>
+        </span>
+        <span class="side-link-label">
+          Notificações
+        </span>
+      </a>
+      <% if (usuario.ehAdministrador) { %>
+        <a class="side-link<%= path.startsWith('/admin/revisao') ? ' active' : '' %>" href="/admin/revisao">
+          <span class="side-icon lucide-icon" aria-hidden="true">
+            <%- icones.shieldCheck %>
+          </span>
+          <span class="side-link-label">
+            Administrador
+          </span>
+        </a>
+      <% } %>
     </div>
   </nav>
   <div class="sidebar-bottom">

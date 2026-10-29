@@ -1,0 +1,456 @@
+<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<div class="app-shell">
+<%- include('../partials/barra-lateral', { path }) %>
+<main class="main-shell">
+<%- include('../partials/barra-superior', { breadcrumb: 'Administrador' }) %>
+<div class="page-content admin-page">
+<header class="admin-hero">
+  <div class="admin-hero-copy">
+    <span class="eyebrow">
+      FERRAMENTAS EXCLUSIVAS DA EQUIPE
+    </span>
+    <h1>
+      Administrador
+    </h1>
+    <p>
+      Moderação transparente e decisões de acesso registradas em um só lugar.
+    </p>
+  </div>
+  <div class="admin-hero-mark" aria-hidden="true">
+    <span class="lucide-icon">
+      <%- icones.shieldCheck %>
+    </span>
+    <span>
+      CY / TEAM
+    </span>
+  </div>
+</header>
+<nav class="admin-tabs" aria-label="Seções do administrador">
+  <a href="/admin/revisao" class="<%= secaoAdmin === 'analises' ? 'active' : '' %>"<%= secaoAdmin === 'analises' ? 'aria-current="page"' : '' %>>
+    <span>
+      Análises
+    </span>
+    <span class="admin-tab-count">
+      <%= propostas.length + propostasCategorias.length %>
+    </span>
+  </a>
+  <a href="/admin/revisao/excecoes" class="<%= secaoAdmin === 'excecoes' ? 'active' : '' %>"<%= secaoAdmin === 'excecoes' ? 'aria-current="page"' : '' %>>
+    <span>
+      Exceções de categorias
+    </span>
+    <span class="admin-tab-count">
+      <%= perfis.length %>
+    </span>
+  </a>
+</nav>
+<% if (mensagem) { %>
+  <p class="profile-message profile-message-success" role="status">
+    <%= mensagem %>
+  </p>
+<% } %>
+<% if (erro) { %>
+  <p class="profile-message profile-message-error" role="alert">
+    <%= erro %>
+  </p>
+<% } %>
+<% if (secaoAdmin === 'analises') { %>
+  <section class="admin-section" aria-labelledby="admin-section-title">
+    <div class="admin-section-heading">
+      <div>
+        <span class="eyebrow">
+          CENTRAL DE MODERAÇÃO
+        </span>
+        <h2 id="admin-section-title">
+          Análises
+        </h2>
+        <p>
+          Revise propostas pendentes. Cada decisão exige uma justificativa registrada.
+        </p>
+      </div>
+      <div class="admin-summary" aria-label="Total de propostas pendentes">
+        <strong>
+          <%= propostas.length + propostasCategorias.length %>
+        </strong>
+        <span>
+          aguardando análise
+        </span>
+      </div>
+    </div>
+    <section class="settings-section card-surface admin-panel" aria-labelledby="generos-title">
+      <div class="admin-panel-heading">
+        <div class="admin-panel-icon" aria-hidden="true">
+          ♪
+        </div>
+        <div>
+          <span class="eyebrow">
+            MODERAÇÃO DE TAXONOMIA
+          </span>
+          <h3 id="generos-title">
+            Gêneros sugeridos
+          </h3>
+          <p>
+            Gêneros personalizados só entram no perfil depois da aprovação.
+          </p>
+        </div>
+        <span class="admin-count-pill">
+          <%= propostas.length %>
+          pendentes
+        </span>
+      </div>
+      <% if (propostas.length) { %>
+        <div class="admin-review-list">
+          <% propostas.forEach(proposta => { %>
+            <article class="admin-review-card">
+              <div class="admin-review-subject">
+                <strong>
+                  <%= proposta.genero %>
+                </strong>
+                <p>
+                  Sugerido por
+                  <a href="/p/<%= proposta.handle.replace(/^@/, '') %>">
+                    <%= proposta.nome %>
+                  </a>
+                </p>
+                <small>
+                  <%= new Date(`${proposta.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR') %>
+                </small>
+              </div>
+              <div class="admin-review-actions">
+                <form method="post" action="/admin/revisao/generos/<%= proposta.id %>">
+                  <label>
+                    Justificativa da decisão
+                    <input name="motivo" minlength="5" maxlength="500" required placeholder="Critério usado na análise">
+                  </label>
+                  <div class="admin-review-buttons">
+                    <button class="button button-lime" name="acao" value="aprovar">
+                      Aprovar
+                    </button>
+                    <button class="button button-outline" name="acao" value="rejeitar">
+                      Rejeitar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="settings-empty admin-empty">
+          Não há gêneros aguardando análise.
+        </p>
+      <% } %>
+    </section>
+    <section class="settings-section card-surface admin-panel" aria-labelledby="propostas-categorias-title">
+      <div class="admin-panel-heading">
+        <div class="admin-panel-icon admin-panel-icon-lime" aria-hidden="true">
+          ＋
+        </div>
+        <div>
+          <span class="eyebrow">
+            TAXONOMIA PROFISSIONAL
+          </span>
+          <h3 id="propostas-categorias-title">
+            Novas categorias
+          </h3>
+          <p>
+            Aprovar adiciona a opção para todos, sem conceder capacidades especiais.
+          </p>
+        </div>
+        <span class="admin-count-pill">
+          <%= propostasCategorias.length %>
+          pendentes
+        </span>
+      </div>
+      <% if (propostasCategorias.length) { %>
+        <div class="admin-review-list">
+          <% propostasCategorias.forEach(proposta => { %>
+            <article class="admin-review-card">
+              <div class="admin-review-subject">
+                <strong>
+                  <%= proposta.categoria %>
+                </strong>
+                <p>
+                  Sugerida por
+                  <a href="/p/<%= proposta.handle.replace(/^@/, '') %>">
+                    <%= proposta.nome %>
+                  </a>
+                </p>
+                <small>
+                  <%= new Date(`${proposta.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR') %>
+                </small>
+              </div>
+              <div class="admin-review-actions">
+                <form method="post" action="/admin/revisao/categorias-profissionais/<%= proposta.id %>">
+                  <label>
+                    Justificativa da decisão
+                    <input name="motivo" minlength="5" maxlength="500" required placeholder="Critério usado na análise">
+                  </label>
+                  <div class="admin-review-buttons">
+                    <button class="button button-lime" name="acao" value="aprovar">
+                      Aprovar e disponibilizar
+                    </button>
+                    <button class="button button-outline" name="acao" value="rejeitar">
+                      Rejeitar
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="settings-empty admin-empty">
+          Não há categorias profissionais aguardando análise.
+        </p>
+      <% } %>
+    </section>
+  </section>
+<% } else { %>
+  <section class="admin-section" aria-labelledby="admin-section-title">
+    <div class="admin-section-heading">
+      <div>
+        <span class="eyebrow">
+          ALTERAÇÕES PROFISSIONAIS
+        </span>
+        <h2 id="admin-section-title">
+          Exceções ao prazo
+        </h2>
+        <p>
+          Conceda uma autorização única após avaliar o motivo. Toda decisão fica auditada.
+        </p>
+      </div>
+      <div class="admin-summary" aria-label="Contas que podem ser analisadas">
+        <strong>
+          <%= totalPerfis %>
+        </strong>
+        <span>
+          contas na lista
+        </span>
+      </div>
+    </div>
+    <section class="settings-section card-surface admin-panel admin-exceptions" aria-labelledby="excecoes-title">
+      <div class="admin-panel-heading">
+        <div class="admin-panel-icon admin-panel-icon-amber" aria-hidden="true">
+          60
+        </div>
+        <div>
+          <span class="eyebrow">
+            AUTORIZAÇÃO AUDITADA
+          </span>
+          <h3 id="excecoes-title">
+            Pessoas e prazo de alteração
+          </h3>
+          <p>
+            Uma exceção libera uma única mudança antes do prazo normal de 60 dias.
+          </p>
+        </div>
+      </div>
+      <p class="admin-policy-note">
+        Avalie o contexto individual. Inatividade, isoladamente, não é sinal de fraude nem motivo para punição.
+      </p>
+      <section class="admin-exception-requests" aria-labelledby="exception-requests-title">
+        <div class="admin-panel-heading">
+          <div>
+            <span class="eyebrow">
+              PEDIDOS DOS PROFISSIONAIS
+            </span>
+            <h3 id="exception-requests-title">
+              Solicitações de exceção
+            </h3>
+            <p>
+              Aprove para liberar uma alteração única ou recuse informando o motivo da decisão.
+            </p>
+          </div>
+          <span class="admin-count-pill">
+            <%= solicitacoesExcecao.length %>
+            pendentes
+          </span>
+        </div>
+        <% if (solicitacoesExcecao.length) { %>
+          <div class="admin-review-list">
+            <% solicitacoesExcecao.forEach(solicitacao => { %>
+              <article class="admin-review-card" data-exception-request="<%= solicitacao.id %>">
+                <div class="admin-review-subject">
+                  <strong>
+                    <%= solicitacao.nome %>
+                  </strong>
+                  <p>
+                    <%= solicitacao.email %>
+                    ·
+                    <a href="/p/<%= solicitacao.handle.replace(/^@/, '') %>">
+                      Ver perfil
+                    </a>
+                  </p>
+                  <p>
+                    <strong>Motivo informado:</strong>
+                    <%= solicitacao.motivo %>
+                  </p>
+                  <small>
+                    <%= `Enviada em ${new Date(`${solicitacao.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR')}` %>
+                  </small>
+                </div>
+                <div class="admin-request-snapshot">
+                  <h4>Alteração solicitada</h4>
+                  <p><strong>Antes:</strong> <%= solicitacao.categoriasAntes.join(', ') || 'Nenhuma categoria registrada' %></p>
+                  <p><strong>Após aprovação:</strong> <%= solicitacao.categoriasSolicitadas.join(', ') || 'Nenhuma categoria' %></p>
+                  <p><strong>Motivo estruturado:</strong> <%= solicitacao.motivoCodigoRotulo %></p>
+                  <p class="admin-policy-note">As respostas não são comprovação de experiência. São exibidas aqui apenas quando as preferências permitem que este revisor as veja.</p>
+                  <div class="admin-request-categories">
+                    <% solicitacao.questionarios.forEach(questionario => {
+                      const respostasCategoria = solicitacao.respostasSolicitadas[questionario.categoria] ?? {};
+                      let algumaRespostaVisivel = false;
+                    %>
+                      <section class="admin-request-category" aria-label="Respostas visíveis: <%= questionario.categoria %>">
+                        <h5><%= questionario.categoria %></h5>
+                        <% questionario.perguntas.forEach(pergunta => {
+                          const valor = respostasCategoria[pergunta.campo];
+                          if (valor !== undefined && valor !== '') {
+                            algumaRespostaVisivel = true;
+                        %>
+                          <div class="admin-request-answer">
+                            <strong><%= pergunta.pergunta %></strong>
+                            <p><%= formatarRespostaAtuacao(valor) %></p>
+                          </div>
+                        <% } }) %>
+                        <% if (!algumaRespostaVisivel) { %>
+                          <p>Nenhuma resposta compartilhada com este revisor.</p>
+                        <% } %>
+                      </section>
+                    <% }) %>
+                  </div>
+                </div>
+                <% if (solicitacao.historico.length) { %>
+                  <div class="admin-request-thread">
+                    <h4>Conversa da solicitação</h4>
+                    <% solicitacao.historico.forEach(mensagem => { %>
+                      <article class="admin-request-message">
+                        <strong><%= mensagem.autorTipo === 'administrador' ? 'Equipe Cypher' : 'Profissional' %></strong>
+                        <p><%= mensagem.mensagem %></p>
+                        <time datetime="<%= mensagem.criadaEm %>"><%= new Date(`${mensagem.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR') %></time>
+                      </article>
+                    <% }) %>
+                  </div>
+                <% } %>
+                <div class="admin-review-actions">
+                  <% const ultimaMensagemSolicitacao = solicitacao.historico[solicitacao.historico.length - 1]; %>
+                  <% if (ultimaMensagemSolicitacao?.autorTipo === 'administrador') { %>
+                    <p class="admin-policy-note" role="status">Aguardando resposta do profissional antes de uma decisão.</p>
+                  <% } else { %>
+                    <form method="post" action="/admin/revisao/solicitacoes-excecao/<%= solicitacao.id %>/esclarecimento">
+                      <label for="exception-question-<%= solicitacao.id %>">Solicitar esclarecimento
+                        <textarea id="exception-question-<%= solicitacao.id %>" name="mensagem" minlength="5" maxlength="500" rows="3" required placeholder="Pergunta objetiva sobre o pedido"></textarea>
+                      </label>
+                      <button class="button button-outline" type="submit">Pedir mais informações</button>
+                    </form>
+                  <% } %>
+                  <% if (ultimaMensagemSolicitacao?.autorTipo !== 'administrador') { %>
+                  <form method="post" action="/admin/revisao/solicitacoes-excecao/<%= solicitacao.id %>">
+                    <label for="exception-decision-<%= solicitacao.id %>">
+                      Justificativa da decisão
+                      <input id="exception-decision-<%= solicitacao.id %>" name="motivo" minlength="5" maxlength="500" required placeholder="Registre o critério da equipe">
+                    </label>
+                    <div class="admin-review-buttons">
+                      <button class="button button-lime" type="submit" name="acao" value="aprovar">
+                        Aprovar e liberar
+                      </button>
+                      <button class="button button-outline" type="submit" name="acao" value="rejeitar">
+                        Recusar solicitação
+                      </button>
+                    </div>
+                  </form>
+                  <% } %>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="settings-empty admin-empty">
+            Não há solicitações de exceção aguardando análise.
+          </p>
+        <% } %>
+      </section>
+      <% if (totalPerfis) { %>
+        <div class="admin-search-row" data-admin-exception-controls hidden>
+          <label for="admin-exception-search">
+            Buscar conta
+          </label>
+          <input id="admin-exception-search" type="search" placeholder="Nome, e-mail ou categoria..." autocomplete="off" data-admin-exception-search>
+          <span data-admin-exception-count role="status">
+            <%= `${perfis.length} de ${totalPerfis} contas exibidas` %>
+          </span>
+        </div>
+        <div class="admin-account-list" id="admin-exception-list" data-admin-exception-list data-initial-limit="7" data-admin-total="<%= totalPerfis %>">
+          <% perfis.forEach(perfil => { %>
+            <article class="admin-account-row" data-admin-account>
+              <div class="admin-account-identity">
+                <span class="admin-account-avatar" aria-hidden="true">
+                  <%= perfil.iniciais %>
+                </span>
+                <div>
+                  <strong>
+                    <%= perfil.nome %>
+                  </strong>
+                  <p>
+                    <%= perfil.email %>
+                  </p>
+                  <span class="admin-category-list">
+                    <%= `Categorias: ${perfil.categorias.join(' · ')}` %>
+                  </span>
+                  <% if (perfil.alteradaEm) { %>
+                    <small>
+                      <%= `Última alteração: ${perfil.alteradaEmFormatada}${perfil.proximaAlteracaoFormatada ? ` · Próxima data: ${perfil.proximaAlteracaoFormatada}` : ''}` %>
+                    </small>
+                  <% } else { %>
+                    <small>
+                      Ainda não realizou alteração de categorias após criar a conta.
+                    </small>
+                  <% } %>
+                  <% if (perfil.excecaoPendente) { %>
+                    <span class="admin-pending-label">
+                      Exceção não utilizada já concedida
+                    </span>
+                  <% } %>
+                  <% if (perfil.solicitacaoPendente) { %>
+                    <span class="admin-pending-label">
+                      Solicitação aguardando análise na fila acima
+                    </span>
+                  <% } %>
+                  <% if (!perfil.bloqueada) { %>
+                    <span class="admin-available-label">
+                      Prazo encerrado — exceção não necessária
+                    </span>
+                  <% } %>
+                </div>
+              </div>
+              <form method="post" action="/admin/revisao/excecoes-categorias/<%= perfil.usuarioId %>">
+                <label>
+                  Motivo da exceção
+                  <input name="motivo" minlength="10" maxlength="500" required placeholder="Registre o motivo verificável">
+                </label>
+                <button class="button button-outline" type="submit"<%= !perfil.bloqueada || perfil.excecaoPendente || perfil.solicitacaoPendente ? ' disabled' : '' %>>
+                  Autorizar uma alteração
+                </button>
+              </form>
+            </article>
+          <% }) %>
+        </div>
+        <% if (totalPerfis > 7) { %>
+          <button class="admin-show-more" type="button" data-admin-exception-toggle hidden aria-expanded="false" aria-controls="admin-exception-list">
+            <%= `Mostrar todas as ${totalPerfis} contas` %>
+          </button>
+        <% } %>
+        <p class="admin-search-empty" data-admin-exception-empty hidden>
+          Nenhuma conta corresponde à busca.
+        </p>
+      <% } else { %>
+        <p class="settings-empty admin-empty">
+          Não há contas profissionais reais para revisar.
+        </p>
+      <% } %>
+    </section>
+  </section>
+<% } %>
+</div>
+</main>
+</div>
+<%- include('../partials/fim-pagina') %>

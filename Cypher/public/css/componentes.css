@@ -56,9 +56,9 @@
 }
 
 .button-outline {
-  border: 1px solid #cfd4c8;
+  border: 1px solid var(--border-color);
   background: transparent;
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 .button-outline:hover {
@@ -349,13 +349,6 @@
   resize: vertical;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 9px;
-  margin-top: 23px;
-}
-
 .modal-copy {
   margin: 0 0 18px;
   color: #7e887c;
@@ -387,12 +380,6 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 22px;
-}
-
-.button-outline {
-  color: var(--text-primary);
-  border-color: var(--border-color);
-  background: transparent;
 }
 
 /* Ícones Lucide renderizados localmente e campo de busca integral. */

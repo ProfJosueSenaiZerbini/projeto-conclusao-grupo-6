@@ -16,10 +16,14 @@ npm run dev
 
 Acesse <http://localhost:3000/login>. `PORT` altera a porta. O banco é um arquivo local criado em `data/cypher.sqlite`; use `CYPHER_DB_PATH` para escolher outro caminho. Não é necessário servidor de banco. Migrações são aplicadas ao iniciar.
 
+Para habilitar a área privada da equipe, defina `CYPHER_ADMIN_EMAILS` com uma lista separada por vírgulas de e-mails de contas já cadastradas, por exemplo `CYPHER_ADMIN_EMAILS="equipe@example.com"`. O privilégio vem exclusivamente dessa allowlist de servidor; categorias profissionais não concedem acesso administrativo.
+
 Para verificar e executar a versão compilada:
 
 ```bash
 npm run check
+npm run test:db
+npm run test:admin-ui
 npm run build
 npm start
 ```
@@ -28,7 +32,7 @@ npm start
 
 O cadastro valida nome, e-mail, senha e categorias no servidor; e-mails duplicados são recusados. Senhas são armazenadas com `scrypt` e sal aleatório. Sessões de 24 horas ficam no SQLite, que armazena apenas o hash do token. O cookie é `HttpOnly`; usa `SameSite=Lax` em HTTP local e `SameSite=None; Secure` quando HTTPS é reconhecido atrás de um proxy. Rotas privadas exigem sessão válida.
 
-Contas novas começam com perfil e dados de contato ocultos. Cada pessoa pode editar o próprio perfil, categorias, biografia, contato, gêneros, equipamentos e status profissional, além de escolher quais informações ficam públicas. A busca e `/p/:identificador` respeitam essas preferências.
+Contas novas começam com perfil e dados de contato ocultos. Cada pessoa pode editar o próprio perfil, categorias, biografia, contato, gêneros, equipamentos e status profissional, além de escolher quais informações ficam públicas. Categorias profissionais podem ser sugeridas pelo cadastro ou pela edição do perfil; pedidos ficam pendentes até a equipe aprovar e, então, entram como opções globais. A aprovação não altera automaticamente as categorias atuais do solicitante. A busca e `/p/:identificador` respeitam as preferências de privacidade.
 
 O encerramento de conta exige a senha atual e a confirmação `EXCLUIR`. Registros próprios vinculados precisam ser removidos ou transferidos antes. O acesso OG Emicê é desativado por padrão, pode ser habilitado apenas fora de produção com `CYPHER_ALLOW_OG_ACCESS=true` e é sempre desativado em `NODE_ENV=production`.
 
@@ -62,9 +66,14 @@ Contas com a categoria `Organizador de eventos` podem criar novos eventos. Event
 - `public/css/` e `public/js/`: estilos e interações do navegador.
 - `scripts/`: utilitários de formatação.
 
-
 ## Cadastro de obras por tipo
 
-A página `/works` inicia o cadastro por um modal de seleção entre Instrumental, Música, Single, EP, Álbum, Beat e Outro. Obras comuns seguem para `/works/new?tipo=<slug>` e recebem um formulário contextualizado. A opção Beat reutiliza o fluxo persistente do Banco de Beats em `/beats/new`, mantendo as regras próprias de licenças e ofertas. O tipo Instrumental utiliza o campo textual de tipo já existente em `obras`; essa melhoria não alterou a tabela `obras`. O schema atual do SQLite é a versão 7 por causa da persistência de interesses em eventos.
+A página `/works` inicia o cadastro por um modal de seleção entre Instrumental, Música, Single, EP, Álbum, Beat e Outro. Obras comuns seguem para `/works/new?tipo=<slug>` e recebem um formulário contextualizado. A opção Beat reutiliza o fluxo persistente do Banco de Beats em `/beats/new`, mantendo as regras próprias de licenças e ofertas. O tipo Instrumental utiliza o campo textual de tipo já existente em `obras`; essa melhoria não alterou a tabela `obras`.
 
-O relatório detalhado desta melhoria está em `relatorios-incrementacao/melhoria-18-cadastro-obras-por-tipo.md`.
+O schema SQLite suportado pelo código é a versão 16. A inicialização e as migrações são executadas transacionalmente; IDs públicos e números sequenciais têm índices únicos também em bancos atualizados. A lista de categorias disponíveis combina as categorias base com propostas aprovadas, com unicidade normalizada e sem conversão textual durante o boot. Valores livres antigos em perfis são retirados da publicação e encaminhados para análise na migração.
+
+No perfil, categorias profissionais só podem ser alteradas uma vez a cada 60 dias a partir da seleção inicial no cadastro; salvamentos sem mudança de categorias não reiniciam o prazo. Se precisar alterar antes do prazo, a pessoa pode enviar uma solicitação com justificativa. A equipe analisa os pedidos em **Administrador → Exceções de categorias**, aprova liberando uma única alteração ou recusa registrando a justificativa; não é possível manter mais de um pedido pendente por conta. A autorização continua sendo consumida somente quando a mudança efetivamente ocorre. A equipe também pode conceder uma exceção direta para contas sem pedido pendente. Todas as decisões exigem justificativa, ficam auditadas e dependem da allowlist `CYPHER_ADMIN_EMAILS`. Inatividade, isoladamente, não é considerada indício de fraude nem dispara punição automática.
+
+O painel do Administrador tem páginas independentes para **Análises** e **Exceções de categorias**, acessadas por links normais e URLs próprias; a tela mostra somente a seção escolhida. Em Exceções, pedidos pendentes aparecem em uma fila de aprovação/recusa; a lista de contas de concessão direta continua exibindo até sete contas inicialmente, com busca entre todas as contas e expansão sob demanda. O layout adapta-se a telas menores e funciona sem bibliotecas de interface adicionais.
+
+Os relatórios detalhados estão em `relatorios-incrementacao/melhoria-24-categorias-generos-revisao.md`, `relatorios-incrementacao/melhoria-25-revisao-categorias-profissionais.md`, `relatorios-incrementacao/melhoria-26-painel-administrador-navegavel.md` e `relatorios-incrementacao/melhoria-27-fluxo-solicitacao-excecao-categoria.md`.

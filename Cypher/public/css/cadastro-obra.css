@@ -457,7 +457,6 @@
 .dark .work-form label select,
 .dark .work-form label textarea,
 .dark .ghost-credit-form,
-.dark .offer-card,
 .dark .ghost-entry {
   color: #eef5ea;
   border-color: #465944;
@@ -517,7 +516,9 @@
 }
 
 .dark .offer-card {
+  color: #eef5ea;
   border-color: #4b5d46;
+  background: #202b1f;
 }
 
 /* Contexto do formulário específico escolhido no passo anterior. */

@@ -15,6 +15,7 @@ import {
   coresEvento,
   etiquetasDoFormulario,
   situacoesEvento,
+  tiposParticipacaoEvento,
   validarFormularioEvento,
   type ValoresFormularioEvento,
 } from "../validators/validarEvento.js";
@@ -34,6 +35,7 @@ const valoresVazios: ValoresFormularioEvento = {
   inscricao: "",
   premio: "",
   etiquetas: "",
+  tipoParticipacao: "aberta",
 };
 
 function usuarioAtual(res: Response): UsuarioDaSessao {
@@ -101,6 +103,7 @@ function formularioDoEvento(
     inscricao: evento.registration,
     premio: evento.prize,
     etiquetas: evento.tags.join(", "),
+    tipoParticipacao: evento.participationType,
   };
 }
 
@@ -120,6 +123,11 @@ function dadosDoFormulario(req: Request): ValoresFormularioEvento {
     inscricao: valor("inscricao"),
     premio: valor("premio"),
     etiquetas: valor("etiquetas"),
+    tipoParticipacao: tiposParticipacaoEvento.includes(
+      valor("tipoParticipacao") as (typeof tiposParticipacaoEvento)[number]
+    )
+      ? (valor("tipoParticipacao") as (typeof tiposParticipacaoEvento)[number])
+      : "aberta",
   };
 }
 
@@ -138,6 +146,7 @@ function dadosPersistidos(valores: ValoresFormularioEvento): DadosEventoCypher {
     registration: valores.inscricao,
     prize: valores.premio,
     tags: etiquetasDoFormulario(valores.etiquetas),
+    participationType: valores.tipoParticipacao,
   };
 }
 
@@ -164,6 +173,7 @@ function renderizarFormulario(
     categoriasEvento,
     situacoesEvento,
     coresEvento,
+    tiposParticipacaoEvento,
   });
 }
 
@@ -252,8 +262,10 @@ export function demonstrarInteresse(req: Request, res: Response) {
   return redirecionarEventos(
     res,
     status !== null,
-    "Interesse demonstrado com sucesso.",
-    "Não foi possível demonstrar interesse neste evento."
+    status === "inscrito"
+      ? "Solicitação de participação enviada."
+      : "Participação registrada com sucesso.",
+    "Não foi possível registrar sua participação neste evento."
   );
 }
 
@@ -266,8 +278,8 @@ export function cancelarInteresse(req: Request, res: Response) {
   return redirecionarEventos(
     res,
     cancelado,
-    "Interesse cancelado.",
-    "Não havia um interesse ativo para cancelar."
+    "Participação cancelada.",
+    "Não havia uma participação ativa para cancelar."
   );
 }
 

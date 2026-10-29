@@ -16,15 +16,17 @@
       Um lugar claro para guardar sua trajetória e reconhecer quem constrói com você.
     </p>
   </div>
-  <button class="button button-lime" type="button" data-work-type-open aria-controls="selecao-tipo-obra">
-    <span class="lucide-icon" aria-hidden="true">
-      <%- icones.plus %>
-    </span>
-    Cadastrar obra
-  </button>
+  <% if (podeCadastrarObra) { %>
+    <button class="button button-lime" type="button" data-work-type-open aria-controls="selecao-tipo-obra">
+      <span class="lucide-icon" aria-hidden="true">
+        <%- icones.plus %>
+      </span>
+      Cadastrar obra
+    </button>
+  <% } %>
 </div>
 <% if (mensagem) { %>
-  <div class="form-feedback success-feedback" role="status">
+  <div class="form-feedback error-feedback" role="alert">
     <span class="lucide-icon" aria-hidden="true">
       <%- icones.circleCheck %>
     </span>

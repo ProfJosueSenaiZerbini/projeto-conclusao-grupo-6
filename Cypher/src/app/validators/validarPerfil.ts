@@ -46,11 +46,6 @@ export function validarPerfil(dados: DadosPerfilValidacao): string | null {
     )
   )
     return "Selecione pelo menos uma categoria profissional válida.";
-  if (
-    dados.categorias.includes("Outros") &&
-    (dados.outraCategoria.length < 2 || dados.outraCategoria.length > 60)
-  )
-    return "Descreva a categoria personalizada em até 60 caracteres.";
   if (!dados.generos.valida)
     return "Informe até 8 gêneros, com no máximo 40 caracteres cada.";
   if (!dados.equipamentos.valida)

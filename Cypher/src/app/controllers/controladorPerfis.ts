@@ -3,5 +3,8 @@ export {
   buscarPessoas,
   perfil,
   atualizarPerfil,
+  solicitarCategoriaProfissional,
+  solicitarExcecaoCategoria,
+  responderSolicitacaoCategoria,
   perfilPublico,
 } from "./controladorCompatibilidade.js";

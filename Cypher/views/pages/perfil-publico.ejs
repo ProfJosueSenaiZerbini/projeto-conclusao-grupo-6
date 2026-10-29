@@ -14,8 +14,8 @@
       CYPHER
     </span>
   </a>
-  <a class="button button-outline" href="/login">
-    Entrar
+  <a class="button button-outline" href="<%= authenticated ? '/profile' : '/login' %>">
+    <%= authenticated ? 'Meu perfil' : 'Entrar' %>
   </a>
 </div>
 <% if (!perfil) { %>
@@ -124,6 +124,45 @@
   </section>
 </aside>
 </div>
+<section class="profile-section card-surface professional-category-section" aria-labelledby="public-category-title">
+  <div class="eyebrow">ATUAÇÃO PROFISSIONAL</div>
+  <h3 id="public-category-title">Categorias e trajetória</h3>
+  <p>Informações são exibidas conforme as preferências de visibilidade da pessoa e podem variar para cada visitante.</p>
+  <% if (perfil.categories.length) { %>
+    <div class="professional-category-cards">
+      <% perfil.categories.forEach(categoria => { %>
+        <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
+          <span>Categoria profissional</span>
+          <strong><%= categoria %></strong>
+          <span>Ver trajetória</span>
+        </a>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="profile-field-note">Nenhuma categoria profissional foi compartilhada publicamente.</p>
+  <% } %>
+  <% if (atuacaoSelecionada) {
+    const questionarioSelecionado = questionariosAtuacao.find(item => item.categoria === atuacaoSelecionada.categoria);
+    let temRespostaVisivel = false;
+  %>
+    <article class="professional-category-detail" aria-labelledby="public-category-detail-title">
+      <h4 id="public-category-detail-title"><%= atuacaoSelecionada.categoria %></h4>
+      <% (questionarioSelecionado?.perguntas ?? []).forEach(pergunta => {
+        const valor = atuacaoSelecionada.respostas[pergunta.campo];
+        if (valor !== undefined && valor !== '') {
+          temRespostaVisivel = true;
+      %>
+        <div class="professional-category-answer">
+          <strong><%= pergunta.pergunta %></strong>
+          <p><%= formatarRespostaAtuacao(valor) %></p>
+        </div>
+      <% } }) %>
+      <% if (!temRespostaVisivel) { %>
+        <p class="profile-field-note">Nenhum detalhe desta categoria foi compartilhado com você.</p>
+      <% } %>
+    </article>
+  <% } %>
+</section>
 <section class="profile-section card-surface public-works-section" aria-labelledby="public-works-title">
 <div class="eyebrow">
   CATÁLOGO PÚBLICO

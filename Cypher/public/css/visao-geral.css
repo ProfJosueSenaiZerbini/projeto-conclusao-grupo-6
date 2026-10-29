@@ -225,18 +225,6 @@
   background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
 }
 
-.date-yellow {
-  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
-}
-
-.date-green {
-  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
-}
-
-.date-cream {
-  background: linear-gradient(135deg, #ffd529 0%, #c8f22b 56%, #86b51c 100%);
-}
-
 .date-tile strong {
   font-family: "Space Grotesk", sans-serif;
   font-size: 16px;

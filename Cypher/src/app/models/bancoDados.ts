@@ -2,6 +2,11 @@ import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { categoriaLegadaRapperMC, categoriasGerais } from "./modeloPerfil.js";
+import {
+  catalogoPerguntasPorCategoria,
+  validarRespostasAtuacao,
+} from "./questionarioAtuacao.js";
 
 export type PerfilDemoInicial = {
   id: string;
@@ -46,6 +51,7 @@ export type EventoPersistido = {
   registration: string;
   prize: string;
   tags: string[];
+  participationType: "aberta" | "aprovacao";
 };
 
 export type DadosEventoCypher = EventoPersistido;
@@ -238,6 +244,18 @@ export type DadosDemoIniciais = {
   usuarioDemoId: string;
 };
 
+export type RespostasAtuacao = Record<string, string | string[] | boolean>;
+export type VisibilidadesAtuacao = Record<
+  string,
+  "publico" | "colaboradores" | "privado"
+>;
+
+export type AtuacaoProfissionalPersistida = {
+  categoria: string;
+  respostas: RespostasAtuacao;
+  visibilidades: VisibilidadesAtuacao;
+};
+
 export type DadosNovaConta = {
   id: string;
   email: string;
@@ -250,6 +268,7 @@ export type DadosNovaConta = {
   cTag: string;
   categorias: string[];
   outraCategoria: string;
+  atuacoes?: AtuacaoProfissionalPersistida[];
 };
 
 export type CredenciaisUsuario = {
@@ -293,7 +312,9 @@ export type DadosAtualizacaoPerfil = {
   contact: string;
   availability: string;
   genres: string[];
+  propostaGenero?: string;
   categories: string[];
+  atuacoes?: AtuacaoProfissionalPersistida[];
   otherCategory: string;
   equipment: string[];
   initials: string;
@@ -313,6 +334,10 @@ export type PerfilPublico = {
   availability: string;
   genres: string[];
   categories: string[];
+  atuacoes: Array<{
+    categoria: string;
+    respostas: RespostasAtuacao;
+  }>;
   equipment: string[];
   createdAt: string;
 };
@@ -376,11 +401,91 @@ export type NotificacaoPersistida = {
   criadaEm: string;
 };
 
+export type EstadoAlteracaoCategorias = {
+  bloqueada: boolean;
+  proximaAlteracao: string | null;
+  excecaoDisponivel: boolean;
+};
+
+export type PropostaGeneroPersistida = {
+  id: string;
+  usuarioId: string;
+  nome: string;
+  handle: string;
+  genero: string;
+  criadaEm: string;
+};
+
+export type PropostaCategoriaPersistida = {
+  id: string;
+  usuarioId: string;
+  nome: string;
+  handle: string;
+  categoria: string;
+  criadaEm: string;
+};
+
+export type PerfilParaExcecaoCategoria = {
+  usuarioId: string;
+  nome: string;
+  email: string;
+  categoriasJson: string;
+  alteradaEm: string | null;
+  proximaAlteracao: string | null;
+  excecaoPendente: boolean;
+  solicitacaoPendente: boolean;
+};
+
+export type SolicitacaoExcecaoCategoriaPersistida = {
+  id: string;
+  usuarioId: string;
+  nome: string;
+  email: string;
+  handle: string;
+  motivo: string;
+  motivoCodigo: string;
+  categoriasAntes: string[];
+  categoriasSolicitadas: string[];
+  respostasSolicitadas: Record<string, RespostasAtuacao>;
+  visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
+  historico: Array<{
+    autorTipo: "usuario" | "administrador";
+    mensagem: string;
+    criadaEm: string;
+  }>;
+  criadaEm: string;
+};
+
+export type EstadoSolicitacaoExcecaoCategoria = {
+  id: string;
+  status: "pendente" | "aprovado" | "rejeitado";
+  motivo: string;
+  motivoRevisao: string;
+  motivoCodigo: string;
+  categoriasAntes: string[];
+  categoriasSolicitadas: string[];
+  respostasSolicitadas: Record<string, RespostasAtuacao>;
+  visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
+  historico: Array<{
+    autorTipo: "usuario" | "administrador";
+    mensagem: string;
+    criadaEm: string;
+  }>;
+  criadaEm: string;
+};
+
+export type ResultadoAtualizacaoPerfil = {
+  atualizado: boolean;
+  categoriasBloqueadas: boolean;
+  proximaAlteracao: string | null;
+  propostaGeneroRegistrada: boolean;
+};
+
 type BancoCypher = InstanceType<typeof Database>;
 
 let banco: BancoCypher | undefined;
 
-const versaoEsquema = 8;
+const versaoEsquema = 16;
 
 function iniciaisPublicas(nome: string): string {
   const partes = nome
@@ -513,6 +618,8 @@ const esquema = `
     inscricao TEXT NOT NULL DEFAULT '',
     premio TEXT NOT NULL DEFAULT '',
     etiquetas_json TEXT NOT NULL DEFAULT '[]',
+    tipo_participacao TEXT NOT NULL DEFAULT 'aberta'
+      CHECK (tipo_participacao IN ('aberta', 'aprovacao')),
     ordem_demo INTEGER NOT NULL DEFAULT 0,
     demonstracao INTEGER NOT NULL DEFAULT 0 CHECK (demonstracao IN (0, 1)),
     criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -606,6 +713,130 @@ const esquema = `
     nome TEXT PRIMARY KEY,
     proximo_numero INTEGER NOT NULL CHECK (proximo_numero > 0)
   );
+
+  CREATE TABLE IF NOT EXISTS propostas_generos (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    genero TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente'
+      CHECK (status IN ('pendente', 'aprovado', 'rejeitado')),
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revisada_em TEXT,
+    revisor_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    motivo_revisao TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_propostas_generos_status
+    ON propostas_generos(status, criada_em);
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_proposta_genero_pendente_usuario
+    ON propostas_generos(usuario_id, genero COLLATE NOCASE)
+    WHERE status = 'pendente';
+
+  CREATE TABLE IF NOT EXISTS propostas_categorias (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    categoria TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente'
+      CHECK (status IN ('pendente', 'aprovado', 'rejeitado')),
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revisada_em TEXT,
+    revisor_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    revisor_email TEXT NOT NULL DEFAULT '',
+    motivo_revisao TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_propostas_categorias_status
+    ON propostas_categorias(status, criada_em);
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_proposta_categoria_pendente
+    ON propostas_categorias(categoria COLLATE NOCASE)
+    WHERE status = 'pendente';
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_proposta_categoria_aprovada
+    ON propostas_categorias(categoria COLLATE NOCASE)
+    WHERE status = 'aprovado';
+
+  CREATE TABLE IF NOT EXISTS categorias_profissionais_aprovadas (
+    categoria TEXT PRIMARY KEY COLLATE NOCASE,
+    aprovada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revisor_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    revisor_email TEXT NOT NULL DEFAULT '',
+    motivo_aprovacao TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE TABLE IF NOT EXISTS excecoes_categorias (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    administrador_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    administrador_email TEXT NOT NULL,
+    motivo TEXT NOT NULL,
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usada_em TEXT
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_excecao_categoria_pendente_usuario
+    ON excecoes_categorias(usuario_id) WHERE usada_em IS NULL;
+
+  CREATE TABLE IF NOT EXISTS solicitacoes_excecao_categorias (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    motivo TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pendente'
+      CHECK (status IN ('pendente', 'aprovado', 'rejeitado')),
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revisada_em TEXT,
+    revisor_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    revisor_email TEXT NOT NULL DEFAULT '',
+    motivo_revisao TEXT NOT NULL DEFAULT '',
+    excecao_id TEXT REFERENCES excecoes_categorias(id) ON DELETE SET NULL,
+    categorias_antes_json TEXT NOT NULL DEFAULT '[]',
+    categorias_solicitadas_json TEXT NOT NULL DEFAULT '[]',
+    respostas_solicitadas_json TEXT NOT NULL DEFAULT '{}',
+    visibilidades_solicitadas_json TEXT NOT NULL DEFAULT '{}',
+    motivo_codigo TEXT NOT NULL DEFAULT ''
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_solicitacoes_excecao_status_data
+    ON solicitacoes_excecao_categorias(status, criada_em);
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_solicitacao_excecao_pendente_usuario
+    ON solicitacoes_excecao_categorias(usuario_id) WHERE status = 'pendente';
+
+  CREATE TABLE IF NOT EXISTS historico_solicitacoes_categorias (
+    id TEXT PRIMARY KEY,
+    solicitacao_id TEXT NOT NULL REFERENCES solicitacoes_excecao_categorias(id) ON DELETE CASCADE,
+    autor_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    autor_tipo TEXT NOT NULL CHECK (autor_tipo IN ('usuario', 'administrador')),
+    mensagem TEXT NOT NULL,
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_historico_solicitacoes_categoria
+    ON historico_solicitacoes_categorias(solicitacao_id, criada_em, id);
+
+  CREATE TABLE IF NOT EXISTS auditoria_categorias (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    administrador_id TEXT REFERENCES usuarios(id) ON DELETE SET NULL,
+    excecao_id TEXT REFERENCES excecoes_categorias(id) ON DELETE SET NULL,
+    categorias_antes_json TEXT NOT NULL,
+    categorias_depois_json TEXT NOT NULL,
+    motivo TEXT NOT NULL DEFAULT '',
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_auditoria_categorias_usuario
+    ON auditoria_categorias(usuario_id, criada_em DESC);
+
+  CREATE TABLE IF NOT EXISTS respostas_atuacao_categoria (
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    categoria TEXT NOT NULL,
+    respostas_json TEXT NOT NULL DEFAULT '{}',
+    visibilidades_json TEXT NOT NULL DEFAULT '{}',
+    versao_questionario INTEGER NOT NULL DEFAULT 1 CHECK (versao_questionario > 0),
+    atualizado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (usuario_id, categoria)
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_respostas_atuacao_categoria
+    ON respostas_atuacao_categoria(categoria, usuario_id);
 `;
 
 function bancoAtivo(): BancoCypher {
@@ -615,6 +846,110 @@ function bancoAtivo(): BancoCypher {
     );
   }
   return banco;
+}
+
+function normalizarCategoria(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function inserirPropostaCategoria(
+  db: BancoCypher,
+  usuarioId: string,
+  valorRecebido: string
+): "criada" | "ja_pendente" | "ja_aprovada" | "categoria_base" | "invalida" {
+  const categoria = valorRecebido.trim().replace(/\s+/g, " ");
+  if (categoria.length < 2 || categoria.length > 60) return "invalida";
+  const normalizada = normalizarCategoria(categoria);
+  if (
+    categoriasGerais.some(
+      existente => normalizarCategoria(existente) === normalizada
+    )
+  ) {
+    return "categoria_base";
+  }
+  const aprovadas = db
+    .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
+    .all() as Array<{ categoria: string }>;
+  if (
+    aprovadas.some(item => normalizarCategoria(item.categoria) === normalizada)
+  ) {
+    return "ja_aprovada";
+  }
+  const pendentes = db
+    .prepare(
+      "SELECT categoria FROM propostas_categorias WHERE status = 'pendente'"
+    )
+    .all() as Array<{ categoria: string }>;
+  const existente = pendentes.find(
+    item => normalizarCategoria(item.categoria) === normalizada
+  );
+  if (existente) return "ja_pendente";
+  const resultado = db
+    .prepare(
+      `INSERT INTO propostas_categorias (id, usuario_id, categoria)
+       VALUES (?, ?, ?) ON CONFLICT DO NOTHING`
+    )
+    .run(randomUUID(), usuarioId, categoria);
+  return resultado.changes === 1 ? "criada" : "ja_pendente";
+}
+
+export function listarCategoriasProfissionaisCypher(): string[] {
+  const aprovadas = bancoAtivo()
+    .prepare(
+      "SELECT categoria FROM categorias_profissionais_aprovadas ORDER BY categoria COLLATE NOCASE"
+    )
+    .all() as Array<{ categoria: string }>;
+  const resultado = [...categoriasGerais];
+  const conhecidas = new Set(resultado.map(normalizarCategoria));
+  for (const { categoria } of aprovadas) {
+    const normalizada = normalizarCategoria(categoria);
+    if (!conhecidas.has(normalizada)) {
+      resultado.push(categoria);
+      conhecidas.add(normalizada);
+    }
+  }
+  return resultado;
+}
+
+export function solicitarCategoriaProfissionalCypher(
+  usuarioId: string,
+  categoria: string
+):
+  | "criada"
+  | "ja_pendente"
+  | "ja_aprovada"
+  | "categoria_base"
+  | "invalida"
+  | "nao_encontrada" {
+  const db = bancoAtivo();
+  const solicitar = db.transaction(() => {
+    const conta = db
+      .prepare("SELECT 1 FROM usuarios WHERE id = ? AND demonstracao = 0")
+      .get(usuarioId);
+    if (!conta) return "nao_encontrada" as const;
+    return inserirPropostaCategoria(db, usuarioId, categoria);
+  });
+  return solicitar();
+}
+
+export function listarPropostasCategoriasPendentesCypher(): PropostaCategoriaPersistida[] {
+  return bancoAtivo()
+    .prepare(
+      `SELECT c.id, c.usuario_id AS usuarioId, p.nome,
+              p.identificador AS handle, c.categoria,
+              c.criada_em AS criadaEm
+       FROM propostas_categorias c
+       JOIN perfis p ON p.usuario_id = c.usuario_id
+       JOIN usuarios u ON u.id = c.usuario_id
+       WHERE c.status = 'pendente' AND u.demonstracao = 0
+       ORDER BY datetime(c.criada_em), c.id`
+    )
+    .all() as PropostaCategoriaPersistida[];
 }
 
 export function criarNotificacaoCypher(dados: {
@@ -803,92 +1138,204 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
   conexao.pragma("foreign_keys = ON");
   conexao.pragma("busy_timeout = 5000");
 
-  const versaoAtual = conexao.pragma("user_version", {
-    simple: true,
-  }) as number;
-  if (versaoAtual > versaoEsquema) {
-    conexao.close();
-    throw new Error(
-      `O banco Cypher usa uma versão de esquema mais recente (${versaoAtual}) que a suportada (${versaoEsquema}).`
-    );
-  }
-
-  conexao.exec(esquema);
-
-  const colunasUsuario = new Set(
-    (conexao.pragma("table_info(usuarios)") as Array<{ name: string }>).map(
-      coluna => coluna.name
-    )
-  );
-  if (!colunasUsuario.has("codigo_publico")) {
-    conexao.exec("ALTER TABLE usuarios ADD COLUMN codigo_publico TEXT");
-  }
-  if (!colunasUsuario.has("numero_sequencial")) {
-    conexao.exec("ALTER TABLE usuarios ADD COLUMN numero_sequencial INTEGER");
-  }
-
-  const colunasPerfil = new Set(
-    (conexao.pragma("table_info(perfis)") as Array<{ name: string }>).map(
-      coluna => coluna.name
-    )
-  );
-  if (!colunasPerfil.has("categorias_json")) {
-    conexao.exec(
-      "ALTER TABLE perfis ADD COLUMN categorias_json TEXT NOT NULL DEFAULT '[]'"
-    );
-  }
-  if (!colunasPerfil.has("outra_categoria")) {
-    conexao.exec(
-      "ALTER TABLE perfis ADD COLUMN outra_categoria TEXT NOT NULL DEFAULT ''"
-    );
-  }
-  if (!colunasPerfil.has("equipamentos_json")) {
-    conexao.exec(
-      "ALTER TABLE perfis ADD COLUMN equipamentos_json TEXT NOT NULL DEFAULT '[]'"
-    );
-  }
-  if (!colunasPerfil.has("localizacao_publica")) {
-    conexao.exec(
-      "ALTER TABLE perfis ADD COLUMN localizacao_publica INTEGER NOT NULL DEFAULT 1 CHECK (localizacao_publica IN (0, 1))"
-    );
-  }
-  if (!colunasPerfil.has("contato_publico")) {
-    conexao.exec(
-      "ALTER TABLE perfis ADD COLUMN contato_publico INTEGER NOT NULL DEFAULT 0 CHECK (contato_publico IN (0, 1))"
-    );
-  }
-
-  if (versaoAtual < 3) {
-    conexao.exec(`
-      UPDATE perfis
-      SET perfil_publico = 0, localizacao_publica = 0, contato_publico = 0
-      WHERE usuario_id IN (
-        SELECT id FROM usuarios WHERE demonstracao = 0
-      )
-    `);
-  }
-
-  if (versaoAtual < 4) {
-    const colunasObra = new Set(
-      (conexao.pragma("table_info(obras)") as Array<{ name: string }>).map(
-        coluna => coluna.name
-      )
-    );
-    const novasColunas = [
-      ["genero", "TEXT NOT NULL DEFAULT ''"],
-      ["letra", "TEXT NOT NULL DEFAULT ''"],
-      ["data_lancamento", "TEXT NOT NULL DEFAULT ''"],
-      ["link_escuta", "TEXT NOT NULL DEFAULT ''"],
-    ] as const;
-    for (const [nome, definicao] of novasColunas) {
-      if (!colunasObra.has(nome)) {
-        conexao.exec(`ALTER TABLE obras ADD COLUMN ${nome} ${definicao}`);
+  try {
+    const inicializar = conexao.transaction(() => {
+      const versaoAtual = conexao.pragma("user_version", {
+        simple: true,
+      }) as number;
+      if (versaoAtual > versaoEsquema) {
+        throw new Error(
+          `O banco Cypher usa uma versão de esquema mais recente (${versaoAtual}) que a suportada (${versaoEsquema}).`
+        );
       }
-    }
-  }
 
-  if (versaoAtual < 5) {
-    const migrarIdentificadores = conexao.transaction(() => {
+      conexao.exec(esquema);
+
+      const garantirColunas = (
+        tabela: string,
+        colunas: ReadonlyArray<readonly [string, string]>
+      ) => {
+        const existentes = new Set(
+          (
+            conexao.pragma(`table_info(${tabela})`) as Array<{ name: string }>
+          ).map(coluna => coluna.name)
+        );
+        for (const [nome, definicao] of colunas) {
+          if (!existentes.has(nome)) {
+            conexao.exec(
+              `ALTER TABLE ${tabela} ADD COLUMN ${nome} ${definicao}`
+            );
+          }
+        }
+      };
+
+      garantirColunas("usuarios", [
+        ["codigo_publico", "TEXT"],
+        ["numero_sequencial", "INTEGER"],
+      ]);
+      garantirColunas("perfis", [
+        ["categorias_json", "TEXT NOT NULL DEFAULT '[]'"],
+        ["outra_categoria", "TEXT NOT NULL DEFAULT ''"],
+        ["equipamentos_json", "TEXT NOT NULL DEFAULT '[]'"],
+        ["ultima_alteracao_categorias_em", "TEXT"],
+        [
+          "localizacao_publica",
+          "INTEGER NOT NULL DEFAULT 1 CHECK (localizacao_publica IN (0, 1))",
+        ],
+        [
+          "contato_publico",
+          "INTEGER NOT NULL DEFAULT 0 CHECK (contato_publico IN (0, 1))",
+        ],
+      ]);
+      garantirColunas("solicitacoes_excecao_categorias", [
+        ["categorias_antes_json", "TEXT NOT NULL DEFAULT '[]'"],
+        ["categorias_solicitadas_json", "TEXT NOT NULL DEFAULT '[]'"],
+        ["respostas_solicitadas_json", "TEXT NOT NULL DEFAULT '{}'"],
+        ["visibilidades_solicitadas_json", "TEXT NOT NULL DEFAULT '{}'"],
+        ["motivo_codigo", "TEXT NOT NULL DEFAULT ''"],
+      ]);
+      if (versaoAtual < 16) {
+        conexao.exec(`
+          UPDATE solicitacoes_excecao_categorias
+          SET categorias_antes_json = COALESCE((
+            SELECT p.categorias_json FROM perfis p
+            WHERE p.usuario_id = solicitacoes_excecao_categorias.usuario_id
+          ), '[]')
+          WHERE categorias_antes_json = '[]';
+        `);
+        conexao.exec(`
+          INSERT INTO historico_solicitacoes_categorias (
+            id, solicitacao_id, autor_id, autor_tipo, mensagem, criada_em
+          )
+          SELECT 'migracao-usuario-' || s.id, s.id, s.usuario_id,
+                 'usuario', s.motivo, s.criada_em
+          FROM solicitacoes_excecao_categorias s
+          WHERE trim(s.motivo) <> ''
+            AND NOT EXISTS (
+              SELECT 1 FROM historico_solicitacoes_categorias h
+              WHERE h.solicitacao_id = s.id
+            );
+          INSERT INTO historico_solicitacoes_categorias (
+            id, solicitacao_id, autor_id, autor_tipo, mensagem, criada_em
+          )
+          SELECT 'migracao-admin-' || s.id, s.id, s.revisor_id,
+                 'administrador', s.motivo_revisao, COALESCE(s.revisada_em, s.criada_em)
+          FROM solicitacoes_excecao_categorias s
+          WHERE trim(s.motivo_revisao) <> ''
+            AND NOT EXISTS (
+              SELECT 1 FROM historico_solicitacoes_categorias h
+              WHERE h.solicitacao_id = s.id AND h.autor_tipo = 'administrador'
+            );
+        `);
+      }
+      conexao.exec(`
+        UPDATE perfis
+        SET ultima_alteracao_categorias_em = COALESCE(atualizado_em, criado_em, CURRENT_TIMESTAMP)
+        WHERE demonstracao = 0 AND ultima_alteracao_categorias_em IS NULL
+      `);
+      garantirColunas("obras", [
+        ["genero", "TEXT NOT NULL DEFAULT ''"],
+        ["letra", "TEXT NOT NULL DEFAULT ''"],
+        ["data_lancamento", "TEXT NOT NULL DEFAULT ''"],
+        ["link_escuta", "TEXT NOT NULL DEFAULT ''"],
+      ]);
+      garantirColunas("beats", [
+        [
+          "venda_exclusiva",
+          "INTEGER NOT NULL DEFAULT 0 CHECK (venda_exclusiva IN (0, 1))",
+        ],
+      ]);
+      garantirColunas("eventos", [
+        [
+          "tipo_participacao",
+          "TEXT NOT NULL DEFAULT 'aberta' CHECK (tipo_participacao IN ('aberta', 'aprovacao'))",
+        ],
+      ]);
+
+      if (versaoAtual < 13) {
+        const categoriasLegadas = conexao
+          .prepare(
+            `SELECT p.usuario_id AS usuarioId,
+                    p.categorias_json AS categoriasJson,
+                    p.outra_categoria AS outraCategoria
+             FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
+             WHERE u.demonstracao = 0 AND trim(p.outra_categoria) <> ''`
+          )
+          .all() as Array<{
+          usuarioId: string;
+          categoriasJson: string;
+          outraCategoria: string;
+        }>;
+        const limparCategoriaLegada = conexao.prepare(
+          "UPDATE perfis SET funcao = ?, outra_categoria = '' WHERE usuario_id = ?"
+        );
+        for (const perfil of categoriasLegadas) {
+          const categorias = JSON.parse(perfil.categoriasJson) as string[];
+          if (categorias.includes("Outros")) {
+            inserirPropostaCategoria(
+              conexao,
+              perfil.usuarioId,
+              perfil.outraCategoria
+            );
+            limparCategoriaLegada.run(categorias.join(" · "), perfil.usuarioId);
+          }
+        }
+      }
+
+      if (versaoAtual < 14) {
+        const categoriasAprovadas = conexao
+          .prepare(
+            `SELECT categoria, revisada_em AS aprovadaEm,
+                    revisor_id AS revisorId, revisor_email AS revisorEmail,
+                    motivo_revisao AS motivo
+             FROM propostas_categorias
+             WHERE status = 'aprovado'
+             ORDER BY datetime(revisada_em), id`
+          )
+          .all() as Array<{
+          categoria: string;
+          aprovadaEm: string | null;
+          revisorId: string | null;
+          revisorEmail: string;
+          motivo: string;
+        }>;
+        const existentes = conexao
+          .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
+          .all() as Array<{ categoria: string }>;
+        const conhecidas = new Set([
+          ...categoriasGerais.map(normalizarCategoria),
+          ...existentes.map(item => normalizarCategoria(item.categoria)),
+        ]);
+        const inserirCategoriaAprovada = conexao.prepare(
+          `INSERT INTO categorias_profissionais_aprovadas (
+             categoria, aprovada_em, revisor_id, revisor_email, motivo_aprovacao
+           ) VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, ?)
+           ON CONFLICT DO NOTHING`
+        );
+        for (const item of categoriasAprovadas) {
+          const chave = normalizarCategoria(item.categoria);
+          if (conhecidas.has(chave)) continue;
+          inserirCategoriaAprovada.run(
+            item.categoria,
+            item.aprovadaEm,
+            item.revisorId,
+            item.revisorEmail,
+            item.motivo
+          );
+          conhecidas.add(chave);
+        }
+      }
+
+      if (versaoAtual < 3) {
+        conexao.exec(`
+          UPDATE perfis
+          SET perfil_publico = 0, localizacao_publica = 0, contato_publico = 0
+          WHERE usuario_id IN (
+            SELECT id FROM usuarios WHERE demonstracao = 0
+          )
+        `);
+      }
+
       let proximoNumero = (
         conexao
           .prepare(
@@ -903,8 +1350,9 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
                  u.numero_sequencial AS numeroSequencial,
                  p.nome
           FROM usuarios u
-          JOIN perfis p ON p.usuario_id = u.id
+          LEFT JOIN perfis p ON p.usuario_id = u.id
           WHERE u.demonstracao = 0
+            AND (u.codigo_publico IS NULL OR u.numero_sequencial IS NULL)
           ORDER BY datetime(u.criado_em), u.id
           `
         )
@@ -912,31 +1360,28 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
         id: string;
         codigoPublico: string | null;
         numeroSequencial: number | null;
-        nome: string;
+        nome: string | null;
       }>;
       const atualizarConta = conexao.prepare(
-        `
-        UPDATE usuarios
-        SET codigo_publico = ?, numero_sequencial = ?
-        WHERE id = ?
-        `
+        "UPDATE usuarios SET codigo_publico = ?, numero_sequencial = ? WHERE id = ?"
       );
       for (const conta of contasReais) {
         const numero = conta.numeroSequencial ?? proximoNumero++;
         const codigo =
           conta.codigoPublico ??
-          codigoPublicoReal(iniciaisPublicas(conta.nome), numero);
+          codigoPublicoReal(iniciaisPublicas(conta.nome ?? "Conta"), numero);
         atualizarConta.run(codigo, numero, conta.id);
       }
 
       const contasDemo = conexao
         .prepare(
           `
-          SELECT u.id, u.codigo_publico AS codigoPublico, p.ordem_demo AS ordemDemo
+          SELECT u.id, u.codigo_publico AS codigoPublico,
+                 COALESCE(p.ordem_demo, 0) AS ordemDemo
           FROM usuarios u
-          JOIN perfis p ON p.usuario_id = u.id
-          WHERE u.demonstracao = 1
-          ORDER BY p.ordem_demo, u.id
+          LEFT JOIN perfis p ON p.usuario_id = u.id
+          WHERE u.demonstracao = 1 AND u.codigo_publico IS NULL
+          ORDER BY ordemDemo, u.id
           `
         )
         .all() as Array<{
@@ -945,13 +1390,13 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
         ordemDemo: number;
       }>;
       for (const conta of contasDemo) {
-        if (conta.codigoPublico) continue;
         const codigo =
           conta.id === "demo-og-emice"
             ? "CYP-FANTASMA"
             : `CYP-DEMO${String(conta.ordemDemo + 1).padStart(4, "0")}`;
         atualizarConta.run(codigo, null, conta.id);
       }
+
       conexao
         .prepare(
           `
@@ -962,50 +1407,54 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           `
         )
         .run(proximoNumero);
+
+      conexao.exec(`
+        CREATE UNIQUE INDEX IF NOT EXISTS indice_usuarios_codigo_publico
+          ON usuarios(codigo_publico) WHERE codigo_publico IS NOT NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS indice_usuarios_numero_sequencial_real
+          ON usuarios(numero_sequencial)
+          WHERE demonstracao = 0 AND numero_sequencial IS NOT NULL;
+      `);
+
+      conexao.exec(`
+        INSERT INTO ofertas_beats (id, beat_id, tipo, preco_centavos, descricao)
+        SELECT
+          'oferta-legada-' || b.id,
+          b.id,
+          b.licenca,
+          NULL,
+          b.condicoes_uso
+        FROM beats b
+        WHERE NOT EXISTS (
+          SELECT 1 FROM ofertas_beats o WHERE o.beat_id = b.id
+        )
+      `);
+
+      conexao.exec(`
+        DELETE FROM eventos WHERE demonstracao = 1;
+        DELETE FROM ofertas_beats
+        WHERE beat_id IN (SELECT id FROM beats WHERE demonstracao = 1);
+        DELETE FROM beats WHERE demonstracao = 1;
+      `);
+
+      banco = conexao;
+      carregarDadosDemonstrativos(dados);
+      const violacoesChaveEstrangeira = conexao
+        .prepare("PRAGMA foreign_key_check")
+        .all();
+      if (violacoesChaveEstrangeira.length > 0) {
+        throw new Error(
+          `A inicialização do banco encontrou ${violacoesChaveEstrangeira.length} violação(ões) de chave estrangeira.`
+        );
+      }
+      conexao.pragma(`user_version = ${versaoEsquema}`);
     });
-    migrarIdentificadores();
+    inicializar();
+  } catch (erro) {
+    banco = undefined;
+    conexao.close();
+    throw erro;
   }
-
-  const colunasBeat = new Set(
-    (
-      conexao.prepare("PRAGMA table_info(beats)").all() as Array<{
-        name: string;
-      }>
-    ).map(coluna => coluna.name)
-  );
-  if (!colunasBeat.has("venda_exclusiva")) {
-    conexao.exec(
-      "ALTER TABLE beats ADD COLUMN venda_exclusiva INTEGER NOT NULL DEFAULT 0 CHECK (venda_exclusiva IN (0, 1))"
-    );
-  }
-
-  if (versaoAtual < versaoEsquema) {
-    conexao.pragma(`user_version = ${versaoEsquema}`);
-  }
-
-  conexao.exec(`
-    INSERT INTO ofertas_beats (id, beat_id, tipo, preco_centavos, descricao)
-    SELECT
-      'oferta-legada-' || b.id,
-      b.id,
-      b.licenca,
-      NULL,
-      b.condicoes_uso
-    FROM beats b
-    WHERE NOT EXISTS (
-      SELECT 1 FROM ofertas_beats o WHERE o.beat_id = b.id
-    )
-  `);
-
-  conexao.exec(`
-    DELETE FROM eventos WHERE demonstracao = 1;
-    DELETE FROM ofertas_beats
-    WHERE beat_id IN (SELECT id FROM beats WHERE demonstracao = 1);
-    DELETE FROM beats WHERE demonstracao = 1;
-  `);
-
-  banco = conexao;
-  carregarDadosDemonstrativos(dados);
 }
 
 function carregarDadosDemonstrativos(dados: DadosDemoIniciais): void {
@@ -1139,11 +1588,11 @@ function carregarDadosDemonstrativos(dados: DadosDemoIniciais): void {
       INSERT INTO eventos (
         id, proprietario_id, titulo, categoria, data_texto, horario, local,
         organizador, situacao, cor, descricao, formato, inscricao, premio,
-        etiquetas_json, ordem_demo, demonstracao
+        etiquetas_json, tipo_participacao, ordem_demo, demonstracao
       ) VALUES (
         @id, @proprietarioId, @title, @category, @date, @time, @location,
         @org, @status, @color, @description, @format, @registration, @prize,
-        @etiquetasJson, @ordem, 1
+        @etiquetasJson, @participationType, @ordem, 1
       )
       ON CONFLICT(id) DO UPDATE SET
         proprietario_id = excluded.proprietario_id,
@@ -1160,6 +1609,7 @@ function carregarDadosDemonstrativos(dados: DadosDemoIniciais): void {
         inscricao = excluded.inscricao,
         premio = excluded.premio,
         etiquetas_json = excluded.etiquetas_json,
+        tipo_participacao = excluded.tipo_participacao,
         ordem_demo = excluded.ordem_demo
       WHERE eventos.demonstracao = 1
     `);
@@ -1180,6 +1630,7 @@ function carregarDadosDemonstrativos(dados: DadosDemoIniciais): void {
         registration: evento.registration,
         prize: evento.prize,
         etiquetasJson: JSON.stringify(evento.tags),
+        participationType: evento.participationType,
         ordem: evento.ordem,
       });
     }
@@ -1313,7 +1764,8 @@ export function listarEventosDemo(): EventoPersistido[] {
         formato AS format,
         inscricao AS registration,
         premio AS prize,
-        etiquetas_json AS tagsJson
+        etiquetas_json AS tagsJson,
+        tipo_participacao AS participationType
       FROM eventos
       WHERE demonstracao = 1
       ORDER BY ordem_demo
@@ -1374,6 +1826,7 @@ export function listarEventosCypher(
         e.inscricao AS registration,
         e.premio AS prize,
         e.etiquetas_json AS tagsJson,
+        e.tipo_participacao AS participationType,
         e.demonstracao,
         e.criado_em AS criadoEm,
         CASE WHEN e.proprietario_id = @usuarioId AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned,
@@ -1447,6 +1900,7 @@ export function obterEventoCypher(
         e.inscricao AS registration,
         e.premio AS prize,
         e.etiquetas_json AS tagsJson,
+        e.tipo_participacao AS participationType,
         e.demonstracao,
         e.criado_em AS criadoEm,
         CASE WHEN e.proprietario_id = ? AND e.demonstracao = 0 THEN 1 ELSE 0 END AS owned,
@@ -1529,7 +1983,7 @@ export function demonstrarInteresseEventoCypher(
   const evento = db
     .prepare(
       `
-      SELECT e.id
+      SELECT e.id, e.tipo_participacao AS participationType
       FROM eventos e
       JOIN usuarios u ON u.id = ?
       WHERE e.id = ?
@@ -1539,19 +1993,25 @@ export function demonstrarInteresseEventoCypher(
         AND e.proprietario_id <> ?
       `
     )
-    .get(usuarioId, eventoId, usuarioId) as { id: string } | undefined;
+    .get(usuarioId, eventoId, usuarioId) as
+    { id: string; participationType: "aberta" | "aprovacao" } | undefined;
   if (!evento) return null;
 
   db.prepare(
     `
     INSERT INTO interesses_eventos (id, evento_id, usuario_id, status)
-    VALUES (?, ?, ?, 'interessado')
+    VALUES (?, ?, ?, ?)
     ON CONFLICT(evento_id, usuario_id) DO UPDATE SET
-      status = 'interessado',
+      status = excluded.status,
       atualizado_em = CURRENT_TIMESTAMP
     `
-  ).run(randomUUID(), eventoId, usuarioId);
-  return "interessado";
+  ).run(
+    randomUUID(),
+    eventoId,
+    usuarioId,
+    evento.participationType === "aprovacao" ? "inscrito" : "interessado"
+  );
+  return evento.participationType === "aprovacao" ? "inscrito" : "interessado";
 }
 
 export function cancelarInteresseEventoCypher(
@@ -1640,8 +2100,8 @@ export function criarEventoCypher(
       INSERT INTO eventos (
         id, proprietario_id, titulo, categoria, data_texto, horario, local,
         organizador, situacao, cor, descricao, formato, inscricao, premio,
-        etiquetas_json, demonstracao
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        etiquetas_json, tipo_participacao, demonstracao
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
       `
     )
     .run(
@@ -1659,7 +2119,8 @@ export function criarEventoCypher(
       dados.format,
       dados.registration,
       dados.prize,
-      JSON.stringify(dados.tags)
+      JSON.stringify(dados.tags),
+      dados.participationType
     );
   return id;
 }
@@ -1675,7 +2136,7 @@ export function atualizarEventoCypher(
       UPDATE eventos
       SET titulo = ?, categoria = ?, data_texto = ?, horario = ?, local = ?,
           organizador = ?, situacao = ?, cor = ?, descricao = ?, formato = ?,
-          inscricao = ?, premio = ?, etiquetas_json = ?, atualizado_em = CURRENT_TIMESTAMP
+          inscricao = ?, premio = ?, etiquetas_json = ?, tipo_participacao = ?, atualizado_em = CURRENT_TIMESTAMP
       WHERE id = ? AND proprietario_id = ? AND demonstracao = 0
       `
     )
@@ -1693,6 +2154,7 @@ export function atualizarEventoCypher(
       dados.registration,
       dados.prize,
       JSON.stringify(dados.tags),
+      dados.participationType,
       id,
       proprietarioId
     );
@@ -1931,6 +2393,53 @@ export function estatisticasObrasDemo(): {
   return resultado;
 }
 
+function salvarAtuacoesCategoria(
+  db: BancoCypher,
+  usuarioId: string,
+  categoriasAtivas: readonly string[],
+  atuacoes: readonly AtuacaoProfissionalPersistida[]
+): void {
+  const permitidas = new Set(categoriasAtivas);
+  const existentes = db
+    .prepare(
+      "SELECT categoria FROM respostas_atuacao_categoria WHERE usuario_id = ?"
+    )
+    .all(usuarioId) as Array<{ categoria: string }>;
+  const remover = db.prepare(
+    "DELETE FROM respostas_atuacao_categoria WHERE usuario_id = ? AND categoria = ?"
+  );
+  for (const item of existentes) {
+    if (!permitidas.has(item.categoria)) remover.run(usuarioId, item.categoria);
+  }
+  const salvar = db.prepare(`
+    INSERT INTO respostas_atuacao_categoria (
+      usuario_id, categoria, respostas_json, visibilidades_json,
+      versao_questionario, atualizado_em
+    ) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+    ON CONFLICT(usuario_id, categoria) DO UPDATE SET
+      respostas_json = excluded.respostas_json,
+      visibilidades_json = excluded.visibilidades_json,
+      versao_questionario = excluded.versao_questionario,
+      atualizado_em = CURRENT_TIMESTAMP
+  `);
+  for (const atuacao of atuacoes) {
+    if (!permitidas.has(atuacao.categoria)) {
+      throw new Error("ATUACAO_NAO_SELECIONADA");
+    }
+    const visibilidades = Object.fromEntries(
+      Object.entries(atuacao.visibilidades).filter(([, valor]) =>
+        ["publico", "colaboradores", "privado"].includes(valor)
+      )
+    );
+    salvar.run(
+      usuarioId,
+      atuacao.categoria,
+      JSON.stringify(atuacao.respostas),
+      JSON.stringify(visibilidades)
+    );
+  }
+}
+
 export function criarContaCypher(conta: DadosNovaConta): void {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
@@ -1968,11 +2477,12 @@ export function criarContaCypher(conta: DadosNovaConta): void {
       `
       INSERT INTO perfis (
         usuario_id, c_tag, nome, funcao, identificador, iniciais,
-        categorias_json, outra_categoria, generos_json, perfil_publico,
+        categorias_json, outra_categoria, generos_json,
+        ultima_alteracao_categorias_em, perfil_publico,
         localizacao_publica, contato_publico, demonstracao
       ) VALUES (
         @id, @cTag, @nome, @funcao, @identificador, @iniciais,
-        @categoriasJson, @outraCategoria, '[]', 0, 0, 0, 0
+        @categoriasJson, '', '[]', CURRENT_TIMESTAMP, 0, 0, 0, 0
       )
     `
     ).run({
@@ -1983,8 +2493,13 @@ export function criarContaCypher(conta: DadosNovaConta): void {
       identificador: conta.identificador,
       iniciais: conta.iniciais,
       categoriasJson: JSON.stringify(conta.categorias),
-      outraCategoria: conta.outraCategoria,
     });
+    if (conta.atuacoes) {
+      salvarAtuacoesCategoria(db, conta.id, conta.categorias, conta.atuacoes);
+    }
+    if (conta.categorias.includes("Outros") && conta.outraCategoria) {
+      inserirPropostaCategoria(db, conta.id, conta.outraCategoria);
+    }
   });
 
   salvar();
@@ -2111,6 +2626,94 @@ export function obterUsuarioDaSessaoCypher(
 export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
+    const atual = db
+      .prepare(
+        `SELECT categorias_json AS categoriasJson,
+                ultima_alteracao_categorias_em AS alteradaEm
+         FROM perfis WHERE usuario_id = ? AND demonstracao = 0`
+      )
+      .get(dados.id) as
+      { categoriasJson: string; alteradaEm: string | null } | undefined;
+    if (!atual) return false;
+    const antes = JSON.parse(atual.categoriasJson) as string[];
+    const categoriasPermitidas = new Set(listarCategoriasProfissionaisCypher());
+    if (antes.includes(categoriaLegadaRapperMC)) {
+      categoriasPermitidas.add(categoriaLegadaRapperMC);
+    }
+    if (
+      dados.categories.length === 0 ||
+      new Set(dados.categories).size !== dados.categories.length ||
+      dados.categories.some(categoria => !categoriasPermitidas.has(categoria))
+    ) {
+      throw new Error("CATEGORIA_PROFISSIONAL_INVALIDA");
+    }
+    const ordenarCategorias = (lista: string[]) => [...new Set(lista)].sort();
+    const antesJson = JSON.stringify(ordenarCategorias(antes));
+    const depoisJson = JSON.stringify(ordenarCategorias(dados.categories));
+    const categoriasMudaram = antesJson !== depoisJson;
+    let excecao:
+      { id: string; administradorId: string; motivo: string } | undefined;
+    let proximaAlteracao: string | null = null;
+
+    if (categoriasMudaram) {
+      const possuiAlteracaoAnterior = Boolean(
+        (
+          db
+            .prepare(
+              "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+            )
+            .get(dados.id) as { alterou: number }
+        ).alterou
+      );
+      if (possuiAlteracaoAnterior && atual.alteradaEm) {
+        const prazo = db
+          .prepare(
+            "SELECT datetime(?, '+60 days') AS proxima, datetime(?, '+60 days') > datetime('now') AS bloqueada"
+          )
+          .get(atual.alteradaEm, atual.alteradaEm) as {
+          proxima: string | null;
+          bloqueada: number;
+        };
+        proximaAlteracao = prazo.proxima;
+        if (prazo.bloqueada) {
+          excecao = db
+            .prepare(
+              `SELECT id, administrador_id AS administradorId, motivo
+               FROM excecoes_categorias
+               WHERE usuario_id = ? AND usada_em IS NULL
+               ORDER BY criada_em, id LIMIT 1`
+            )
+            .get(dados.id) as
+            { id: string; administradorId: string; motivo: string } | undefined;
+          if (!excecao) {
+            throw new Error(`CATEGORIAS_BLOQUEADAS:${proximaAlteracao ?? ""}`);
+          }
+          const consumida = db
+            .prepare(
+              "UPDATE excecoes_categorias SET usada_em = CURRENT_TIMESTAMP WHERE id = ? AND usada_em IS NULL"
+            )
+            .run(excecao.id);
+          if (consumida.changes !== 1) {
+            throw new Error(`CATEGORIAS_BLOQUEADAS:${proximaAlteracao ?? ""}`);
+          }
+        }
+      }
+      db.prepare(
+        `INSERT INTO auditoria_categorias (
+           id, usuario_id, administrador_id, excecao_id,
+           categorias_antes_json, categorias_depois_json, motivo
+         ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        randomUUID(),
+        dados.id,
+        excecao?.administradorId ?? null,
+        excecao?.id ?? null,
+        antesJson,
+        depoisJson,
+        excecao?.motivo ?? ""
+      );
+    }
+
     const atualizado = db
       .prepare(
         `
@@ -2123,6 +2726,10 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
           disponibilidade = @availability,
           generos_json = @genresJson,
           categorias_json = @categoriesJson,
+          ultima_alteracao_categorias_em = CASE
+            WHEN @categoriasMudaram = 1 THEN CURRENT_TIMESTAMP
+            ELSE ultima_alteracao_categorias_em
+          END,
           outra_categoria = @otherCategory,
           equipamentos_json = @equipmentJson,
           iniciais = @initials,
@@ -2139,7 +2746,8 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
         contact: dados.contact,
         availability: dados.availability,
         genresJson: JSON.stringify(dados.genres),
-        categoriesJson: JSON.stringify(dados.categories),
+        categoriesJson: depoisJson,
+        categoriasMudaram: Number(categoriasMudaram),
         otherCategory: dados.otherCategory,
         equipmentJson: JSON.stringify(dados.equipment),
         initials: dados.initials,
@@ -2152,6 +2760,16 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
       WHERE id = ? AND demonstracao = 0
     `
     ).run(dados.tipoConta, dados.id);
+    const propostaGenero = dados.propostaGenero?.trim();
+    if (dados.atuacoes) {
+      salvarAtuacoesCategoria(db, dados.id, dados.categories, dados.atuacoes);
+    }
+    if (propostaGenero) {
+      db.prepare(
+        `INSERT INTO propostas_generos (id, usuario_id, genero)
+         VALUES (?, ?, ?) ON CONFLICT DO NOTHING`
+      ).run(randomUUID(), dados.id, propostaGenero);
+    }
     return true;
   });
   return salvar();
@@ -2185,13 +2803,921 @@ export function atualizarPrivacidadeCypher(
   return resultado.changes === 1;
 }
 
-export function obterPerfilPublicoCypher(
-  identificador: string
-): PerfilPublico | undefined {
-  const resultado = bancoAtivo()
+export function estadoAlteracaoCategoriasCypher(
+  usuarioId: string
+): EstadoAlteracaoCategorias {
+  const linha = bancoAtivo()
     .prepare(
       `
       SELECT
+        CASE WHEN EXISTS (
+               SELECT 1 FROM auditoria_categorias a
+               WHERE a.usuario_id = p.usuario_id
+             )
+             THEN datetime(p.ultima_alteracao_categorias_em, '+60 days')
+             ELSE NULL END AS proximaAlteracao,
+        CASE WHEN EXISTS (
+               SELECT 1 FROM auditoria_categorias a
+               WHERE a.usuario_id = p.usuario_id
+             )
+              AND p.ultima_alteracao_categorias_em IS NOT NULL
+              AND datetime(p.ultima_alteracao_categorias_em, '+60 days') > datetime('now')
+             THEN 1 ELSE 0 END AS dentroDoPrazo,
+        EXISTS (SELECT 1 FROM excecoes_categorias e
+                WHERE e.usuario_id = p.usuario_id AND e.usada_em IS NULL) AS excecaoDisponivel
+      FROM perfis p WHERE p.usuario_id = ? AND p.demonstracao = 0
+      `
+    )
+    .get(usuarioId) as
+    | {
+        proximaAlteracao: string | null;
+        dentroDoPrazo: number;
+        excecaoDisponivel: number;
+      }
+    | undefined;
+  const excecaoDisponivel = Boolean(linha?.excecaoDisponivel);
+  return {
+    bloqueada: Boolean(linha?.dentroDoPrazo) && !excecaoDisponivel,
+    proximaAlteracao: linha?.proximaAlteracao ?? null,
+    excecaoDisponivel,
+  };
+}
+
+export function listarPropostasGenerosPendentesCypher(): PropostaGeneroPersistida[] {
+  return bancoAtivo()
+    .prepare(
+      `
+      SELECT g.id, g.usuario_id AS usuarioId, p.nome, p.identificador AS handle,
+             g.genero, g.criada_em AS criadaEm
+      FROM propostas_generos g
+      JOIN perfis p ON p.usuario_id = g.usuario_id
+      JOIN usuarios u ON u.id = g.usuario_id
+      WHERE g.status = 'pendente' AND u.demonstracao = 0
+      ORDER BY datetime(g.criada_em), g.id
+      `
+    )
+    .all() as PropostaGeneroPersistida[];
+}
+
+export function listarPerfisParaExcecaoCategoriaCypher(
+  consulta = "",
+  limite?: number
+): PerfilParaExcecaoCategoria[] {
+  const db = bancoAtivo();
+  const termo = consulta.trim();
+  const filtro = termo
+    ? "AND (lower(p.nome) LIKE lower(?) OR lower(u.email) LIKE lower(?) OR lower(p.categorias_json) LIKE lower(?))"
+    : "";
+  const parametros: Array<string | number> = termo
+    ? [`%${termo}%`, `%${termo}%`, `%${termo}%`]
+    : [];
+  const limiteSql =
+    limite === undefined
+      ? ""
+      : (parametros.push(Math.max(0, limite)), "LIMIT ?");
+  return db
+    .prepare(
+      `
+      SELECT u.id AS usuarioId, p.nome, u.email,
+             p.categorias_json AS categoriasJson,
+             p.ultima_alteracao_categorias_em AS alteradaEm,
+             datetime(p.ultima_alteracao_categorias_em, '+60 days') AS proximaAlteracao,
+             EXISTS (SELECT 1 FROM excecoes_categorias e
+                     WHERE e.usuario_id = u.id AND e.usada_em IS NULL) AS excecaoPendente,
+             EXISTS (SELECT 1 FROM solicitacoes_excecao_categorias s
+                     WHERE s.usuario_id = u.id AND s.status = 'pendente') AS solicitacaoPendente
+      FROM usuarios u JOIN perfis p ON p.usuario_id = u.id
+      WHERE u.demonstracao = 0 ${filtro}
+      ORDER BY p.nome COLLATE NOCASE
+      ${limiteSql}
+      `
+    )
+    .all(...parametros)
+    .map(linha => {
+      const perfil = linha as Omit<
+        PerfilParaExcecaoCategoria,
+        "excecaoPendente" | "solicitacaoPendente"
+      > & {
+        excecaoPendente: number;
+        solicitacaoPendente: number;
+      };
+      return {
+        ...perfil,
+        excecaoPendente: Boolean(perfil.excecaoPendente),
+        solicitacaoPendente: Boolean(perfil.solicitacaoPendente),
+      };
+    });
+}
+
+export function obterEstadoSolicitacaoExcecaoCategoriaCypher(
+  usuarioId: string
+): EstadoSolicitacaoExcecaoCategoria | null {
+  const db = bancoAtivo();
+  const linha = db
+    .prepare(
+      `SELECT id, status, motivo, motivo_codigo AS motivoCodigo,
+              motivo_revisao AS motivoRevisao,
+              categorias_antes_json AS categoriasAntesJson,
+              categorias_solicitadas_json AS categoriasSolicitadasJson,
+              respostas_solicitadas_json AS respostasSolicitadasJson,
+              visibilidades_solicitadas_json AS visibilidadesSolicitadasJson,
+              criada_em AS criadaEm
+       FROM solicitacoes_excecao_categorias
+       WHERE usuario_id = ? ORDER BY rowid DESC LIMIT 1`
+    )
+    .get(usuarioId) as
+    | (Omit<
+        EstadoSolicitacaoExcecaoCategoria,
+        | "categoriasAntes"
+        | "categoriasSolicitadas"
+        | "respostasSolicitadas"
+        | "visibilidadesSolicitadas"
+        | "historico"
+      > & {
+        categoriasAntesJson: string;
+        categoriasSolicitadasJson: string;
+        respostasSolicitadasJson: string;
+        visibilidadesSolicitadasJson: string;
+      })
+    | undefined;
+  if (!linha) return null;
+  return {
+    id: linha.id,
+    status: linha.status,
+    motivo: linha.motivo,
+    motivoCodigo: linha.motivoCodigo,
+    motivoRevisao: linha.motivoRevisao,
+    categoriasAntes: jsonLista(linha.categoriasAntesJson),
+    categoriasSolicitadas: jsonLista(linha.categoriasSolicitadasJson),
+    respostasSolicitadas: jsonObjeto(linha.respostasSolicitadasJson),
+    visibilidadesSolicitadas: jsonObjeto(linha.visibilidadesSolicitadasJson),
+    historico: historicoSolicitacao(db, linha.id),
+    criadaEm: linha.criadaEm,
+  };
+}
+
+export function listarSolicitacoesExcecaoCategoriaPendentesCypher(
+  visitanteId?: string
+): SolicitacaoExcecaoCategoriaPersistida[] {
+  const db = bancoAtivo();
+  const linhas = db
+    .prepare(
+      `SELECT s.id, s.usuario_id AS usuarioId, p.nome, u.email,
+              p.identificador AS handle, s.motivo,
+              s.categorias_antes_json AS categoriasAntesJson,
+              s.categorias_solicitadas_json AS categoriasSolicitadasJson,
+              s.respostas_solicitadas_json AS respostasSolicitadasJson,
+              s.visibilidades_solicitadas_json AS visibilidadesSolicitadasJson,
+              s.motivo_codigo AS motivoCodigo, s.criada_em AS criadaEm
+       FROM solicitacoes_excecao_categorias s
+       JOIN usuarios u ON u.id = s.usuario_id
+       JOIN perfis p ON p.usuario_id = u.id
+       WHERE s.status = 'pendente' AND u.demonstracao = 0
+       ORDER BY datetime(s.criada_em), s.id`
+    )
+    .all() as Array<
+    Omit<
+      SolicitacaoExcecaoCategoriaPersistida,
+      | "categoriasAntes"
+      | "categoriasSolicitadas"
+      | "respostasSolicitadas"
+      | "visibilidadesSolicitadas"
+      | "historico"
+    > & {
+      categoriasAntesJson: string;
+      categoriasSolicitadasJson: string;
+      respostasSolicitadasJson: string;
+      visibilidadesSolicitadasJson: string;
+      motivoCodigo: string;
+    }
+  >;
+  return linhas.map(linha => {
+    const respostas = jsonObjeto<Record<string, RespostasAtuacao>>(
+      linha.respostasSolicitadasJson
+    );
+    const visibilidades = jsonObjeto<
+      Record<string, VisibilidadesAtuacao>
+    >(linha.visibilidadesSolicitadasJson);
+    const colaborador = Boolean(
+      visitanteId && ehColaboradorDaConta(db, linha.usuarioId, visitanteId)
+    );
+    const respostasVisiveis = Object.fromEntries(
+      Object.entries(respostas).map(([categoria, dados]) => {
+        const visibilidade = visibilidades[categoria] ?? {};
+        const podeVerCategoria =
+          (visibilidade[chaveVisibilidadeCategoria] ?? "publico") === "publico" ||
+          (visibilidade[chaveVisibilidadeCategoria] === "colaboradores" && colaborador);
+        if (!podeVerCategoria) return [categoria, {}];
+        return [
+          categoria,
+          Object.fromEntries(
+            Object.entries(dados).filter(([campo]) => {
+              const nivel = visibilidade[campo] ?? "privado";
+              return nivel === "publico" || (nivel === "colaboradores" && colaborador);
+            })
+          ),
+        ];
+      })
+    );
+    return {
+      ...linha,
+      categoriasAntes: jsonLista(linha.categoriasAntesJson),
+      categoriasSolicitadas: jsonLista(linha.categoriasSolicitadasJson),
+      respostasSolicitadas: respostasVisiveis,
+      visibilidadesSolicitadas: visibilidades,
+      historico: historicoSolicitacao(db, linha.id),
+    };
+  });
+}
+
+export function solicitarExcecaoCategoriaCypher(
+  usuarioId: string,
+  motivo: string,
+  detalhes?: {
+    motivoCodigo: string;
+    categoriasSolicitadas: string[];
+    respostasSolicitadas: Record<string, RespostasAtuacao>;
+    visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
+  }
+):
+  | "criada"
+  | "ja_pendente"
+  | "nao_bloqueada"
+  | "excecao_disponivel"
+  | "categorias_iguais"
+  | "snapshot_invalido"
+  | "nao_encontrada" {
+  const db = bancoAtivo();
+  const executar = db.transaction(() => {
+    const perfil = db
+      .prepare(
+        `SELECT ultima_alteracao_categorias_em AS alteradaEm,
+                categorias_json AS categoriasJson
+         FROM perfis WHERE usuario_id = ? AND demonstracao = 0`
+      )
+      .get(usuarioId) as
+      | { alteradaEm: string | null; categoriasJson: string }
+      | undefined;
+    if (!perfil) return "nao_encontrada" as const;
+
+    const pendente = db
+      .prepare(
+        `SELECT 1 FROM solicitacoes_excecao_categorias
+         WHERE usuario_id = ? AND status = 'pendente' LIMIT 1`
+      )
+      .get(usuarioId);
+    if (pendente) return "ja_pendente" as const;
+
+    const excecao = db
+      .prepare(
+        `SELECT 1 FROM excecoes_categorias
+         WHERE usuario_id = ? AND usada_em IS NULL LIMIT 1`
+      )
+      .get(usuarioId);
+    if (excecao) return "excecao_disponivel" as const;
+    const possuiAlteracaoAnterior = Boolean(
+      (
+        db
+          .prepare(
+            "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+          )
+          .get(usuarioId) as { alterou: number }
+      ).alterou
+    );
+    if (!possuiAlteracaoAnterior || !perfil.alteradaEm)
+      return "nao_bloqueada" as const;
+
+    const prazo = db
+      .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
+      .get(perfil.alteradaEm) as { bloqueada: number };
+    if (!prazo.bloqueada) return "nao_bloqueada" as const;
+
+    const categoriasAntes = jsonLista(perfil.categoriasJson);
+    const categoriasSolicitadas = detalhes?.categoriasSolicitadas ?? [];
+    if (
+      detalhes &&
+      categoriasAntes.slice().sort().join("\u0000") ===
+        categoriasSolicitadas.slice().sort().join("\u0000")
+    ) {
+      return "categorias_iguais" as const;
+    }
+    if (detalhes) {
+      const permitidas = new Set(listarCategoriasProfissionaisCypher());
+      if (categoriasAntes.includes(categoriaLegadaRapperMC)) {
+        permitidas.add(categoriaLegadaRapperMC);
+      }
+      const respostas = detalhes.respostasSolicitadas;
+      const visibilidades = detalhes.visibilidadesSolicitadas;
+      const niveisVisibilidade = new Set(["publico", "colaboradores", "privado"]);
+      if (
+        categoriasSolicitadas.length === 0 ||
+        new Set(categoriasSolicitadas).size !== categoriasSolicitadas.length ||
+        categoriasSolicitadas.some(categoria => !permitidas.has(categoria)) ||
+        Object.keys(respostas).some(categoria => !categoriasSolicitadas.includes(categoria)) ||
+        Object.keys(visibilidades).some(categoria => !categoriasSolicitadas.includes(categoria))
+      ) {
+        return "snapshot_invalido" as const;
+      }
+      for (const categoria of categoriasSolicitadas) {
+        const resposta = respostas[categoria] ?? {};
+        if (
+          !validarRespostasAtuacao(
+            categoria,
+            resposta,
+            !categoriasAntes.includes(categoria)
+          ).valido
+        ) {
+          return "snapshot_invalido" as const;
+        }
+        const perguntas = new Set(
+          catalogoPerguntasPorCategoria(categoria).map(pergunta => pergunta.campo)
+        );
+        const niveis = visibilidades[categoria] ?? {};
+        if (
+          Object.entries(niveis).some(
+            ([campo, nivel]) =>
+              (campo !== chaveVisibilidadeCategoria && !perguntas.has(campo)) ||
+              !niveisVisibilidade.has(nivel)
+          )
+        ) {
+          return "snapshot_invalido" as const;
+        }
+      }
+    }
+    const solicitacaoId = randomUUID();
+    const insercao = db
+      .prepare(
+        `INSERT INTO solicitacoes_excecao_categorias (
+           id, usuario_id, motivo, motivo_codigo, categorias_antes_json,
+           categorias_solicitadas_json, respostas_solicitadas_json,
+           visibilidades_solicitadas_json
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`
+      )
+      .run(
+        solicitacaoId,
+        usuarioId,
+        motivo,
+        detalhes?.motivoCodigo ?? "",
+        JSON.stringify(categoriasAntes),
+        JSON.stringify(categoriasSolicitadas),
+        JSON.stringify(detalhes?.respostasSolicitadas ?? {}),
+        JSON.stringify(detalhes?.visibilidadesSolicitadas ?? {})
+      );
+    if (insercao.changes !== 1) return "ja_pendente" as const;
+    db.prepare(
+      `INSERT INTO historico_solicitacoes_categorias (
+         id, solicitacao_id, autor_id, autor_tipo, mensagem
+       ) VALUES (?, ?, ?, 'usuario', ?)`
+    ).run(randomUUID(), solicitacaoId, usuarioId, motivo);
+    return "criada" as const;
+  });
+  return executar();
+}
+
+export function revisarSolicitacaoExcecaoCategoriaCypher(
+  solicitacaoId: string,
+  administradorId: string,
+  administradorEmail: string,
+  aprovada: boolean,
+  motivoRevisao: string
+):
+  | "aprovada"
+  | "rejeitada"
+  | "nao_pendente"
+  | "aguarda_resposta"
+  | "conflito"
+  | "nao_bloqueada"
+  | "nao_encontrada" {
+  const db = bancoAtivo();
+  const executar = db.transaction(() => {
+    const solicitacao = db
+      .prepare(
+        `SELECT usuario_id AS usuarioId,
+                categorias_antes_json AS categoriasAntesJson,
+                categorias_solicitadas_json AS categoriasSolicitadasJson,
+                respostas_solicitadas_json AS respostasSolicitadasJson,
+                visibilidades_solicitadas_json AS visibilidadesSolicitadasJson
+         FROM solicitacoes_excecao_categorias
+         WHERE id = ? AND status = 'pendente'`
+      )
+      .get(solicitacaoId) as
+      | {
+          usuarioId: string;
+          categoriasAntesJson: string;
+          categoriasSolicitadasJson: string;
+          respostasSolicitadasJson: string;
+          visibilidadesSolicitadasJson: string;
+        }
+      | undefined;
+    if (!solicitacao) {
+      const existe = db
+        .prepare("SELECT 1 FROM solicitacoes_excecao_categorias WHERE id = ?")
+        .get(solicitacaoId);
+      return existe ? ("nao_pendente" as const) : ("nao_encontrada" as const);
+    }
+
+    const ultimaMensagem = db
+      .prepare(
+        `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+      )
+      .get(solicitacaoId) as { autorTipo: string } | undefined;
+    if (ultimaMensagem?.autorTipo === "administrador")
+      return "aguarda_resposta" as const;
+
+    let excecaoId: string | null = null;
+    if (aprovada) {
+      const perfil = db
+        .prepare(
+          `SELECT p.ultima_alteracao_categorias_em AS alteradaEm,
+                  p.categorias_json AS categoriasJson
+           FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
+           WHERE u.id = ? AND u.demonstracao = 0`
+        )
+        .get(solicitacao.usuarioId) as
+        { alteradaEm: string | null; categoriasJson: string } | undefined;
+      if (!perfil) return "nao_encontrada" as const;
+      const possuiAlteracaoAnterior = Boolean(
+        (
+          db
+            .prepare(
+              "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+            )
+            .get(solicitacao.usuarioId) as { alterou: number }
+        ).alterou
+      );
+      if (!possuiAlteracaoAnterior || !perfil.alteradaEm)
+        return "nao_bloqueada" as const;
+      const prazo = db
+        .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
+        .get(perfil.alteradaEm) as { bloqueada: number };
+      if (!prazo.bloqueada) return "nao_bloqueada" as const;
+
+      const categoriasAntes = jsonLista(perfil.categoriasJson);
+      const categoriasSnapshot = jsonLista(solicitacao.categoriasAntesJson);
+      if (
+        categoriasAntes.slice().sort().join("\u0000") !==
+        categoriasSnapshot.slice().sort().join("\u0000")
+      ) {
+        return "conflito" as const;
+      }
+      const categoriasSolicitadas = jsonLista(
+        solicitacao.categoriasSolicitadasJson
+      );
+      const alteracaoDeCategorias = categoriasSolicitadas.length > 0;
+      excecaoId = randomUUID();
+      db.prepare(
+        `INSERT INTO excecoes_categorias (
+           id, usuario_id, administrador_id, administrador_email, motivo, usada_em
+         ) VALUES (?, ?, ?, ?, ?, CASE WHEN ? = 1 THEN CURRENT_TIMESTAMP ELSE NULL END)`
+      ).run(
+        excecaoId,
+        solicitacao.usuarioId,
+        administradorId,
+        administradorEmail,
+        motivoRevisao,
+        Number(alteracaoDeCategorias)
+      );
+
+      if (alteracaoDeCategorias) {
+        db.prepare(
+          `UPDATE perfis SET categorias_json = ?, funcao = ?,
+             ultima_alteracao_categorias_em = CURRENT_TIMESTAMP,
+             atualizado_em = CURRENT_TIMESTAMP
+           WHERE usuario_id = ? AND demonstracao = 0`
+        ).run(
+          JSON.stringify(categoriasSolicitadas),
+          categoriasSolicitadas.join(", "),
+          solicitacao.usuarioId
+        );
+        const respostas = jsonObjeto<Record<string, RespostasAtuacao>>(
+          solicitacao.respostasSolicitadasJson
+        );
+        const visibilidades = jsonObjeto<
+          Record<string, VisibilidadesAtuacao>
+        >(solicitacao.visibilidadesSolicitadasJson);
+        salvarAtuacoesCategoria(
+          db,
+          solicitacao.usuarioId,
+          categoriasSolicitadas,
+          Object.entries(respostas).map(([categoria, resposta]) => ({
+            categoria,
+            respostas: resposta,
+            visibilidades: visibilidades[categoria] ?? {},
+          }))
+        );
+        db.prepare(
+          `INSERT INTO auditoria_categorias (
+             id, usuario_id, administrador_id, excecao_id,
+             categorias_antes_json, categorias_depois_json, motivo
+           ) VALUES (?, ?, ?, ?, ?, ?, ?)`
+        ).run(
+          randomUUID(),
+          solicitacao.usuarioId,
+          administradorId,
+          excecaoId,
+          JSON.stringify(categoriasAntes),
+          JSON.stringify(categoriasSolicitadas),
+          motivoRevisao
+        );
+      }
+    }
+
+    const status = aprovada ? "aprovado" : "rejeitado";
+    const atualizado = db
+      .prepare(
+        `UPDATE solicitacoes_excecao_categorias
+         SET status = ?, revisada_em = CURRENT_TIMESTAMP,
+             revisor_id = ?, revisor_email = ?, motivo_revisao = ?, excecao_id = ?
+         WHERE id = ? AND status = 'pendente'`
+      )
+      .run(
+        status,
+        administradorId,
+        administradorEmail,
+        motivoRevisao,
+        excecaoId,
+        solicitacaoId
+    );
+    if (atualizado.changes !== 1) return "nao_pendente" as const;
+    db.prepare(
+      `INSERT INTO historico_solicitacoes_categorias (
+         id, solicitacao_id, autor_id, autor_tipo, mensagem
+       ) VALUES (?, ?, ?, 'administrador', ?)`
+    ).run(randomUUID(), solicitacaoId, administradorId, motivoRevisao);
+    return aprovada ? ("aprovada" as const) : ("rejeitada" as const);
+  });
+  return executar();
+}
+
+export function solicitarInformacaoSolicitacaoCategoriaCypher(
+  solicitacaoId: string,
+  administradorId: string,
+  mensagem: string
+): boolean {
+  const db = bancoAtivo();
+  const executar = db.transaction(() => {
+    const pendente = db
+      .prepare(
+        `SELECT 1 FROM solicitacoes_excecao_categorias
+         WHERE id = ? AND status = 'pendente'`
+      )
+      .get(solicitacaoId);
+    if (!pendente) return false;
+    const ultima = db
+      .prepare(
+        `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+      )
+      .get(solicitacaoId) as { autorTipo: string } | undefined;
+    if (ultima?.autorTipo === "administrador") return false;
+    db.prepare(
+      `INSERT INTO historico_solicitacoes_categorias (
+         id, solicitacao_id, autor_id, autor_tipo, mensagem
+       ) VALUES (?, ?, ?, 'administrador', ?)`
+    ).run(randomUUID(), solicitacaoId, administradorId, mensagem);
+    return true;
+  });
+  return executar();
+}
+
+export function responderSolicitacaoCategoriaCypher(
+  solicitacaoId: string,
+  usuarioId: string,
+  mensagem: string
+): boolean {
+  const db = bancoAtivo();
+  const executar = db.transaction(() => {
+    const pendente = db
+      .prepare(
+        `SELECT 1 FROM solicitacoes_excecao_categorias
+         WHERE id = ? AND usuario_id = ? AND status = 'pendente'`
+      )
+      .get(solicitacaoId, usuarioId);
+    if (!pendente) return false;
+    const ultima = db
+      .prepare(
+        `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+      )
+      .get(solicitacaoId) as { autorTipo: string } | undefined;
+    if (ultima?.autorTipo !== "administrador") return false;
+    db.prepare(
+      `INSERT INTO historico_solicitacoes_categorias (
+         id, solicitacao_id, autor_id, autor_tipo, mensagem
+       ) VALUES (?, ?, ?, 'usuario', ?)`
+    ).run(randomUUID(), solicitacaoId, usuarioId, mensagem);
+    return true;
+  });
+  return executar();
+}
+
+export function contarPerfisParaExcecaoCategoriaCypher(consulta = ""): number {
+  const termo = consulta.trim();
+  const linha = termo
+    ? (bancoAtivo()
+        .prepare(
+          `SELECT COUNT(*) AS total FROM usuarios u
+           JOIN perfis p ON p.usuario_id = u.id
+           WHERE u.demonstracao = 0
+             AND (lower(p.nome) LIKE lower(?) OR lower(u.email) LIKE lower(?) OR lower(p.categorias_json) LIKE lower(?))`
+        )
+        .get(`%${termo}%`, `%${termo}%`, `%${termo}%`) as {
+        total: number;
+      })
+    : (bancoAtivo()
+        .prepare(
+          `SELECT COUNT(*) AS total FROM usuarios u
+           JOIN perfis p ON p.usuario_id = u.id
+           WHERE u.demonstracao = 0`
+        )
+        .get() as { total: number });
+  return linha.total;
+}
+
+export function concederExcecaoCategoriaCypher(
+  usuarioId: string,
+  administradorId: string,
+  administradorEmail: string,
+  motivo: string
+):
+  | "concedida"
+  | "ja_pendente"
+  | "solicitacao_pendente"
+  | "nao_bloqueada"
+  | "nao_encontrada" {
+  const db = bancoAtivo();
+  const executar = db.transaction(() => {
+    const perfil = db
+      .prepare(
+        `SELECT p.ultima_alteracao_categorias_em AS alteradaEm
+         FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
+         WHERE u.id = ? AND u.demonstracao = 0`
+      )
+      .get(usuarioId) as { alteradaEm: string | null } | undefined;
+    if (!perfil) return "nao_encontrada" as const;
+    const solicitacaoPendente = db
+      .prepare(
+        `SELECT 1 FROM solicitacoes_excecao_categorias
+         WHERE usuario_id = ? AND status = 'pendente' LIMIT 1`
+      )
+      .get(usuarioId);
+    if (solicitacaoPendente) return "solicitacao_pendente" as const;
+    if (!perfil.alteradaEm) return "nao_bloqueada" as const;
+    const prazo = db
+      .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
+      .get(perfil.alteradaEm) as { bloqueada: number };
+    if (!prazo.bloqueada) return "nao_bloqueada" as const;
+    const insercao = db
+      .prepare(
+        `INSERT INTO excecoes_categorias (
+           id, usuario_id, administrador_id, administrador_email, motivo
+         ) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING`
+      )
+      .run(
+        randomUUID(),
+        usuarioId,
+        administradorId,
+        administradorEmail,
+        motivo
+      );
+    return insercao.changes === 1 ? "concedida" : "ja_pendente";
+  });
+  return executar();
+}
+
+export function revisarPropostaGeneroCypher(
+  propostaId: string,
+  revisorId: string,
+  aprovada: boolean,
+  motivo: string
+): boolean {
+  const db = bancoAtivo();
+  const revisar = db.transaction(() => {
+    const proposta = db
+      .prepare(
+        `SELECT usuario_id AS usuarioId, genero FROM propostas_generos
+         WHERE id = ? AND status = 'pendente'`
+      )
+      .get(propostaId) as { usuarioId: string; genero: string } | undefined;
+    if (!proposta) return false;
+    if (aprovada) {
+      const linha = db
+        .prepare(
+          "SELECT generos_json AS generosJson FROM perfis WHERE usuario_id = ?"
+        )
+        .get(proposta.usuarioId) as { generosJson: string } | undefined;
+      if (!linha) return false;
+      const generos = JSON.parse(linha.generosJson) as string[];
+      const normalizar = (valor: string) =>
+        valor.trim().toLocaleLowerCase("pt-BR");
+      if (
+        !generos.some(
+          genero => normalizar(genero) === normalizar(proposta.genero)
+        )
+      ) {
+        generos.push(proposta.genero);
+        db.prepare(
+          "UPDATE perfis SET generos_json = ?, atualizado_em = CURRENT_TIMESTAMP WHERE usuario_id = ?"
+        ).run(JSON.stringify(generos), proposta.usuarioId);
+      }
+    }
+    const resultado = db
+      .prepare(
+        `UPDATE propostas_generos
+         SET status = ?, revisada_em = CURRENT_TIMESTAMP,
+             revisor_id = ?, motivo_revisao = ?
+         WHERE id = ? AND status = 'pendente'`
+      )
+      .run(aprovada ? "aprovado" : "rejeitado", revisorId, motivo, propostaId);
+    return resultado.changes === 1;
+  });
+  return revisar();
+}
+
+export function revisarPropostaCategoriaCypher(
+  propostaId: string,
+  revisorId: string,
+  revisorEmail: string,
+  aprovada: boolean,
+  motivo: string
+): boolean {
+  const db = bancoAtivo();
+  const revisar = db.transaction(() => {
+    const proposta = db
+      .prepare(
+        "SELECT categoria FROM propostas_categorias WHERE id = ? AND status = 'pendente'"
+      )
+      .get(propostaId) as { categoria: string } | undefined;
+    if (!proposta) return false;
+    if (aprovada) {
+      const chave = normalizarCategoria(proposta.categoria);
+      const jaAtiva =
+        categoriasGerais.some(
+          categoria => normalizarCategoria(categoria) === chave
+        ) ||
+        (
+          db
+            .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
+            .all() as Array<{ categoria: string }>
+        ).some(item => normalizarCategoria(item.categoria) === chave);
+      if (jaAtiva) return false;
+    }
+    const resultado = db
+      .prepare(
+        `UPDATE propostas_categorias
+       SET status = ?, revisada_em = CURRENT_TIMESTAMP,
+           revisor_id = ?, revisor_email = ?, motivo_revisao = ?
+       WHERE id = ? AND status = 'pendente'`
+      )
+      .run(
+        aprovada ? "aprovado" : "rejeitado",
+        revisorId,
+        revisorEmail,
+        motivo,
+        propostaId
+      );
+    if (resultado.changes !== 1) return false;
+    if (aprovada) {
+      db.prepare(
+        `INSERT INTO categorias_profissionais_aprovadas (
+           categoria, revisor_id, revisor_email, motivo_aprovacao
+         ) VALUES (?, ?, ?, ?)`
+      ).run(proposta.categoria, revisorId, revisorEmail, motivo);
+    }
+    return true;
+  });
+  return revisar();
+}
+
+const chaveVisibilidadeCategoria = "__categoria__";
+
+function jsonObjeto<T extends Record<string, unknown>>(texto: string): T {
+  try {
+    const valor: unknown = JSON.parse(texto);
+    return valor && typeof valor === "object" && !Array.isArray(valor)
+      ? (valor as T)
+      : ({} as T);
+  } catch {
+    return {} as T;
+  }
+}
+
+function jsonLista(texto: string): string[] {
+  try {
+    const valor: unknown = JSON.parse(texto);
+    return Array.isArray(valor)
+      ? valor.filter((item): item is string => typeof item === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function historicoSolicitacao(
+  db: BancoCypher,
+  solicitacaoId: string
+): SolicitacaoExcecaoCategoriaPersistida["historico"] {
+  return db
+    .prepare(
+      `SELECT autor_tipo AS autorTipo, mensagem, criada_em AS criadaEm
+       FROM historico_solicitacoes_categorias
+       WHERE solicitacao_id = ? ORDER BY datetime(criada_em), id`
+    )
+    .all(solicitacaoId) as SolicitacaoExcecaoCategoriaPersistida["historico"];
+}
+
+export function listarAtuacoesUsuarioCypher(
+  usuarioId: string
+): AtuacaoProfissionalPersistida[] {
+  return bancoAtivo()
+    .prepare(
+      `SELECT categoria, respostas_json AS respostasJson,
+              visibilidades_json AS visibilidadesJson
+       FROM respostas_atuacao_categoria WHERE usuario_id = ?
+       ORDER BY categoria COLLATE NOCASE`
+    )
+    .all(usuarioId)
+    .map(linha => {
+      const item = linha as {
+        categoria: string;
+        respostasJson: string;
+        visibilidadesJson: string;
+      };
+      return {
+        categoria: item.categoria,
+        respostas: jsonObjeto<RespostasAtuacao>(item.respostasJson),
+        visibilidades: jsonObjeto<VisibilidadesAtuacao>(item.visibilidadesJson),
+      };
+    });
+}
+
+function ehColaboradorDaConta(db: BancoCypher, titularId: string, visitanteId: string): boolean {
+  return Boolean(
+    (
+      db
+        .prepare(
+          `SELECT EXISTS (
+             SELECT 1 FROM obras o
+             JOIN creditos c ON c.obra_id = o.id
+             WHERE o.proprietario_id = ? AND c.usuario_creditado_id = ?
+               AND o.demonstracao = 0 AND c.demonstracao = 0
+               AND o.publicada = 1 AND o.situacao = 'Lançado'
+           ) AS colaborador`
+        )
+        .get(titularId, visitanteId) as { colaborador: number }
+    ).colaborador
+  );
+}
+
+function atuacoesVisiveis(
+  db: BancoCypher,
+  titularId: string,
+  categorias: readonly string[],
+  visitanteId: string | undefined,
+  perfilPublico: boolean
+): Array<{ categoria: string; respostas: RespostasAtuacao }> {
+  const titular = visitanteId === titularId;
+  if (!titular && !perfilPublico) return [];
+  const colaborador = Boolean(
+    visitanteId && visitanteId !== titularId && ehColaboradorDaConta(db, titularId, visitanteId)
+  );
+  const registros = new Map(
+    listarAtuacoesUsuarioCypher(titularId).map(item => [item.categoria, item])
+  );
+  return categorias.flatMap(categoria => {
+    const registro = registros.get(categoria);
+    const visibilidades = registro?.visibilidades ?? {};
+    const visibilidadeCategoria = visibilidades[chaveVisibilidadeCategoria] ?? "publico";
+    const podeVerCategoria =
+      titular ||
+      visibilidadeCategoria === "publico" ||
+      (visibilidadeCategoria === "colaboradores" && colaborador);
+    if (!podeVerCategoria) return [];
+    const respostas = Object.fromEntries(
+      Object.entries(registro?.respostas ?? {}).filter(([campo]) => {
+        const visibilidade = visibilidades[campo] ?? "privado";
+        return (
+          titular ||
+          visibilidade === "publico" ||
+          (visibilidade === "colaboradores" && colaborador)
+        );
+      })
+    ) as RespostasAtuacao;
+    return [{ categoria, respostas }];
+  });
+}
+
+export function obterPerfilPublicoCypher(
+  identificador: string,
+  visitanteId?: string
+): PerfilPublico | undefined {
+  const db = bancoAtivo();
+  const resultado = db
+    .prepare(
+      `
+      SELECT
+        u.id AS userId,
         p.nome AS name,
         p.funcao AS role,
         CASE WHEN p.localizacao_publica = 1 THEN p.cidade ELSE '' END AS city,
@@ -2214,7 +3740,8 @@ export function obterPerfilPublicoCypher(
     `
     )
     .get(identificador) as
-    | (Omit<PerfilPublico, "genres" | "categories" | "equipment"> & {
+    | (Omit<PerfilPublico, "genres" | "categories" | "equipment" | "atuacoes"> & {
+        userId: string;
         genresJson: string;
         categoriesJson: string;
         equipmentJson: string;
@@ -2222,10 +3749,21 @@ export function obterPerfilPublicoCypher(
     | undefined;
 
   if (!resultado) return undefined;
+  const categorias = JSON.parse(resultado.categoriesJson) as string[];
+  const atuacoes = atuacoesVisiveis(
+    db,
+    resultado.userId,
+    categorias,
+    visitanteId,
+    true
+  );
+  const categories = atuacoes.map(atuacao => atuacao.categoria);
   return {
     ...resultado,
+    role: categories.join(" · ") || "Atuação profissional",
     genres: JSON.parse(resultado.genresJson) as string[],
-    categories: JSON.parse(resultado.categoriesJson) as string[],
+    categories,
+    atuacoes,
     equipment: JSON.parse(resultado.equipmentJson) as string[],
   };
 }
@@ -2258,16 +3796,19 @@ export function buscarPerfisPublicosCypher(
     PerfilBuscaPublico,
     "genres" | "categories" | "tone"
   > & {
+    userId: string;
     genresJson: string;
     categoriesJson: string;
     locationPublic: number;
     tone: string;
   };
 
-  const linhas = bancoAtivo()
+  const db = bancoAtivo();
+  const linhas = db
     .prepare(
       `
       SELECT
+        u.id AS userId,
         p.nome AS name,
         p.funcao AS role,
         p.cidade AS city,
@@ -2291,18 +3832,27 @@ export function buscarPerfisPublicosCypher(
     .all(usuarioId) as LinhaBusca[];
 
   const tonsPermitidos = new Set(["yellow", "green", "black", "cream"]);
-  const perfis: PerfilBuscaPublico[] = linhas.map(linha => ({
-    name: linha.name,
-    role: linha.role,
-    city: linha.locationPublic ? linha.city : "",
-    handle: linha.handle,
-    initials: linha.initials,
-    availability: linha.availability,
-    genres: JSON.parse(linha.genresJson) as string[],
-    categories: JSON.parse(linha.categoriesJson) as string[],
-    otherCategory: linha.otherCategory,
-    tone: tonsPermitidos.has(linha.tone) ? linha.tone : "yellow",
-  }));
+  const perfis: PerfilBuscaPublico[] = linhas.map(linha => {
+    const categories = atuacoesVisiveis(
+      db,
+      linha.userId,
+      JSON.parse(linha.categoriesJson) as string[],
+      usuarioId,
+      true
+    ).map(atuacao => atuacao.categoria);
+    return {
+      name: linha.name,
+      role: categories.join(" · ") || "Atuação profissional",
+      city: linha.locationPublic ? linha.city : "",
+      handle: linha.handle,
+      initials: linha.initials,
+      availability: linha.availability,
+      genres: JSON.parse(linha.genresJson) as string[],
+      categories,
+      otherCategory: categories.includes("Outros") ? linha.otherCategory : "",
+      tone: tonsPermitidos.has(linha.tone) ? linha.tone : "yellow",
+    };
+  });
 
   const opcoes = {
     categorias: opcoesUnicasBusca(

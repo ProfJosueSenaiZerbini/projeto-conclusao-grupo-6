@@ -61,6 +61,18 @@
   letter-spacing: 0.12em;
 }
 
+.event-card-band.band-yellow,
+.event-card-band.band-green,
+.event-card-band.band-cream {
+  color: #182016;
+}
+
+.event-card-band.band-blue,
+.event-card-band.band-violet,
+.event-card-band.band-red {
+  color: #ffffff;
+}
+
 .event-card-content {
   display: flex;
   align-items: center;
@@ -105,7 +117,6 @@
 
 .history-bar {
   margin: 8px 0 12px;
-  background: #2c372a;
 }
 
 .history-bar i {
@@ -177,7 +188,6 @@
   border: 0;
 }
 .event-card-content {
-  display: flex;
   width: 100%;
   text-align: left;
 }
@@ -643,4 +653,70 @@
     flex: 1;
     max-width: none;
   }
+}
+
+.detail-tabs {
+  display: flex;
+  gap: 18px;
+  margin: 18px 0 20px;
+  border-bottom: 1px solid #e0e3d9;
+}
+
+.detail-tab {
+  position: relative;
+  padding: 0 0 10px;
+  border: 0;
+  color: #7a8777;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.detail-tab.is-active {
+  color: var(--ink);
+}
+
+.detail-tab.is-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--lime);
+  content: "";
+}
+
+.event-owner-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.event-owner-actions form {
+  margin: 0;
+}
+
+.event-owner-actions .danger-button {
+  color: #9a5048;
+  border-color: #d9aaa2;
+}
+
+.dark .detail-tabs {
+  border-bottom-color: #3d503a;
+}
+
+.dark .detail-tab {
+  color: #9aaa95;
+}
+
+.dark .detail-tab.is-active {
+  color: #f3faed;
+}
+
+.dark .event-owner-actions .danger-button {
+  color: #f0b0a4;
+  border-color: #754b45;
 }

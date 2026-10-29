@@ -14,7 +14,15 @@ export const situacoesEvento = [
   "Encerrado",
 ] as const;
 
-export const coresEvento = ["yellow", "green", "cream"] as const;
+export const coresEvento = [
+  "yellow",
+  "green",
+  "cream",
+  "blue",
+  "violet",
+  "red",
+] as const;
+export const tiposParticipacaoEvento = ["aberta", "aprovacao"] as const;
 
 export type ValoresFormularioEvento = {
   titulo: string;
@@ -30,6 +38,7 @@ export type ValoresFormularioEvento = {
   inscricao: string;
   premio: string;
   etiquetas: string;
+  tipoParticipacao: (typeof tiposParticipacaoEvento)[number];
 };
 
 export function validarCategoriaEvento(categoria: unknown): string | null {
@@ -66,6 +75,8 @@ export function validarFormularioEvento(
     )
   )
     return "Selecione uma situação válida para o evento.";
+  if (!tiposParticipacaoEvento.includes(valores.tipoParticipacao))
+    return "Selecione como a participação funcionará neste evento.";
   if (!coresEvento.includes(valores.cor as (typeof coresEvento)[number]))
     return "Selecione uma cor válida para o evento.";
   if (valores.descricao.length > 1000)

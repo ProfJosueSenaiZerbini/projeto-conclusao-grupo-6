@@ -51,7 +51,7 @@
         <%= erro %>
       </p>
     <% } %>
-    <form method="post" action="/register" data-register-form>
+    <form method="post" action="/register" data-register-form data-atuacao-form>
       <label>
         Nome completo
         <input name="name" value="<%= nome %>" placeholder="Seu nome" minlength="2" maxlength="80" autocomplete="name" required>
@@ -96,20 +96,35 @@
         <p class="category-validation" data-category-validation role="alert" hidden>
           Selecione pelo menos uma categoria.
         </p>
+        <p class="category-approval-note" data-category-approval-note>
+          Categorias profissionais não concedem acesso administrativo nem capacidades especiais. Novos nomes são analisados e só entram nas opções após aprovação.
+        </p>
       </fieldset>
       <div class="other-category-field" data-other-category-field hidden>
         <label for="categoria-personalizada">
           Qual categoria deseja sugerir?
         </label>
-        <div class="other-category-controls">
-          <input id="categoria-personalizada" name="outraCategoria" value="<%= outraCategoria %>" maxlength="60" placeholder="Ex.: engenheiro de áudio">
-          <button class="button button-outline small" type="button" data-analyze-category>
-            Solicitar análise
-          </button>
-        </div>
-        <p class="category-analysis-result" data-category-result role="status" hidden>
-        </p>
+        <input id="categoria-personalizada" name="outraCategoria" value="<%= outraCategoria %>" maxlength="60" placeholder="Ex.: engenheiro de áudio">
+        <small>
+          Ao concluir o cadastro, esta sugestão será enviada à equipe. Ela não ficará disponível até ser aprovada.
+        </small>
       </div>
+      <section class="professional-questionnaires" aria-labelledby="register-questionnaires-title">
+        <h3 id="register-questionnaires-title">Sua trajetória por categoria</h3>
+        <p>Ao selecionar uma função, responda às perguntas gerais. Os detalhes específicos são opcionais e não comprovam nem concedem permissões profissionais.</p>
+        <% questionariosAtuacao.forEach((questionario, indice) => { %>
+          <%- include('../partials/componentes/questionario-atuacao', {
+            categoriaAtuacao: questionario.categoria,
+            perguntasAtuacao: questionario.perguntas,
+            idQuestionario: `cadastro-atuacao-${indice}`,
+            legada: questionario.legada,
+            atuacoesExistentes: atuacoesExistentes || [],
+            formatarRespostaAtuacao
+          }) %>
+        <% }) %>
+      </section>
+      <input type="hidden" name="respostasAtuacoesJson" data-respostas-atuacoes-json value="{}">
+      <input type="hidden" name="visibilidadesAtuacoesJson" data-visibilidades-atuacoes-json value="{}">
       <div class="ctag-note">
         <span class="lucide-icon" aria-hidden="true">
           <%- icones.badgeCheck %>
@@ -138,4 +153,5 @@
   </div>
 </div>
 </div>
+<script src="/js/questionario-atuacoes.js" defer></script>
 <%- include('../partials/fim-pagina') %>

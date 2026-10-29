@@ -8,15 +8,20 @@ type StatusComCategorias = OpcaoStatusProfissional & {
   categorias: readonly string[];
 };
 
-const categoriasGerais = [
-  "Rapper / MC",
+export const categoriasGerais = [
+  "Rapper",
+  "MC",
+  "Letrista",
+  "Compositor",
   "Beatmaker",
   "Produtor musical",
   "DJ",
-  "Empreendedor",
+  "Empresário",
   "Organizador de eventos",
   "Outros",
 ];
+
+export const categoriaLegadaRapperMC = "Rapper / MC";
 
 export type CategoriaProfissional = (typeof categoriasGerais)[number];
 
@@ -31,6 +36,17 @@ export function podeCriarBeat(categorias: readonly string[]): boolean {
   return temCategoria(categorias, "Beatmaker");
 }
 
+export function podeCriarObra(categorias: readonly string[]): boolean {
+  return [
+    "Rapper",
+    "MC",
+    categoriaLegadaRapperMC,
+    "Beatmaker",
+    "Produtor musical",
+    "DJ",
+  ].some(categoria => categorias.includes(categoria));
+}
+
 export function podeCriarEvento(categorias: readonly string[]): boolean {
   return temCategoria(categorias, "Organizador de eventos");
 }
@@ -39,17 +55,17 @@ const statusProfissionais: readonly StatusComCategorias[] = [
   {
     value: "buscando-feats",
     label: "Buscando feats e colaborações",
-    categorias: ["Rapper / MC"],
+    categorias: ["Rapper", "MC", categoriaLegadaRapperMC],
   },
   {
     value: "disponivel-apresentacoes",
     label: "Disponível para apresentações",
-    categorias: ["Rapper / MC", "DJ"],
+    categorias: ["Rapper", "MC", categoriaLegadaRapperMC, "DJ"],
   },
   {
     value: "buscando-producao",
     label: "Buscando beats ou produção musical",
-    categorias: ["Rapper / MC"],
+    categorias: ["Rapper", "MC", categoriaLegadaRapperMC],
   },
   {
     value: "disponivel-producao",
@@ -69,7 +85,7 @@ const statusProfissionais: readonly StatusComCategorias[] = [
   {
     value: "buscando-parcerias",
     label: "Buscando parcerias profissionais",
-    categorias: ["Empreendedor"],
+    categorias: ["Empresário"],
   },
   {
     value: "recebendo-inscricoes",
@@ -97,14 +113,29 @@ export function opcoesStatusPorCategoria(
   categorias: readonly string[]
 ): OpcaoStatusProfissional[] {
   const selecionadas = new Set(categorias);
+  const temCategoriaPersonalizada = categorias.some(
+    categoria => !categoriasGerais.includes(categoria as CategoriaProfissional)
+  );
   return statusProfissionais
-    .filter(status =>
-      status.categorias.some(categoria => selecionadas.has(categoria))
+    .filter(
+      status =>
+        status.categorias.some(categoria => selecionadas.has(categoria)) ||
+        (temCategoriaPersonalizada &&
+          ["disponivel-colaboracao", "indisponivel"].includes(status.value))
     )
     .map(({ value, label, categorias: categoriasStatus }) => ({
       value,
       label,
-      categorias: [...categoriasStatus],
+      categorias: [
+        ...categoriasStatus,
+        ...(temCategoriaPersonalizada &&
+        ["disponivel-colaboracao", "indisponivel"].includes(value)
+          ? categorias.filter(
+              categoria =>
+                !categoriasGerais.includes(categoria as CategoriaProfissional)
+            )
+          : []),
+      ],
     }));
 }
 

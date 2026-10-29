@@ -425,6 +425,21 @@ textarea {
   background: #e7e4d9;
 }
 
+.band-blue {
+  color: #f7fbff;
+  background: #35627f;
+}
+
+.band-violet {
+  color: #fbf8ff;
+  background: #684b83;
+}
+
+.band-red {
+  color: #fff8f5;
+  background: #9e4e48;
+}
+
 .event-date-large {
   width: 54px;
   flex: 0 0 auto;
@@ -909,10 +924,8 @@ textarea {
   top: calc(100% + 8px);
   left: 0;
   z-index: 30;
-  width: 300px;
   max-height: 510px;
   overflow-y: auto;
-  padding: 13px;
   border: 1px solid #40513e;
   border-radius: 12px;
   color: #dfe8da;

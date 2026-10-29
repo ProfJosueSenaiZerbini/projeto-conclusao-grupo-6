@@ -1,7 +1,7 @@
 # Análise técnica do projeto Cypher
 
-**Pacote analisado:** `cypher-etapa-08.zip`  
-**Estado analisado:** Etapas 0–8 concluídas e Etapa 1 de eventos implementada; schema SQLite v7.  
+**Pacote analisado:** `cypher-etapa-08.zip` (registro histórico, não retrato do pacote atual)  
+**Estado analisado originalmente:** Etapas 0–8 concluídas e Etapa 1 de eventos implementada; schema SQLite v7. O runtime deste pacote suporta schema v16.
 **Data da análise:** 15 de outubro de 2026.
 
 ## 1. Visão geral
@@ -69,50 +69,64 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 
 ## 4. Rotas atuais
 
-| Método | Rota | Estado | Função |
-|---|---|---|---|
-| GET | `/login`, `/register` | funcional | telas de autenticação |
-| POST | `/login` | funcional | autenticação e criação de sessão |
-| POST | `/register` | funcional | cadastro de usuário/perfil |
-| POST | `/logout` | funcional | revogação da sessão |
-| POST | `/categories/analyze` | demonstrativo | pré-análise simulada de categoria |
-| GET | `/`, `/dashboard` | funcional + dados demo | visão geral |
-| GET | `/search` | funcional | busca persistida de perfis públicos |
-| GET | `/events` | funcional | descoberta de eventos reais e demonstrativos, com filtros |
-| GET/POST | `/events/new` | funcional | criação de evento por organizador |
-| GET/POST | `/events/:id/edit` | funcional | edição do próprio evento |
-| POST | `/events/:id/delete` | funcional | exclusão do próprio evento |
-| POST | `/events/:id/interest` | funcional | demonstração persistente de interesse |
-| POST | `/events/:id/interest/cancel` | funcional | cancelamento do interesse |
-| POST | `/events/:id/interests/:usuarioId/status` | funcional | atualização do status pelo organizador |
-| GET/POST | `/works`, `/works/new` | funcional | catálogo e criação de obras |
-| GET/POST | `/works/:id/edit` | funcional | edição própria, com autorização por proprietário |
-| POST | `/works/:id/delete` | funcional | exclusão própria |
-| GET | `/beats` | funcional | descoberta de beats demonstrativos e reais |
-| GET/POST | `/beats/new` | funcional | cadastro persistente de beat |
-| GET/POST | `/beats/:id/edit` | funcional | edição própria, com autorização por proprietário |
-| POST | `/beats/:id/delete` | funcional | exclusão própria |
-| GET | `/central` | funcional como conteúdo | FAQ/Cypher Central |
-| GET/POST | `/profile` | funcional | edição do próprio perfil |
-| GET/POST | `/settings` e `/settings/privacy` | funcional | preferências e privacidade |
-| POST | `/settings/delete-account` | funcional com pré-condições | encerramento da própria conta |
-| GET | `/p/:identificador` | funcional | perfil público, respeitando privacidade |
+| Método   | Rota                                          | Estado                      | Função                                                    |
+| -------- | --------------------------------------------- | --------------------------- | --------------------------------------------------------- |
+| GET      | `/login`, `/register`                         | funcional                   | telas de autenticação                                     |
+| POST     | `/login`                                      | funcional                   | autenticação e criação de sessão                          |
+| POST     | `/register`                                   | funcional                   | cadastro de usuário/perfil                                |
+| POST     | `/logout`                                     | funcional                   | revogação da sessão                                       |
+| POST     | `/categories/analyze`                         | demonstrativo               | pré-análise simulada de categoria                         |
+| GET      | `/`, `/dashboard`                             | funcional + dados demo      | visão geral                                               |
+| GET      | `/search`                                     | funcional                   | busca persistida de perfis públicos                       |
+| GET      | `/events`                                     | funcional                   | descoberta de eventos reais e demonstrativos, com filtros |
+| GET/POST | `/events/new`                                 | funcional                   | criação de evento por organizador                         |
+| GET/POST | `/events/:id/edit`                            | funcional                   | edição do próprio evento                                  |
+| POST     | `/events/:id/delete`                          | funcional                   | exclusão do próprio evento                                |
+| POST     | `/events/:id/interest`                        | funcional                   | demonstração persistente de interesse                     |
+| POST     | `/events/:id/interest/cancel`                 | funcional                   | cancelamento do interesse                                 |
+| POST     | `/events/:id/interests/:usuarioId/status`     | funcional                   | atualização do status pelo organizador                    |
+| GET/POST | `/works`, `/works/new`                        | funcional                   | catálogo e criação de obras                               |
+| GET/POST | `/works/:id/edit`                             | funcional                   | edição própria, com autorização por proprietário          |
+| POST     | `/works/:id/delete`                           | funcional                   | exclusão própria                                          |
+| GET      | `/beats`                                      | funcional                   | descoberta de beats demonstrativos e reais                |
+| GET/POST | `/beats/new`                                  | funcional                   | cadastro persistente de beat                              |
+| GET/POST | `/beats/:id/edit`                             | funcional                   | edição própria, com autorização por proprietário          |
+| POST     | `/beats/:id/delete`                           | funcional                   | exclusão própria                                          |
+| GET      | `/central`                                    | funcional como conteúdo     | FAQ/Cypher Central                                        |
+| GET/POST | `/profile`                                    | funcional                   | edição do próprio perfil                                  |
+| POST     | `/profile/categorias/sugerir`                 | sessão obrigatória          | propor categoria sem alterar as categorias ativas         |
+| POST     | `/profile/categorias/solicitar-excecao`       | sessão obrigatória          | solicitar análise para antecipar a mudança de categorias  |
+| GET      | `/admin/revisao`                              | allowlist de equipe         | revisão de gêneros/categorias e exceções                  |
+| POST     | `/admin/revisao/generos/:id`                  | allowlist de equipe         | aprovar/rejeitar gênero com justificativa                 |
+| POST     | `/admin/revisao/categorias-profissionais/:id` | allowlist de equipe         | aprovar/rejeitar categoria profissional                   |
+| POST     | `/admin/revisao/excecoes-categorias/:id`      | allowlist de equipe         | autorizar mudança excepcional com justificativa           |
+| POST     | `/admin/revisao/solicitacoes-excecao/:id`     | allowlist de equipe         | aprovar ou recusar pedido e registrar justificativa       |
+| GET/POST | `/settings` e `/settings/privacy`             | funcional                   | preferências e privacidade                                |
+| POST     | `/settings/delete-account`                    | funcional com pré-condições | encerramento da própria conta                             |
+| GET      | `/p/:identificador`                           | funcional                   | perfil público, respeitando privacidade                   |
 
 As rotas protegidas são verificadas tanto no middleware global quanto, em operações sensíveis, no controller. Contas demonstrativas podem navegar, mas recebem `403` em operações de escrita.
 
 ## 5. Banco de dados e integridade
 
-O schema atual é a versão **7**. As tabelas são:
+O schema suportado pelo código atual é a versão **15**. Este documento contém seções históricas que ainda descrevem versões anteriores; para o estado efetivo, prevalecem `src/app/models/bancoDados.ts` e os relatórios de incremento. As tabelas atuais são:
 
 - `usuarios`: identidade, e-mail, hash de senha, tipo de conta, flag de demonstração, ID público e número sequencial;
 - `perfis`: dados profissionais, categorias/gêneros/equipamentos serializados como JSON, status e flags de visibilidade;
 - `obras`: catálogo do proprietário, metadados, letra, códigos, data, link e estado de publicação;
 - `creditos`: créditos ligados a usuário ou menções textuais sem perfil;
-- `eventos`: eventos demonstrativos e registros reais;
+- `eventos`: eventos operacionais persistidos; registros demonstrativos antigos são limpos no bootstrap;
 - `interesses_eventos`: relação única entre usuário e evento, com status e timestamps;
-- `beats`: beats demonstrativos e registros reais com dados técnicos, condições de uso e modo de venda exclusiva;
+- `beats`: beats operacionais persistidos com dados técnicos, condições de uso e modo de venda exclusiva; registros demonstrativos antigos são limpos no bootstrap;
 - `ofertas_beats`: uma ou mais ofertas ativas por Beat, com tipo de licença, preço opcional em centavos e descrição;
-- `sessoes`: hash SHA-256 do token, usuário e expiração.
+- `sessoes`: hash SHA-256 do token, usuário e expiração;
+- `notificacoes`: avisos persistentes por usuário destinatário, com estado de leitura e chave de origem idempotente.
+- `propostas_generos`: gêneros customizados ainda privados, com estado pendente/aprovado/rejeitado e dados de revisão;
+- `propostas_categorias`: sugestões de categorias profissionais, ainda não públicas enquanto pendentes, com decisão, justificativa e revisor;
+- `categorias_profissionais_aprovadas`: catálogo global independente das contas que fizeram as sugestões, com responsável e motivo da aprovação;
+- `excecoes_categorias`: autorizações administrativas de uso único com motivo e identidade do responsável preservada;
+- `solicitacoes_excecao_categorias`: pedidos pendentes/aprovados/recusados com motivo original, decisão, revisor, justificativa e vínculo à autorização emitida;
+- `auditoria_categorias`: categorias antes/depois e vínculo à exceção eventualmente consumida.
 
 A tabela `sequencias` controla o próximo número de contas reais dentro da transação de criação. Exclusões não liberam números para reutilização.
 
@@ -124,7 +138,7 @@ Relacionamentos relevantes:
 - crédito ligado a usuário usa `ON DELETE SET NULL` para preservar o nome textual após exclusão;
 - eventos e beats também bloqueiam exclusão do usuário enquanto forem próprios.
 
-As migrações são incrementais e condicionais. A v2 adicionou categorias e sessões; a v3 adicionou equipamentos/privacidade; a v4 adicionou gênero, letra, data de lançamento e link de escuta das obras; a v5 adicionou o ID público e a sequência de contas reais; a v6 adicionou a tabela `ofertas_beats` e a flag `venda_exclusiva` nos Beats. Beats existentes recebem uma oferta legada derivada da licença e das condições anteriores, sem preço.
+As migrações são incrementais e condicionais, e a inicialização aplica mudanças estruturais e de dados numa transação. O histórico antigo neste arquivo descreve etapas até v7; relatórios posteriores documentam interesses em eventos (v7), notificações (v8) e evolução subsequente. O runtime atual declara v15, garante os campos necessários, cria a tabela e o índice parcial de pedidos de exceção, completa IDs públicos/sequências ausentes e só grava a versão depois das migrações concluírem. A migração de valores livres antigos encaminha nomes para revisão pendente e remove a publicação direta do perfil; aprovações anteriores passam ao catálogo independente para sobreviver à exclusão do solicitante. Não há conversão textual de categorias por `REPLACE`; `Empresário` é o valor canônico do código atual.
 
 Fixtures são marcadas com `demonstracao = 1`, atualizadas por conflito apenas quando continuam demonstrativas e não substituem registros reais.
 
@@ -266,17 +280,15 @@ A implementação atual preserva:
 
 Nenhum arquivo-fonte do pacote original foi alterado nesta análise; a cópia de trabalho está em `/home/ubuntu/cypher-review/cypher`.
 
-
 ## 14. Auditoria visual frontend — 24 de outubro de 2026
 
 Foi realizada uma rodada de harmonização visual com foco na página de Oportunidades, nos filtros por categoria, nos cards de eventos, no comportamento quando há apenas um resultado e na legibilidade dos temas claro e escuro. O filtro por abas agora apresenta um estado vazio específico quando nenhuma oportunidade corresponde à categoria selecionada. O grid também foi estabilizado para evitar distribuição visual inadequada em listas curtas, e os cards mantêm espaçamento mínimo coerente em telas menores.
 
 Foram adicionados overrides de tema escuro para superfícies, bordas, textos secundários, filtros, feedbacks, links de gerenciamento e estados vazios da página de Oportunidades. A interação existente por teclado, `aria-pressed`, modais e autorização não foi alterada.
 
-**Alterações estruturais no banco:** nenhuma. Esta melhoria alterou somente EJS, JavaScript, CSS e documentação. O schema permanece na versão 6; não foram criadas ou removidas tabelas, colunas, índices ou constraints.
+**Alterações estruturais no banco naquela melhoria:** nenhuma. Esta melhoria alterou somente EJS, JavaScript, CSS e documentação. Naquele momento o schema era v6; não foram criadas ou removidas tabelas, colunas, índices ou constraints.
 
 O relatório detalhado está em `relatorios-incrementacao/melhoria-13-auditoria-frontend-visual.md`.
-
 
 ## 15. Correção de contraste e harmonização do sidebar — 24 de outubro de 2026
 
@@ -284,19 +296,17 @@ Foi corrigida uma inversão semântica nos botões dos temas claro e escuro. O t
 
 O sidebar também foi harmonizado. No tema escuro, ele utiliza um verde quase preto discretamente mais profundo que a área principal, mantendo a separação visual sem contraste agressivo. O item ativo usa verde-lima e texto escuro de alto contraste. A paleta continua baseada em verde profundo, verde-lima, amarelo e preto, preservando a referência visual jamaicana.
 
-**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+**Alterações estruturais no banco naquela melhoria:** nenhuma. Naquele momento o schema era v6.
 
 O relatório detalhado está em `relatorios-incrementacao/melhoria-14-contraste-temas-autenticacao.md`.
-
 
 ## 16. Refino do cadastro no tema escuro — 24 de outubro de 2026
 
 Após a revisão visual da tela de cadastro, foi corrigida a herança de cor dos textos das categorias. Uma regra genérica de `span` estava aplicando um verde-oliva escuro sobre os cards escuros, reduzindo significativamente a legibilidade. Foram adicionados seletores específicos para os nomes das categorias, indicadores de seleção, título da seção, texto auxiliar, bordas, placeholders e estados de foco dos campos.
 
-**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+**Alterações estruturais no banco naquela melhoria:** nenhuma. Naquele momento o schema era v6.
 
 O relatório detalhado está em `relatorios-incrementacao/melhoria-15-refino-cadastro-tema-escuro.md`.
-
 
 ## 17. Visão geral e padronização de gradientes — 24 de outubro de 2026
 
@@ -304,10 +314,9 @@ A Visão geral recebeu uma correção de contraste no card principal. O texto de
 
 As iniciais de perfis e usuários foram padronizadas em um gradiente amarelo–verde da paleta Jamaica. No tema claro, o gradiente é claro e usa texto escuro; no tema escuro, utiliza uma versão mais profunda e texto claro. As datas exibidas em “Na sua rota” seguem o mesmo padrão, garantindo consistência entre avatares e tiles de data.
 
-**Alterações estruturais no banco:** nenhuma. O schema permanece na versão 6.
+**Alterações estruturais no banco naquela melhoria:** nenhuma. Naquele momento o schema era v6.
 
 O relatório detalhado está em `relatorios-incrementacao/melhoria-16-visao-geral-gradientes-jamaica.md`.
-
 
 ## 18. Cadastro de Obras por tipo — 25 de outubro de 2026
 
@@ -317,6 +326,16 @@ As opções de Obras comuns navegam para `/works/new?tipo=<slug>`. A rota aceita
 
 `cadastro-obra.ejs` agora recebe o tipo selecionado e apresenta um cartão de contexto com a ação de trocar tipo. A visibilidade de campos continua sendo controlada por `public/js/interacoes.js`, que recebeu o contexto de Instrumental. O tipo `Instrumental` foi acrescentado à lista textual de tipos de Obras e é agrupado junto aos instrumentais no catálogo. Para `Outro`, gênero/categoria passou a ser opcional, mantendo validação quando preenchido.
 
-**Alterações estruturais no banco:** nenhuma. O campo textual de tipo da tabela `obras` já suportava a extensão; não houve tabela, coluna, índice, constraint, backfill ou conversão. O schema permanece na versão 6 e obras existentes, edição, detalhes, filtros, créditos e participações continuam usando os contratos anteriores.
+**Alterações estruturais no banco naquela melhoria:** nenhuma. O campo textual de tipo da tabela `obras` já suportava a extensão; não houve tabela, coluna, índice, constraint, backfill ou conversão. Naquele momento o schema era v6 e obras existentes, edição, detalhes, filtros, créditos e participações continuaram usando os contratos anteriores.
 
 O relatório completo está em `relatorios-incrementacao/melhoria-18-cadastro-obras-por-tipo.md`.
+
+## Estado atual — governança de categorias, gêneros e exceções (melhorias 24, 25 e 27)
+
+O schema v16 contém `perfis.ultima_alteracao_categorias_em`, as filas `propostas_generos`, `propostas_categorias` e `solicitacoes_excecao_categorias`, o catálogo independente `categorias_profissionais_aprovadas`, a tabela `excecoes_categorias` e o histórico `auditoria_categorias`. A seleção inicial feita no cadastro inicia o prazo; mudanças posteriores são recusadas até 60 dias, salvo uma autorização administrativa não usada. A pessoa pode justificar um pedido antecipado; a equipe aprova ou recusa pela fila protegida, e a decisão registra revisor, horário e justificativa. A aprovação cria ou vincula uma autorização de uso único, consumida apenas junto da mudança efetiva. O prazo é determinado no servidor/SQLite, não apenas pela interface.
+
+O formulário de gêneros usa opções canônicas; “Outro” cria uma proposta privada pendente. Novas categorias profissionais podem ser sugeridas durante o cadastro ou pela edição do perfil; também ficam pendentes. As duas filas são moderadas na aba **Administrador → Análises**. Uma categoria aprovada entra nas listas de cadastro/perfil para todos, mas não altera automaticamente o perfil do solicitante, não encurta o prazo de 60 dias e não concede permissões ou capacidades especiais. A migração retira valores livres antigos de perfis reais e os submete à mesma revisão. Aprovações/rejeições guardam motivo, revisor e data. O nome aprovado fica em `categorias_profissionais_aprovadas`, independente da conta autora; apagar a conta não apaga a opção global aprovada.
+
+O acesso à página `/admin/revisao` e aos POSTs de decisão depende da allowlist de e-mails `CYPHER_ADMIN_EMAILS`, definida no ambiente do servidor; não depende da função, categoria, tipo de conta nem de campos editáveis pelo cliente. A navegação lateral apresenta **Administrador** somente a esses e-mails, e as exceções auditadas ficam em seção interna própria. Uma conta só pode manter um pedido de exceção pendente; enquanto isso, a concessão direta fica bloqueada para evitar conflito com a decisão da fila. A avaliação não usa inatividade isolada como sinal de fraude.
+
+`npm run test:db` cobre banco novo, migrações v5/v7/v11/v12/v13/v14 para v15, conversão de categoria legada para pendente, backfill de aprovações, idempotência, schema futuro, integridade referencial, bloqueio e consumo da exceção, solicitação duplicada, recusa, reenvio, aprovação auditada, aprovação de gêneros/categorias, disponibilidade dinâmica, deduplicação e persistência da categoria após exclusão do solicitante. `npm run test:admin-ui` também cobre a submissão HTTP por usuário, fila administrativa, aprovação, recusa e negação a não-administrador.

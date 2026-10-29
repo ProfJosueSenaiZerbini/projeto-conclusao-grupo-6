@@ -8,6 +8,8 @@
     "build": "tsc",
     "start": "node dist/src/aplicacao.js",
     "check": "tsc --noEmit",
+    "test:db": "node scripts/testar-banco.mjs && node scripts/testar-politicas-perfil.mjs",
+    "test:admin-ui": "node scripts/testar-admin-ui.mjs",
     "format": "prettier --write src scripts public/js public/css",
     "format:views": "node scripts/formatar-ejs.mjs"
   },

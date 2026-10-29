@@ -49,9 +49,47 @@ router.post("/beats/:id/delete", beats.excluirBeat);
 router.get("/central", beats.central);
 router.get("/profile", perfis.perfil);
 router.post("/profile", perfis.atualizarPerfil);
+router.post(
+  "/profile/categorias/sugerir",
+  perfis.solicitarCategoriaProfissional
+);
+router.post(
+  "/profile/categorias/solicitar-excecao",
+  perfis.solicitarExcecaoCategoria
+);
+router.post(
+  "/profile/categorias/solicitacoes/:id/responder",
+  perfis.responderSolicitacaoCategoria
+);
 router.get("/settings", configuracoes.configuracoes);
 router.post("/settings/privacy", configuracoes.atualizarPrivacidade);
 router.post("/settings/delete-account", configuracoes.excluirConta);
+router.get("/admin/revisao", configuracoes.revisaoAdministrativa);
+router.get("/admin/revisao/excecoes", configuracoes.revisaoAdministrativa);
+router.get(
+  "/admin/revisao/excecoes/busca",
+  configuracoes.buscarPerfisExcecaoAdministrativa
+);
+router.post(
+  "/admin/revisao/generos/:id",
+  configuracoes.revisarGeneroAdministrativamente
+);
+router.post(
+  "/admin/revisao/categorias-profissionais/:id",
+  configuracoes.revisarCategoriaProfissionalAdministrativamente
+);
+router.post(
+  "/admin/revisao/excecoes-categorias/:id",
+  configuracoes.autorizarExcecaoCategoria
+);
+router.post(
+  "/admin/revisao/solicitacoes-excecao/:id",
+  configuracoes.revisarSolicitacaoExcecaoCategoria
+);
+router.post(
+  "/admin/revisao/solicitacoes-excecao/:id/esclarecimento",
+  configuracoes.solicitarInformacaoSolicitacaoCategoria
+);
 router.get("/p/:identificador", perfis.perfilPublico);
 
 export default router;

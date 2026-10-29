@@ -16,6 +16,26 @@
     }
   });
 
+  document.addEventListener("click", async evento => {
+    const botaoCompartilhar = evento.target.closest("[data-share-event]");
+    if (!botaoCompartilhar) return;
+    const dialogo = botaoCompartilhar.closest("dialog");
+    const titulo = dialogo
+      ?.querySelector("[data-event-title-detail]")
+      ?.textContent?.trim();
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: titulo || "Evento Cypher", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        criarAviso("Link do evento copiado.");
+      }
+    } catch {
+      criarAviso("Não foi possível compartilhar o evento.");
+    }
+  });
+
   document.querySelectorAll("[data-filter]").forEach(campo => {
     campo.addEventListener("input", () => {
       const consulta = campo.value.trim().toLocaleLowerCase("pt-BR");
@@ -26,6 +46,161 @@
       });
     });
   });
+
+  const buscaExcecoesAdmin = document.querySelector(
+    "[data-admin-exception-search]"
+  );
+  const listaExcecoesAdmin = document.querySelector(
+    "[data-admin-exception-list]"
+  );
+  if (buscaExcecoesAdmin && listaExcecoesAdmin) {
+    const botaoExpandir = document.querySelector(
+      "[data-admin-exception-toggle]"
+    );
+    const controles = document.querySelector("[data-admin-exception-controls]");
+    const contagem = document.querySelector("[data-admin-exception-count]");
+    const vazio = document.querySelector("[data-admin-exception-empty]");
+    const totalInicial = Number(listaExcecoesAdmin.dataset.adminTotal) || 0;
+    let expandida = false;
+    let temporizadorBusca;
+    let requisicaoBusca;
+    if (controles) controles.hidden = false;
+    if (botaoExpandir) botaoExpandir.hidden = totalInicial <= 7;
+
+    const elementoComTexto = (tag, classe, texto) => {
+      const elemento = document.createElement(tag);
+      if (classe) elemento.className = classe;
+      elemento.textContent = texto ?? "";
+      return elemento;
+    };
+
+    const criarLinhaConta = perfil => {
+      const artigo = elementoComTexto("article", "admin-account-row");
+      const identidade = elementoComTexto("div", "admin-account-identity");
+      identidade.append(
+        elementoComTexto("span", "admin-account-avatar", perfil.iniciais)
+      );
+      const detalhes = document.createElement("div");
+      detalhes.append(
+        elementoComTexto("strong", "", perfil.nome),
+        elementoComTexto("p", "", perfil.email),
+        elementoComTexto(
+          "span",
+          "admin-category-list",
+          `Categorias: ${perfil.categorias.join(" · ")}`
+        )
+      );
+      detalhes.lastElementChild.setAttribute(
+        "aria-label",
+        "Categorias profissionais"
+      );
+      if (perfil.alteradaEmFormatada) {
+        detalhes.append(
+          elementoComTexto(
+            "small",
+            "",
+            `Última alteração: ${perfil.alteradaEmFormatada}${perfil.proximaAlteracaoFormatada ? ` · Próxima data: ${perfil.proximaAlteracaoFormatada}` : ""}`
+          )
+        );
+      } else {
+        detalhes.append(
+          elementoComTexto(
+            "small",
+            "",
+            "Ainda não realizou alteração de categorias após criar a conta."
+          )
+        );
+      }
+      if (perfil.excecaoPendente) {
+        detalhes.append(
+          elementoComTexto(
+            "span",
+            "admin-pending-label",
+            "Exceção não utilizada já concedida"
+          )
+        );
+      }
+      if (!perfil.bloqueada) {
+        detalhes.append(
+          elementoComTexto(
+            "span",
+            "admin-available-label",
+            "Prazo encerrado — exceção não necessária"
+          )
+        );
+      }
+      identidade.append(detalhes);
+      const form = document.createElement("form");
+      form.method = "post";
+      form.action = `/admin/revisao/excecoes-categorias/${encodeURIComponent(perfil.usuarioId)}`;
+      const label = elementoComTexto("label", "", "Motivo da exceção");
+      const input = document.createElement("input");
+      input.name = "motivo";
+      input.minLength = 10;
+      input.maxLength = 500;
+      input.required = true;
+      input.placeholder = "Registre o motivo verificável";
+      label.append(input);
+      const botao = elementoComTexto(
+        "button",
+        "button button-outline",
+        "Autorizar uma alteração"
+      );
+      botao.type = "submit";
+      botao.disabled = !perfil.bloqueada || perfil.excecaoPendente;
+      form.append(label, botao);
+      artigo.append(identidade, form);
+      return artigo;
+    };
+
+    const carregarContas = async () => {
+      requisicaoBusca?.abort();
+      requisicaoBusca = new AbortController();
+      const consulta = buscaExcecoesAdmin.value.trim();
+      const parametros = new URLSearchParams();
+      if (consulta) parametros.set("q", consulta);
+      else if (expandida) parametros.set("todos", "1");
+      try {
+        const resposta = await fetch(
+          `/admin/revisao/excecoes/busca?${parametros.toString()}`,
+          {
+            headers: { Accept: "application/json" },
+            signal: requisicaoBusca.signal,
+          }
+        );
+        if (!resposta.ok) throw new Error("Falha ao carregar as contas.");
+        const resultado = await resposta.json();
+        listaExcecoesAdmin.replaceChildren(
+          ...resultado.perfis.map(criarLinhaConta)
+        );
+        const visiveis = resultado.perfis.length;
+        if (contagem) {
+          contagem.textContent = consulta
+            ? `${visiveis} resultado${visiveis === 1 ? "" : "s"} de ${resultado.total}`
+            : `${visiveis} de ${resultado.total} contas exibidas`;
+        }
+        if (vazio) vazio.hidden = visiveis > 0;
+        if (botaoExpandir) {
+          botaoExpandir.hidden = Boolean(consulta) || resultado.total <= 7;
+          botaoExpandir.setAttribute("aria-expanded", String(expandida));
+          botaoExpandir.textContent = expandida
+            ? "Mostrar somente as primeiras 7"
+            : `Mostrar todas as ${resultado.total} contas`;
+        }
+      } catch (erro) {
+        if (erro.name !== "AbortError")
+          criarAviso("Não foi possível buscar as contas. Tente novamente.");
+      }
+    };
+    buscaExcecoesAdmin.addEventListener("input", () => {
+      window.clearTimeout(temporizadorBusca);
+      temporizadorBusca = window.setTimeout(carregarContas, 180);
+    });
+    botaoExpandir?.addEventListener("click", () => {
+      expandida = !expandida;
+      carregarContas();
+    });
+  }
 
   document.querySelectorAll("[data-faq]").forEach(botao => {
     botao.addEventListener("click", () => {
@@ -72,14 +247,30 @@
     if (evento.key === "Escape") fecharMenu();
   });
 
-  const atualizarInteresse = (status, eventoId, demonstracao = false) => {
+  const atualizarInteresse = (
+    status,
+    eventoId,
+    demonstracao = false,
+    tipoParticipacao = "aberta"
+  ) => {
     const ativo = ["interessado", "inscrito", "confirmado"].includes(status);
     const confirmado = status === "confirmado";
-    const rotulos = {
-      interessado: "Interesse demonstrado",
-      inscrito: "Inscrição em análise",
-      confirmado: "Participação confirmada",
-    };
+    const rotuloInicial =
+      tipoParticipacao === "aprovacao"
+        ? "Solicitar participação"
+        : "Quero participar";
+    const rotulos =
+      tipoParticipacao === "aprovacao"
+        ? {
+            interessado: "Solicitação enviada",
+            inscrito: "Solicitação em análise",
+            confirmado: "Participação confirmada",
+          }
+        : {
+            interessado: "Participação registrada",
+            inscrito: "Participação registrada",
+            confirmado: "Participação confirmada",
+          };
     document.querySelectorAll("[data-interest-button]").forEach(botao => {
       botao.setAttribute("aria-pressed", String(ativo));
       botao.disabled = !eventoId || confirmado || demonstracao;
@@ -87,7 +278,7 @@
       if (rotulo)
         rotulo.textContent = demonstracao
           ? "Evento demonstrativo"
-          : (rotulos[status] ?? "Demonstrar interesse");
+          : (rotulos[status] ?? rotuloInicial);
       botao.classList.toggle("is-interested", ativo);
     });
     document.querySelectorAll("[data-interest-form]").forEach(formulario => {
@@ -172,6 +363,96 @@
       elemento.textContent = valor ?? "";
     });
   };
+  const selecionarAbaEvento = (dialogo, aba) => {
+    dialogo.querySelectorAll("[data-event-detail-tab]").forEach(botao => {
+      const ativa = botao.dataset.eventDetailTab === aba;
+      botao.classList.toggle("is-active", ativa);
+      botao.setAttribute("aria-selected", String(ativa));
+    });
+    dialogo.querySelectorAll("[data-event-detail-panel]").forEach(painel => {
+      painel.hidden = painel.dataset.eventDetailPanel !== aba;
+    });
+  };
+  const preencherGestaoEvento = (dialogo, dados) => {
+    const abaGestao = dialogo.querySelector('[data-event-detail-tab="gestao"]');
+    const editora = dialogo.querySelector("[data-event-edit]");
+    const exclusao = dialogo.querySelector("[data-event-delete]");
+    const lista = dialogo.querySelector("[data-event-interested-list]");
+    const proprietario = dados.detailOwned === "true";
+    abaGestao.hidden = !proprietario;
+    if (!proprietario) {
+      selecionarAbaEvento(dialogo, "geral");
+      return;
+    }
+    editora.href = `/events/${encodeURIComponent(dados.detailId)}/edit`;
+    exclusao.action = `/events/${encodeURIComponent(dados.detailId)}/delete`;
+    lista.replaceChildren();
+    let interessados = [];
+    try {
+      interessados = JSON.parse(
+        decodeURIComponent(dados.detailInterested || "")
+      );
+    } catch {
+      interessados = [];
+    }
+    const titulo = document.createElement("strong");
+    titulo.textContent =
+      dados.detailParticipationType === "aprovacao"
+        ? `Solicitações recebidas (${dados.detailTotalInterested || 0})`
+        : `Participações registradas (${dados.detailTotalInterested || 0})`;
+    lista.appendChild(titulo);
+    if (!interessados.length) {
+      const vazio = document.createElement("p");
+      vazio.textContent = "Nenhuma participação registrada ainda.";
+      lista.appendChild(vazio);
+      return;
+    }
+    const statusLabels = {
+      interessado: "Interessado",
+      inscrito: "Inscrito",
+      confirmado: "Confirmado",
+      rejeitado: "Rejeitado",
+    };
+    interessados.forEach(interesse => {
+      const linha = document.createElement("div");
+      linha.className = "event-interested-row";
+      const pessoa = document.createElement("span");
+      const nome = document.createElement("b");
+      nome.textContent = interesse.nome;
+      const detalhe = document.createElement("small");
+      detalhe.textContent = `@${interesse.handle} · ${dados.detailParticipationType === "aprovacao" ? (statusLabels[interesse.status] ?? interesse.status) : "participação registrada"}`;
+      pessoa.append(nome, detalhe);
+      linha.appendChild(pessoa);
+      if (dados.detailParticipationType === "aprovacao") {
+        const formulario = document.createElement("form");
+        formulario.method = "post";
+        formulario.action = `/events/${encodeURIComponent(dados.detailId)}/interests/${encodeURIComponent(interesse.usuarioId)}/status`;
+        const seletor = document.createElement("select");
+        seletor.name = "status";
+        seletor.setAttribute("aria-label", `Status de ${interesse.nome}`);
+        Object.entries(statusLabels).forEach(([valor, label]) => {
+          const opcao = document.createElement("option");
+          opcao.value = valor;
+          opcao.textContent = label;
+          opcao.selected = interesse.status === valor;
+          seletor.appendChild(opcao);
+        });
+        const salvar = document.createElement("button");
+        salvar.className = "text-link";
+        salvar.type = "submit";
+        salvar.textContent = "Salvar";
+        formulario.append(seletor, salvar);
+        linha.appendChild(formulario);
+      }
+      lista.appendChild(linha);
+    });
+  };
+  document.querySelectorAll("[data-event-detail-tab]").forEach(botao => {
+    botao.addEventListener("click", () => {
+      const dialogo = botao.closest("dialog");
+      if (dialogo) selecionarAbaEvento(dialogo, botao.dataset.eventDetailTab);
+    });
+  });
   const abrirDialogo = (dialogo, acionador) => {
     if (!dialogo) return;
     dialogos.set(dialogo, acionador);
@@ -184,6 +465,7 @@
       const dialogo = document.getElementById("detalhe-oportunidade");
       if (!dialogo) return;
       const dados = cartao.dataset;
+      dialogo.dataset.eventId = dados.detailId || "";
       definirTexto(dialogo, "[data-event-title-detail]", dados.detailTitle);
       definirTexto(
         dialogo,
@@ -225,13 +507,22 @@
       atualizarInteresse(
         dados.detailInterestStatus || null,
         dados.detailId || null,
-        dados.detailDemonstracao === "true"
+        dados.detailDemonstracao === "true",
+        dados.detailParticipationType || "aberta"
       );
       definirTexto(
         dialogo,
         "[data-event-interest-total]",
         dados.detailTotalInterested || "0"
       );
+      definirTexto(
+        dialogo,
+        "[data-event-interest-count-label]",
+        dados.detailParticipationType === "aprovacao"
+          ? "solicitação(ões) recebida(s)."
+          : "participação(ões) registrada(s)."
+      );
+      preencherGestaoEvento(dialogo, dados);
       abrirDialogo(dialogo, cartao);
     });
   });
@@ -635,6 +926,31 @@
     });
   atualizarCategorias();
 
+  const generoOutro = document.querySelector("[data-genre-other]");
+  const blocoOutroGenero = document.querySelector("[data-other-genre-field]");
+  const entradaOutroGenero = document.getElementById("genero-personalizado");
+  const atualizarOutroGenero = () => {
+    const exibir = Boolean(generoOutro?.checked);
+    if (blocoOutroGenero) blocoOutroGenero.hidden = !exibir;
+    if (entradaOutroGenero) entradaOutroGenero.required = exibir;
+    generoOutro
+      ?.closest(".profile-genre-option")
+      ?.classList.toggle("selected", exibir);
+  };
+  generoOutro?.addEventListener("change", atualizarOutroGenero);
+  document
+    .querySelectorAll(".profile-genre-option input[type=checkbox]")
+    .forEach(campo => {
+      const atualizarEstado = () => {
+        campo
+          .closest(".profile-genre-option")
+          ?.classList.toggle("selected", campo.checked);
+      };
+      campo.addEventListener("change", atualizarEstado);
+      atualizarEstado();
+    });
+  atualizarOutroGenero();
+
   const seletorStatusPerfil = document.querySelector("[data-profile-status]");
   const atualizarStatusPerfil = () => {
     if (!seletorStatusPerfil) return;
@@ -678,40 +994,6 @@
         document
           .querySelector('.category-option input[type="checkbox"]')
           ?.focus();
-      }
-    });
-
-  document
-    .querySelector("[data-analyze-category]")
-    ?.addEventListener("click", async evento => {
-      const botao = evento.currentTarget;
-      const resultado = document.querySelector("[data-category-result]");
-      const categoria = entradaCategoria?.value.trim();
-      if (!categoria || !resultado) {
-        entradaCategoria?.focus();
-        return;
-      }
-      botao.disabled = true;
-      botao.textContent = "Analisando…";
-      resultado.hidden = false;
-      resultado.textContent = "Solicitando pré-análise demonstrativa…";
-      try {
-        const resposta = await fetch("/categories/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ categoria }),
-        });
-        const dados = await resposta.json();
-        resultado.textContent =
-          dados.mensagem ?? "Não foi possível concluir a pré-análise.";
-        resultado.classList.toggle("is-error", !resposta.ok);
-      } catch {
-        resultado.textContent =
-          "Não foi possível solicitar a análise. Tente novamente.";
-        resultado.classList.add("is-error");
-      } finally {
-        botao.disabled = false;
-        botao.textContent = "Solicitar análise";
       }
     });
 
@@ -836,7 +1118,9 @@
       });
     });
 
-  const centroNotificacoes = document.querySelector("[data-notification-center]");
+  const centroNotificacoes = document.querySelector(
+    "[data-notification-center]"
+  );
   const botaoNotificacoes = centroNotificacoes?.querySelector(
     "[data-notification-open]"
   );

@@ -20,7 +20,7 @@
 
 .beat-card {
   overflow: hidden;
-  border: 1px solid #e0e3d9;
+  border: 1px solid var(--border-soft);
   border-radius: var(--radius);
   background: var(--white);
 }
@@ -259,7 +259,6 @@
 
 /* Refinamento visual v17 — cards de beats com identidade de catálogo. */
 .beat-card {
-  border-color: var(--border-soft);
   box-shadow: 0 10px 24px rgba(16, 20, 15, 0.035);
   transition:
     transform 0.18s ease,
@@ -305,10 +304,6 @@
 
 .beat-bottom {
   margin-top: auto;
-}
-
-.beat-actions {
-  justify-content: flex-end;
 }
 
 .beat-exclusive-badge,

@@ -97,6 +97,20 @@
         </select>
       </label>
       <label>
+        Participação
+        <span class="required-mark">
+          *
+        </span>
+        <select name="tipoParticipacao" required>
+          <option value="aberta"<%= valores.tipoParticipacao === 'aberta' ? 'selected' : '' %>>
+            Aberta — participação registrada na hora
+          </option>
+          <option value="aprovacao"<%= valores.tipoParticipacao === 'aprovacao' ? 'selected' : '' %>>
+            Mediante aprovação — solicitar participação
+          </option>
+        </select>
+      </label>
+      <label>
         Data
         <span class="required-mark">
           *
@@ -186,7 +200,7 @@
         <select name="cor" required>
           <% coresEvento.forEach(cor => { %>
             <option value="<%= cor %>"<%= valores.cor === cor ? 'selected' : '' %>>
-              <%= cor === 'yellow' ? 'Amarela' : cor === 'green' ? 'Verde' : 'Creme' %>
+              <%= cor === 'yellow' ? 'Amarela' : cor === 'green' ? 'Verde' : cor === 'cream' ? 'Creme' : cor === 'blue' ? 'Azul' : cor === 'violet' ? 'Violeta' : 'Vermelha' %>
             </option>
           <% }) %>
         </select>

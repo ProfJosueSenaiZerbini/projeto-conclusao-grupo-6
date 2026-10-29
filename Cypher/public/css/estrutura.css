@@ -300,7 +300,7 @@
   align-items: center;
   gap: 8px;
   min-height: 36px;
-  padding: 0 70px 0 10px;
+  padding: 0 13px;
   border: 1px solid #dddcd0;
   border-radius: 9px;
   color: #50584c;
@@ -440,10 +440,6 @@
 .topbar-actions {
   min-width: 0;
 }
-.topbar-search {
-  gap: 8px;
-  padding: 0 13px;
-}
 .topbar-search .lucide-icon svg {
   width: 15px;
   height: 15px;
@@ -537,7 +533,6 @@ a.topbar-avatar:hover {
   grid-column: 1 / -1;
   background: #f7f9f0;
 }
-
 
 /* Refinamento visual v17 — navegação coerente nos dois temas. */
 .sidebar {

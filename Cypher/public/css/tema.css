@@ -37,11 +37,6 @@
   color: var(--ink);
 }
 
-.dark .topbar {
-  border-color: #293529;
-  background: rgba(17, 23, 16, 0.9);
-}
-
 .dark .breadcrumbs strong,
 .dark .page-header h1,
 .dark .section-heading h2,
@@ -92,19 +87,10 @@
   background: #1a2118;
 }
 
-.dark .settings-signout {
-  border-color: #68453f;
-  background: #291c1a;
-}
-
 .dark .settings-section-heading,
 .dark .settings-interest,
 .dark .settings-toggle-row {
   border-color: #334031;
-}
-
-.dark .theme-option-icon {
-  color: #10140f;
 }
 
 .dark .settings-modal {
@@ -163,7 +149,6 @@
 }
 
 /* Auditoria dark — superfícies e componentes harmonizados */
-.dark body,
 .dark .app-shell {
   background: var(--paper);
   color: var(--ink);
@@ -333,9 +318,9 @@
 
 .dark .events-filters input,
 .dark .events-filters select {
-  border-color: #3a4a37;
   color: var(--ink);
-  background: #1a2118;
+  border-color: #465844;
+  background: #141b14;
 }
 
 .dark .work-type-picker {
@@ -829,16 +814,6 @@
   color: #c0cfbb;
 }
 
-.dark .auth-panel input {
-  color: #eef5ea;
-  border-color: #3a4b38;
-  background: #1c271c;
-}
-
-.dark .auth-panel input::placeholder {
-  color: #91a28d;
-}
-
 .dark .password-wrap button {
   color: #b0c0aa;
 }
@@ -1129,11 +1104,6 @@ body,
   color: #e7c4bc;
   border-color: #684842;
 }
-.dark .detail-close {
-  color: #e2ebde;
-  border-color: #465641;
-  background: #202b1f;
-}
 .dark .search-field input {
   color: var(--ink);
   border-color: #3a4a37;
@@ -1226,12 +1196,6 @@ body,
   color: #a8b6a2;
 }
 
-.dark .events-filters input,
-.dark .events-filters select {
-  border-color: #465844;
-  background: #141b14;
-}
-
 .dark .events-filter-empty {
   border-color: #52664d;
   color: #a9b8a2;
@@ -1286,6 +1250,7 @@ body,
 }
 
 .dark .auth-panel input {
+  color: #eef5ea;
   border-color: #52664d;
   background: #182219;
 }
@@ -1306,7 +1271,6 @@ body,
   background: #182219;
 }
 
-
 /* Auditoria de contraste v18 — correções pontuais dos prints de referência. */
 .detail-kicker,
 .detail-banner,
@@ -1318,6 +1282,7 @@ body,
 
 .dark .detail-close {
   color: #eef5ea;
+  border-color: #465641;
   background: #202b1f;
 }
 
@@ -1425,7 +1390,6 @@ body,
   background: var(--lime);
 }
 
-
 /* Auditoria de contraste v19 — edição de perfil. */
 .dark .profile-edit-panel {
   border-color: #3d503a;
@@ -1453,6 +1417,16 @@ body,
 
 .dark .profile-edit-form input::placeholder,
 .dark .profile-edit-form textarea::placeholder {
+  color: #859985;
+}
+
+.dark .profile-exception-request-form textarea {
+  color: #eef5ea;
+  border-color: #52664d;
+  background: #111810;
+}
+
+.dark .profile-exception-request-form textarea::placeholder {
   color: #859985;
 }
 

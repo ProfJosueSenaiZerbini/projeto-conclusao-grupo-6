@@ -118,6 +118,7 @@ export async function cadastrarUsuario(dados: {
   senha: string;
   categorias: string[];
   outraCategoria: string;
+  atuacoes?: import("./bancoDados.js").AtuacaoProfissionalPersistida[];
 }): Promise<void> {
   if (buscarCredenciaisCypher(dados.email)) {
     throw new Error("EMAIL_DUPLICADO");
@@ -143,13 +144,7 @@ export async function cadastrarUsuario(dados: {
     ? (iniciaisBase + (iniciaisBase[1] ?? iniciaisBase[0])).slice(0, 2)
     : "AA";
   const outrasCategorias = dados.categorias.includes("Organizador de eventos");
-  const funcao = dados.categorias
-    .map(categoria =>
-      categoria === "Outros" && dados.outraCategoria
-        ? `Outros: ${dados.outraCategoria}`
-        : categoria
-    )
-    .join(" · ");
+  const funcao = dados.categorias.join(" · ");
 
   try {
     criarContaCypher({
@@ -164,6 +159,7 @@ export async function cadastrarUsuario(dados: {
       cTag: `CYP-${id.replace(/-/g, "").slice(0, 12).toUpperCase()}`,
       categorias: dados.categorias,
       outraCategoria: dados.outraCategoria,
+      atuacoes: dados.atuacoes,
     });
   } catch (erro) {
     if (

@@ -38,7 +38,7 @@
   </div>
 <% } %>
 <p class="interest-explainer" data-interest-notice role="status" hidden>
-  Ao marcar interesse, você sinaliza aos organizadores que está ativo na cena. Eles poderão notificar você antes ou depois do lançamento do evento. Este protótipo não envia notificações.
+  Sua participação foi registrada para este evento.
 </p>
 <form class="events-filters" method="get" action="/events">
   <label>
@@ -129,7 +129,7 @@
   <div class="events-list<%= eventos.length === 1 ? ' events-list-single' : '' %>" data-events-list>
     <% eventos.forEach((evento, i) => { %>
       <div class="event-card-wrapper">
-        <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-id="<%= evento.id %>" data-detail-demonstracao="<%= evento.demonstracao %>" data-detail-interest-status="<%= evento.interesseStatus ?? '' %>" data-detail-total-interested="<%= evento.totalInteressados %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
+        <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-id="<%= evento.id %>" data-detail-owned="<%= evento.owned %>" data-detail-demonstracao="<%= evento.demonstracao %>" data-detail-interest-status="<%= evento.interesseStatus ?? '' %>" data-detail-participation-type="<%= evento.participationType %>" data-detail-total-interested="<%= evento.totalInteressados %>" data-detail-interested="<%= encodeURIComponent(JSON.stringify(evento.interessados)) %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
           <span class="event-card-band band-<%= evento.color %>">
             <span>
               0<%= i + 1 %>
@@ -184,56 +184,6 @@
             </span>
           </span>
         </button>
-        <% if (evento.owned) { %>
-          <div class="event-management-actions">
-            <a class="text-link" href="/events/<%= encodeURIComponent(evento.id) %>/edit">
-              Editar
-            </a>
-            <form method="post" action="/events/<%= encodeURIComponent(evento.id) %>/delete" onsubmit="return confirm('Excluir este evento?')">
-              <button class="text-link danger-link" type="submit">
-                Excluir
-              </button>
-            </form>
-          </div>
-          <% if (evento.interessados.length) { %>
-            <div class="event-interested-list">
-              <strong>
-                Interesses recebidos (<%= evento.totalInteressados %>)
-              </strong>
-              <% evento.interessados.forEach(interesse => { %>
-                <div class="event-interested-row">
-                  <span>
-                    <b>
-                      <%= interesse.nome %>
-                    </b>
-                    <small>
-                      @<%= interesse.handle %>·<%= interesse.status %>
-                    </small>
-                  </span>
-                  <form method="post" action="/events/<%= encodeURIComponent(evento.id) %>/interests/<%= encodeURIComponent(interesse.usuarioId) %>/status">
-                    <select name="status" aria-label="Status de<%= interesse.nome %>">
-                      <option value="interessado"<%= interesse.status === 'interessado' ? ' selected' : '' %>>
-                        Interessado
-                      </option>
-                      <option value="inscrito"<%= interesse.status === 'inscrito' ? ' selected' : '' %>>
-                        Inscrito
-                      </option>
-                      <option value="confirmado"<%= interesse.status === 'confirmado' ? ' selected' : '' %>>
-                        Confirmado
-                      </option>
-                      <option value="rejeitado"<%= interesse.status === 'rejeitado' ? ' selected' : '' %>>
-                        Rejeitado
-                      </option>
-                    </select>
-                    <button class="text-link" type="submit">
-                      Salvar
-                    </button>
-                  </form>
-                </div>
-              <% }) %>
-            </div>
-          <% } %>
-        <% } %>
       </div>
     <% }) %>
     <% if (!eventos.length) { %>
@@ -273,7 +223,7 @@
     Seu rastro na cena
   </h2>
   <div class="history-number">
-    07
+    —
     <span>
       participações
     </span>
@@ -287,31 +237,8 @@
     </i>
   </div>
   <p>
-    Seus interesses e participações confirmadas passam a ser registrados nesta área.
+    Suas participações registradas aparecerão nesta área conforme você participar de eventos.
   </p>
-  <div class="history-categories">
-    <span>
-      Batalhas
-      <b>
-        03
-      </b>
-    </span>
-    <span>
-      Cyphers
-      <b>
-        02
-      </b>
-    </span>
-    <span>
-      Formação
-      <b>
-        02
-      </b>
-    </span>
-  </div>
-  <small class="history-demo-note">
-    O histórico confirmado será ampliado nas próximas etapas.
-  </small>
 </aside>
 </div>
 </div>
@@ -328,31 +255,40 @@ OPORTUNIDADE
 </span>
 </button>
 </div>
+<div class="detail-tabs" data-event-detail-tabs role="tablist" aria-label="Seções do evento">
+<button class="detail-tab is-active" type="button" data-event-detail-tab="geral" role="tab" aria-selected="true">
+Informações gerais
+</button>
+<button class="detail-tab" type="button" data-event-detail-tab="gestao" role="tab" aria-selected="false" hidden>
+Gestão do evento
+</button>
+</div>
+<div data-event-detail-panel="geral">
 <h2 id="detalhe-oportunidade-titulo" data-event-title-detail>
 </h2>
 <div class="detail-meta">
 <span>
 <i class="lucide-icon" aria-hidden="true">
-<%- icones.users %>
+  <%- icones.users %>
 </i>
 <b data-event-org-detail>
 </b>
 </span>
 <span>
 <i class="lucide-icon" aria-hidden="true">
-<%- icones.calendarDays %>
+  <%- icones.calendarDays %>
 </i>
 <b>
-<span data-event-date-detail>
-</span>
-·
-<span data-event-time-detail>
-</span>
+  <span data-event-date-detail>
+  </span>
+  ·
+  <span data-event-time-detail>
+  </span>
 </b>
 </span>
 <span>
 <i class="lucide-icon" aria-hidden="true">
-<%- icones.mapPin %>
+  <%- icones.mapPin %>
 </i>
 <b data-event-location-detail>
 </b>
@@ -375,30 +311,30 @@ Sobre a oportunidade
 <div class="detail-facts">
 <div>
 <span class="lucide-icon" aria-hidden="true">
-<%- icones.mic %>
+  <%- icones.mic %>
 </span>
 <small>
-FORMATO
+  FORMATO
 </small>
 <b data-event-format-detail>
 </b>
 </div>
 <div>
 <span class="lucide-icon" aria-hidden="true">
-<%- icones.calendarCheck %>
+  <%- icones.calendarCheck %>
 </span>
 <small>
-INSCRIÇÕES
+  INSCRIÇÕES
 </small>
 <b data-event-registration-detail>
 </b>
 </div>
 <div>
 <span class="lucide-icon" aria-hidden="true">
-<%- icones.trophy %>
+  <%- icones.trophy %>
 </span>
 <small>
-DESTAQUE
+  DESTAQUE
 </small>
 <b data-event-prize-detail>
 </b>
@@ -410,7 +346,9 @@ DESTAQUE
 <span data-event-interest-total>
 0
 </span>
-pessoa(s) demonstraram interesse.
+<span data-event-interest-count-label>
+participação(ões) registrada(s).
+</span>
 </p>
 <p class="interest-explainer" data-event-demo-notice role="status" hidden>
 Este evento é um exemplo demonstrativo. Ele não recebe inscrições ou interesses operacionais.
@@ -418,20 +356,35 @@ Este evento é um exemplo demonstrativo. Ele não recebe inscrições ou interes
 <div class="detail-actions">
 <form method="post" data-interest-form>
 <button class="button button-lime" type="submit" data-interest-button aria-pressed="false">
-<span class="lucide-icon" aria-hidden="true">
-  <%- icones.calendarCheck %>
-</span>
-<span data-interest-label>
-  Demonstrar interesse
-</span>
+  <span class="lucide-icon" aria-hidden="true">
+    <%- icones.calendarCheck %>
+  </span>
+  <span data-interest-label>
+    Quero participar
+  </span>
 </button>
 </form>
-<button class="button button-outline" type="button" data-toast="Link copiado nesta demonstração">
+<button class="button button-outline" type="button" data-share-event>
 <span class="lucide-icon" aria-hidden="true">
-<%- icones.share %>
+  <%- icones.share %>
 </span>
 Compartilhar
 </button>
+</div>
+</div>
+<div data-event-detail-panel="gestao" hidden>
+<div class="event-owner-actions">
+<a class="button button-outline" data-event-edit href="#">
+Editar evento
+</a>
+<form method="post" action="#" data-event-delete onsubmit="return confirm('Excluir este evento?')">
+<button class="button button-outline danger-button" type="submit">
+  Excluir evento
+</button>
+</form>
+</div>
+<div class="event-interested-list" data-event-interested-list>
+</div>
 </div>
 </dialog>
 <%- include('../partials/fim-pagina') %>
