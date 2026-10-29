@@ -1,4 +1,42 @@
 (() => {
+  const navegacaoPerfil = document.querySelector("[data-profile-section-nav]");
+  if (navegacaoPerfil) {
+    const linksPerfil = Array.from(
+      navegacaoPerfil.querySelectorAll('a[href^="#"]')
+    );
+    const secoesPerfil = linksPerfil
+      .map(link =>
+        document.getElementById(decodeURIComponent(link.hash.slice(1)))
+      )
+      .filter(Boolean);
+    const ativarLinkPerfil = id => {
+      linksPerfil.forEach(link => {
+        const ativo = decodeURIComponent(link.hash.slice(1)) === id;
+        link.classList.toggle("is-current", ativo);
+        if (ativo) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    };
+    if (secoesPerfil.length) {
+      const inicial = decodeURIComponent(location.hash.slice(1));
+      ativarLinkPerfil(
+        secoesPerfil.some(secao => secao.id === inicial)
+          ? inicial
+          : secoesPerfil[0].id
+      );
+    }
+    linksPerfil.forEach(link =>
+      link.addEventListener("click", () =>
+        ativarLinkPerfil(decodeURIComponent(link.hash.slice(1)))
+      )
+    );
+    window.addEventListener("hashchange", () => {
+      const atual = decodeURIComponent(location.hash.slice(1));
+      if (secoesPerfil.some(secao => secao.id === atual))
+        ativarLinkPerfil(atual);
+    });
+  }
+
   const criarAviso = mensagem => {
     const aviso = document.createElement("div");
     aviso.className = "mvc-toast";

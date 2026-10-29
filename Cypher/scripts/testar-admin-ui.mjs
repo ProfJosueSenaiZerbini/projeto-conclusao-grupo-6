@@ -130,6 +130,12 @@ try {
       "Histórico anterior para validar o prazo de 60 dias."
     );
   }
+  banco
+    .prepare("UPDATE perfis SET perfil_publico = 1 WHERE usuario_id = ?")
+    .run("admin-ui-fixture-1");
+  const identificadorPublico = banco
+    .prepare("SELECT identificador FROM perfis WHERE usuario_id = ?")
+    .get("admin-ui-fixture-1").identificador;
   banco.close();
 
   const login = await fetch(`${base}/login`, {
@@ -272,11 +278,31 @@ try {
   });
   assert.equal(perfilPendente.status, 200);
   const perfilPendenteHtml = await perfilPendente.text();
+  assert.match(perfilPendenteHtml, /class="profile-layout"/);
+  assert.match(perfilPendenteHtml, /data-profile-section-nav/);
+  assert.match(perfilPendenteHtml, /id="sobre"/);
+  assert.match(perfilPendenteHtml, /id="catalogo"/);
+  assert.match(perfilPendenteHtml, /id="equipamentos"/);
+  assert.match(perfilPendenteHtml, /id="atuacao-profissional"/);
   assert.match(
     perfilPendenteHtml,
     /Sua solicitação foi enviada e aguarda análise/
   );
   assert.doesNotMatch(perfilPendenteHtml, /profile-exception-request-form/);
+
+  const perfilPublico = await fetch(
+    `${base}/p/${identificadorPublico.replace(/^@/, "")}`
+  );
+  assert.equal(perfilPublico.status, 200);
+  const perfilPublicoHtml = await perfilPublico.text();
+  assert.match(
+    perfilPublicoHtml,
+    /class="profile-layout public-profile-layout"/
+  );
+  assert.match(perfilPublicoHtml, /data-profile-section-nav/);
+  assert.match(perfilPublicoHtml, /id="catalogo-publico"/);
+  assert.match(perfilPublicoHtml, /id="equipamentos-publicos"/);
+  assert.match(perfilPublicoHtml, /id="atuacao-publica"/);
 
   const bancoPedidos = new Database(arquivoBanco);
   const pedido1 = bancoPedidos

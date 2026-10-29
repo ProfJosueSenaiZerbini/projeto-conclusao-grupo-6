@@ -1487,3 +1487,14 @@ body,
   border: 1px solid #754e47;
   background: #34201e;
 }
+
+
+/* Tema escuro do perfil reformulado — mantém o banner editorial após overrides globais legados. */
+.dark .profile-layout .profile-hero {
+  border-color: #303a2f;
+  color: #f4f6f0;
+  background:
+    radial-gradient(ellipse at 77% 16%, rgba(255, 213, 41, 0.2), transparent 31%),
+    radial-gradient(ellipse at 2% 112%, rgba(76, 156, 77, 0.24), transparent 42%),
+    linear-gradient(112deg, #0b100d, #171b16 58%, #0a0d0b);
+}

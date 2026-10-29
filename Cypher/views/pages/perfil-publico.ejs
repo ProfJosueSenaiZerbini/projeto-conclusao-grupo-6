@@ -27,37 +27,26 @@
       acaoPrincipal: { href: '/login', label: 'Acessar Cypher' }
     }) %>
 <% } else { %>
-<section class="profile-hero">
+<div class="profile-layout public-profile-layout">
+<section class="profile-hero" aria-labelledby="public-profile-name">
   <div class="profile-hero-main">
-    <div class="avatar avatar-hero">
-      <%= perfil.initials %>
-    </div>
-    <div>
-      <div class="profile-kicker">
-        <span class="status-dot" aria-hidden="true">
-        </span>
-        <%= perfil.availabilityLabel %>
+    <div class="profile-avatar-frame" aria-hidden="true"><div class="avatar avatar-hero"><%= perfil.initials %></div></div>
+    <div class="profile-hero-copy">
+      <p class="profile-hero-eyebrow">CYPHER · PERFIL PROFISSIONAL</p>
+      <h1 id="public-profile-name"><%= perfil.name %></h1>
+      <p class="profile-hero-meta"><%= perfil.categories.join(' · ') || perfil.role %></p>
+      <p class="profile-hero-handle"><%= perfil.handle %><%= perfil.city ? ` · ${perfil.city}` : '' %></p>
+      <div class="profile-hero-tags" aria-label="Categorias profissionais">
+        <% perfil.categories.forEach((categoria, indice) => { %><span class="profile-category-chip<%= indice % 2 ? ' is-muted' : '' %>"><%= categoria %></span><% }) %>
+        <% if (!perfil.categories.length) { %><span class="profile-category-chip is-muted">Nenhuma categoria compartilhada</span><% } %>
       </div>
-      <h2>
-        <%= perfil.name %>
-      </h2>
-      <p>
-        <%= perfil.handle %>
-        <%= perfil.city ? ` · ${perfil.city}` : '' %>
-      </p>
-      <div class="tag-line big">
-        <% perfil.genres.forEach(genero => { %>
-          <span>
-            <%= genero %>
-          </span>
-        <% }) %>
-      </div>
+      <p class="profile-kicker<%= perfil.availability ? (perfil.availability === 'indisponivel' ? ' is-unavailable' : ' is-available') : ' is-unknown' %>"><% if (perfil.availability) { %><span class="status-dot" aria-hidden="true"></span><% } %><%= perfil.availabilityLabel %></p>
     </div>
   </div>
 </section>
 <div class="profile-id-strip">
   <span class="lucide-icon" aria-hidden="true">
-    <%- icones.badgeCheck %>
+    <%- icones.tag %>
   </span>
   <div>
     <small>
@@ -71,13 +60,19 @@
     Imutável
   </span>
 </div>
+<nav class="profile-section-nav" aria-label="Seções do perfil" data-profile-section-nav>
+  <a href="#sobre-publico">Sobre</a>
+  <a href="#catalogo-publico">Catálogo</a>
+  <a href="#equipamentos-publicos">Equipamentos</a>
+  <a href="#atuacao-publica">Atuação profissional</a>
+</nav>
 <div class="profile-columns">
   <div class="profile-column-main">
-    <section class="profile-section card-surface">
+    <section class="profile-section card-surface profile-about" id="sobre-publico" aria-labelledby="public-about-title">
       <div class="eyebrow">
         PERFIL PROFISSIONAL
       </div>
-      <h3>
+      <h3 id="public-about-title">
         <%= perfil.role %>
       </h3>
       <p class="bio">
@@ -94,82 +89,11 @@
         </div>
       <% } %>
     </section>
-  </div>
-  <aside class="profile-column-side">
-    <section class="profile-section card-surface">
-      <div class="eyebrow">
-        EQUIPAMENTOS
-      </div>
-      <h3>
-        Ferramentas de trabalho
-      </h3>
-      <% if (perfil.equipment.length) { %>
-        <div class="gear-list">
-          <% perfil.equipment.forEach(equipamento => { %>
-            <span>
-              <i class="lucide-icon" aria-hidden="true">
-                <%- icones.audioLines %>
-              </i>
-              <%= equipamento %>
-            </span>
-          <% }) %>
-        </div>
-      <% } else { %>
-      <%- include('../partials/componentes/estado-vazio', {
-              classe: 'profile-empty-state',
-              variacao: 'compacta',
-              titulo: 'Nenhum equipamento informado'
-            }) %>
-    <% } %>
-  </section>
-</aside>
-</div>
-<section class="profile-section card-surface professional-category-section" aria-labelledby="public-category-title">
-  <div class="eyebrow">ATUAÇÃO PROFISSIONAL</div>
-  <h3 id="public-category-title">Categorias e trajetória</h3>
-  <p>Informações são exibidas conforme as preferências de visibilidade da pessoa e podem variar para cada visitante.</p>
-  <% if (perfil.categories.length) { %>
-    <div class="professional-category-cards">
-      <% perfil.categories.forEach(categoria => { %>
-        <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
-          <span>Categoria profissional</span>
-          <strong><%= categoria %></strong>
-          <span>Ver trajetória</span>
-        </a>
-      <% }) %>
-    </div>
-  <% } else { %>
-    <p class="profile-field-note">Nenhuma categoria profissional foi compartilhada publicamente.</p>
-  <% } %>
-  <% if (atuacaoSelecionada) {
-    const questionarioSelecionado = questionariosAtuacao.find(item => item.categoria === atuacaoSelecionada.categoria);
-    let temRespostaVisivel = false;
-  %>
-    <article class="professional-category-detail" aria-labelledby="public-category-detail-title">
-      <h4 id="public-category-detail-title"><%= atuacaoSelecionada.categoria %></h4>
-      <% (questionarioSelecionado?.perguntas ?? []).forEach(pergunta => {
-        const valor = atuacaoSelecionada.respostas[pergunta.campo];
-        if (valor !== undefined && valor !== '') {
-          temRespostaVisivel = true;
-      %>
-        <div class="professional-category-answer">
-          <strong><%= pergunta.pergunta %></strong>
-          <p><%= formatarRespostaAtuacao(valor) %></p>
-        </div>
-      <% } }) %>
-      <% if (!temRespostaVisivel) { %>
-        <p class="profile-field-note">Nenhum detalhe desta categoria foi compartilhado com você.</p>
-      <% } %>
-    </article>
-  <% } %>
-</section>
-<section class="profile-section card-surface public-works-section" aria-labelledby="public-works-title">
+<section class="profile-section card-surface public-works-section" id="catalogo-publico" aria-labelledby="public-works-title">
 <div class="eyebrow">
   CATÁLOGO PÚBLICO
 </div>
-<h3 id="public-works-title">
-  Obras lançadas
-</h3>
+<div class="profile-catalog-heading"><h3 id="public-works-title">Obras lançadas</h3><span class="profile-catalog-count"><%= obras.length %> <%= obras.length === 1 ? 'obra' : 'obras' %></span></div>
 <% if (obras.length) { %>
   <div class="public-works-list">
     <% obras.forEach((obra, index) => { %>
@@ -221,6 +145,84 @@
         }) %>
 <% } %>
 </section>
+  </div>
+  <aside class="profile-column-side">
+    <section class="profile-section card-surface profile-equipment" id="equipamentos-publicos" aria-labelledby="public-equipment-title">
+      <div class="eyebrow">
+        EQUIPAMENTOS
+      </div>
+      <h3 id="public-equipment-title">
+        Ferramentas de trabalho
+      </h3>
+      <% if (perfil.equipment.length) { %>
+        <div class="gear-list">
+          <% perfil.equipment.forEach(equipamento => { %>
+            <span>
+              <i class="lucide-icon" aria-hidden="true">
+                <%- icones.audioLines %>
+              </i>
+              <%= equipamento %>
+            </span>
+          <% }) %>
+        </div>
+      <% } else { %>
+      <%- include('../partials/componentes/estado-vazio', {
+              classe: 'profile-empty-state',
+              variacao: 'compacta',
+              titulo: 'Nenhum equipamento informado'
+            }) %>
+    <% } %>
+    </section>
+    <section class="profile-section card-surface profile-stats" aria-label="Informações públicas do perfil">
+      <div class="eyebrow">NA CYPHER</div>
+      <h3>Presença</h3>
+      <dl>
+        <div><dt>Obras lançadas públicas</dt><dd><%= obras.length %></dd></div>
+        <div><dt>Na Cypher desde</dt><dd><%= new Date(perfil.createdAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }) %></dd></div>
+      </dl>
+    </section>
+  </aside>
+</div>
+<section class="profile-section card-surface professional-category-section" id="atuacao-publica" aria-labelledby="public-category-title">
+  <div class="eyebrow">ATUAÇÃO PROFISSIONAL</div>
+  <h3 id="public-category-title">Categorias e trajetória compartilhada</h3>
+  <p>As respostas são filtradas no servidor de acordo com as preferências de visibilidade desta pessoa e sua relação de colaboração registrada.</p>
+  <% if (perfil.categories.length) { %>
+    <div class="professional-category-cards">
+      <% perfil.categories.forEach(categoria => { %>
+        <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
+          <span>Categoria profissional</span>
+          <strong><%= categoria %></strong>
+          <span>Ver trajetória</span>
+        </a>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="profile-field-note">Nenhuma categoria profissional foi compartilhada publicamente.</p>
+  <% } %>
+  <% if (atuacaoSelecionada) {
+    const questionarioSelecionado = questionariosAtuacao.find(item => item.categoria === atuacaoSelecionada.categoria);
+    let temRespostaVisivel = false;
+  %>
+    <article class="professional-category-detail" aria-labelledby="public-category-detail-title">
+      <h4 id="public-category-detail-title"><%= atuacaoSelecionada.categoria %></h4>
+      <% (questionarioSelecionado?.perguntas ?? []).forEach(pergunta => {
+        const valor = atuacaoSelecionada.respostas[pergunta.campo];
+        if (valor !== undefined && valor !== '') {
+          temRespostaVisivel = true;
+      %>
+        <div class="professional-category-answer">
+          <strong><%= pergunta.pergunta %></strong>
+          <p><%= formatarRespostaAtuacao(valor) %></p>
+        </div>
+      <% } }) %>
+      <% if (!temRespostaVisivel) { %>
+        <p class="profile-field-note">Nenhum detalhe desta categoria foi compartilhado com você.</p>
+      <% } %>
+    </article>
+  <% } %>
+</section>
+
+</div>
 <% } %>
-</main>
 <%- include('../partials/fim-pagina') %>
