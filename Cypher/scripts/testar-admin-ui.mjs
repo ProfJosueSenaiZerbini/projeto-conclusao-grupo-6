@@ -81,9 +81,57 @@ try {
   const cadastroInicial = await fetch(`${base}/register`);
   assert.equal(cadastroInicial.status, 200);
   const cadastroInicialHtml = await cadastroInicial.text();
-  assert.match(cadastroInicialHtml, /Sua trajetória por categoria/);
+  assert.match(cadastroInicialHtml, /Dados da conta/);
+  assert.match(
+    cadastroInicialHtml,
+    /data-register-stage="categorias"[^>]*hidden/
+  );
+  assert.match(
+    cadastroInicialHtml,
+    /data-register-stage="questionarios"[^>]*hidden/
+  );
+  assert.match(cadastroInicialHtml, /data-question-previous/);
   assert.match(cadastroInicialHtml, /data-atuacao-questionario/);
+  assert.match(cadastroInicialHtml, />Próximo /);
+  const validacaoConta = await fetch(`${base}/register/validate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Conta temporária",
+      email: "previa@example.test",
+      password: "SenhaForteDeTeste2026",
+    }),
+  });
+  assert.equal(validacaoConta.status, 200);
+  assert.equal((await validacaoConta.json()).valido, true);
+  const semContaPrematura = new Database(arquivoBanco);
+  assert.equal(
+    semContaPrematura
+      .prepare("SELECT COUNT(*) AS total FROM usuarios WHERE email = ?")
+      .get("previa@example.test").total,
+    0,
+    "A pré-validação não deve criar conta antes de concluir o onboarding"
+  );
+  semContaPrematura.close();
+  const invalidacaoConta = await fetch(`${base}/register/validate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name: "A", email: "invalido", password: "curta" }),
+  });
+  assert.equal(invalidacaoConta.status, 400);
+  assert.equal((await invalidacaoConta.json()).field, "name");
   await registrar("admin-ui@example.test", "Admin UI");
+  const emailDuplicado = await fetch(`${base}/register/validate`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      name: "Conta duplicada",
+      email: "ADMIN-UI@example.test",
+      password: "SenhaForteDeTeste2026",
+    }),
+  });
+  assert.equal(emailDuplicado.status, 409);
+  assert.equal((await emailDuplicado.json()).field, "email");
   const banco = new Database(arquivoBanco);
   const inserirUsuario = banco.prepare(
     `INSERT INTO usuarios (id, email, senha_hash, tipo_conta, demonstracao, codigo_publico, numero_sequencial)
@@ -150,6 +198,224 @@ try {
   assert.equal(login.status, 302);
   const cookie = login.headers.get("set-cookie")?.split(";")[0];
   assert.ok(cookie);
+
+  const perfilEditorResponse = await fetch(
+    `${base}/profile?editar=1&secao=profissional`,
+    { headers: { cookie } }
+  );
+  const perfilEditorHtml = await perfilEditorResponse.text();
+  assert.equal(
+    perfilEditorResponse.status,
+    200,
+    `Falha ao renderizar edição por seção: ${perfilEditorHtml.slice(0, 1600)}`
+  );
+  assert.match(perfilEditorHtml, /data-profile-editor/);
+  assert.match(perfilEditorHtml, /data-default-section="profissional"/);
+  assert.match(perfilEditorHtml, /data-profile-edit-tab="privacidade"/);
+  assert.match(perfilEditorHtml, /data-profile-edit-tab="conta"/);
+  assert.match(perfilEditorHtml, /data-profile-edit-panel="profissional"/);
+  assert.doesNotMatch(perfilEditorHtml, /class="profile-layout"/);
+  assert.match(
+    perfilEditorHtml,
+    /action="\/profile\/secoes\/contato"[^>]*data-profile-section="privacidade"/
+  );
+  const configuracoesResponse = await fetch(`${base}/settings`, {
+    headers: { cookie },
+  });
+  assert.equal(configuracoesResponse.status, 200);
+  const configuracoesHtml = await configuracoesResponse.text();
+  assert.match(configuracoesHtml, /id="privacidade"/);
+  assert.match(configuracoesHtml, /Salvar visibilidade/);
+  assert.doesNotMatch(configuracoesHtml, /name="retorno" value="perfil"/);
+
+  const bancoEdicao = new Database(arquivoBanco);
+  const perfilAntes = bancoEdicao
+    .prepare(
+      `SELECT nome, cidade, biografia, contato, disponibilidade,
+              generos_json, categorias_json, equipamentos_json
+       FROM perfis WHERE usuario_id = ?`
+    )
+    .get(adminId);
+  const snapshotAntes = bancoEdicao
+    .prepare(
+      `SELECT categoria, respostas_json, visibilidades_json
+       FROM respostas_atuacao_categoria WHERE usuario_id = ?`
+    )
+    .all(adminId);
+  bancoEdicao.close();
+
+  const salvarPessoal = await fetch(`${base}/profile/secoes/pessoal`, {
+    method: "POST",
+    redirect: "manual",
+    headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      nome: "Admin UI Revisado",
+      cidade: "Belém, PA",
+      biografia: "Biografia editada na seção pessoal.",
+      categorias: "Beatmaker",
+    }),
+  });
+  assert.equal(salvarPessoal.status, 303);
+  assert.match(salvarPessoal.headers.get("location") ?? "", /secao=pessoal/);
+
+  const bancoAposPessoal = new Database(arquivoBanco);
+  const perfilAposPessoal = bancoAposPessoal
+    .prepare(
+      `SELECT nome, cidade, biografia, contato, disponibilidade,
+              generos_json, categorias_json, equipamentos_json
+       FROM perfis WHERE usuario_id = ?`
+    )
+    .get(adminId);
+  const snapshotAposPessoal = bancoAposPessoal
+    .prepare(
+      `SELECT categoria, respostas_json, visibilidades_json
+       FROM respostas_atuacao_categoria WHERE usuario_id = ?`
+    )
+    .all(adminId);
+  bancoAposPessoal.close();
+  assert.equal(perfilAposPessoal.nome, "Admin UI Revisado");
+  assert.equal(perfilAposPessoal.cidade, "Belém, PA");
+  assert.equal(
+    perfilAposPessoal.biografia,
+    "Biografia editada na seção pessoal."
+  );
+  assert.equal(perfilAposPessoal.contato, perfilAntes.contato);
+  assert.equal(perfilAposPessoal.disponibilidade, perfilAntes.disponibilidade);
+  assert.equal(perfilAposPessoal.generos_json, perfilAntes.generos_json);
+  assert.equal(perfilAposPessoal.categorias_json, perfilAntes.categorias_json);
+  assert.equal(
+    perfilAposPessoal.equipamentos_json,
+    perfilAntes.equipamentos_json
+  );
+  assert.deepEqual(snapshotAposPessoal, snapshotAntes);
+
+  const respostasOriginais = Object.fromEntries(
+    snapshotAntes.map(item => [item.categoria, JSON.parse(item.respostas_json)])
+  );
+  const visibilidadesOriginais = Object.fromEntries(
+    snapshotAntes.map(item => [
+      item.categoria,
+      JSON.parse(item.visibilidades_json),
+    ])
+  );
+  const salvarProfissional = await fetch(
+    `${base}/profile/secoes/profissional`,
+    {
+      method: "POST",
+      redirect: "manual",
+      headers: {
+        cookie,
+        "content-type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        categorias: "Rapper",
+        disponibilidade: "",
+        equipamentos: "Microfone\nInterface de áudio",
+        respostasAtuacoesJson: JSON.stringify(respostasOriginais),
+        visibilidadesAtuacoesJson: JSON.stringify(visibilidadesOriginais),
+      }),
+    }
+  );
+  assert.equal(salvarProfissional.status, 303);
+  assert.match(
+    salvarProfissional.headers.get("location") ?? "",
+    /secao=profissional/
+  );
+  const bancoAposProfissional = new Database(arquivoBanco);
+  const perfilAposProfissional = bancoAposProfissional
+    .prepare(
+      `SELECT nome, cidade, biografia, categorias_json, equipamentos_json
+       FROM perfis WHERE usuario_id = ?`
+    )
+    .get(adminId);
+  assert.equal(perfilAposProfissional.nome, "Admin UI Revisado");
+  assert.equal(perfilAposProfissional.cidade, "Belém, PA");
+  assert.equal(
+    perfilAposProfissional.biografia,
+    "Biografia editada na seção pessoal."
+  );
+  assert.deepEqual(JSON.parse(perfilAposProfissional.categorias_json), [
+    "Rapper",
+  ]);
+  assert.deepEqual(JSON.parse(perfilAposProfissional.equipamentos_json), [
+    "Microfone",
+    "Interface de áudio",
+  ]);
+  bancoAposProfissional.close();
+
+  const salvarContato = await fetch(`${base}/profile/secoes/contato`, {
+    method: "POST",
+    redirect: "manual",
+    headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ contato: "contato.profissional@example.test" }),
+  });
+  assert.equal(salvarContato.status, 303);
+  assert.match(
+    salvarContato.headers.get("location") ?? "",
+    /secao=privacidade/
+  );
+  const salvarPrivacidade = await fetch(`${base}/settings/privacy`, {
+    method: "POST",
+    redirect: "manual",
+    headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      retorno: "perfil",
+      perfilPublico: "on",
+      localizacaoPublica: "on",
+      contatoPublico: "on",
+    }),
+  });
+  assert.equal(salvarPrivacidade.status, 303);
+  assert.match(
+    salvarPrivacidade.headers.get("location") ?? "",
+    /profile\?editar=1&secao=privacidade&privacidade=salva/
+  );
+  const bancoAposPrivacidade = new Database(arquivoBanco);
+  const perfilAposPrivacidade = bancoAposPrivacidade
+    .prepare(
+      `SELECT nome, biografia, contato, categorias_json, equipamentos_json,
+              perfil_publico, localizacao_publica, contato_publico
+       FROM perfis WHERE usuario_id = ?`
+    )
+    .get(adminId);
+  const snapshotAposPrivacidade = bancoAposPrivacidade
+    .prepare(
+      `SELECT categoria, respostas_json, visibilidades_json
+       FROM respostas_atuacao_categoria WHERE usuario_id = ?`
+    )
+    .all(adminId);
+  bancoAposPrivacidade.close();
+  assert.equal(perfilAposPrivacidade.nome, "Admin UI Revisado");
+  assert.equal(
+    perfilAposPrivacidade.biografia,
+    "Biografia editada na seção pessoal."
+  );
+  assert.equal(
+    perfilAposPrivacidade.contato,
+    "contato.profissional@example.test"
+  );
+  assert.deepEqual(JSON.parse(perfilAposPrivacidade.categorias_json), [
+    "Rapper",
+  ]);
+  assert.deepEqual(JSON.parse(perfilAposPrivacidade.equipamentos_json), [
+    "Microfone",
+    "Interface de áudio",
+  ]);
+  assert.equal(perfilAposPrivacidade.perfil_publico, 1);
+  assert.equal(perfilAposPrivacidade.localizacao_publica, 1);
+  assert.equal(perfilAposPrivacidade.contato_publico, 1);
+  assert.deepEqual(snapshotAposPrivacidade, snapshotAntes);
+  const perfilPrivacidadeSalva = await fetch(
+    `${base}/profile?editar=1&secao=privacidade&privacidade=salva`,
+    { headers: { cookie } }
+  );
+  const perfilPrivacidadeHtml = await perfilPrivacidadeSalva.text();
+  assert.equal(perfilPrivacidadeSalva.status, 200);
+  assert.match(
+    perfilPrivacidadeHtml,
+    /Preferências de visibilidade atualizadas/
+  );
+  assert.match(perfilPrivacidadeHtml, /name="retorno" value="perfil"/);
 
   const analisesResponse = await fetch(`${base}/admin/revisao`, {
     headers: { cookie },
@@ -273,17 +539,18 @@ try {
     );
   }
 
-  const perfilPendente = await fetch(`${base}/profile?editar=1`, {
-    headers: { cookie: `cypher_session=${tokenComum}` },
-  });
+  const perfilPendente = await fetch(
+    `${base}/profile?editar=1&secao=profissional`,
+    {
+      headers: { cookie: `cypher_session=${tokenComum}` },
+    }
+  );
   assert.equal(perfilPendente.status, 200);
   const perfilPendenteHtml = await perfilPendente.text();
-  assert.match(perfilPendenteHtml, /class="profile-layout"/);
-  assert.match(perfilPendenteHtml, /data-profile-section-nav/);
-  assert.match(perfilPendenteHtml, /id="sobre"/);
-  assert.match(perfilPendenteHtml, /id="catalogo"/);
-  assert.match(perfilPendenteHtml, /id="equipamentos"/);
-  assert.match(perfilPendenteHtml, /id="atuacao-profissional"/);
+  assert.match(perfilPendenteHtml, /data-profile-editor/);
+  assert.match(perfilPendenteHtml, /data-profile-edit-tab="profissional"/);
+  assert.match(perfilPendenteHtml, /data-profile-edit-panel="profissional"/);
+  assert.doesNotMatch(perfilPendenteHtml, /class="profile-layout"/);
   assert.match(
     perfilPendenteHtml,
     /Sua solicitação foi enviada e aguarda análise/

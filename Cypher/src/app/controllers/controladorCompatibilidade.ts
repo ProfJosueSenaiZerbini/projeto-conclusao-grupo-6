@@ -39,6 +39,7 @@ import {
   listarObrasPublicasPerfilCypher,
   listarObrasProprietarioCypher,
   listarAtuacoesUsuarioCypher,
+  buscarCredenciaisCypher,
   obterPerfilPublicoCypher,
   type FiltrosCatalogoObras,
   type AtuacaoProfissionalPersistida,
@@ -302,7 +303,8 @@ function renderizarCadastro(
     categoriasSelecionadas?: string[];
     outraCategoria?: string;
     atuacoesExistentes?: AtuacaoProfissionalPersistida[];
-  }
+  },
+  etapaInicial: "conta" | "categorias" | "questionarios" = "conta"
 ) {
   return res.status(status).render("pages/cadastro", {
     title: "Criar conta",
@@ -311,17 +313,20 @@ function renderizarCadastro(
     authenticated: false,
     erro,
     categoriasDisponiveis: listarCategoriasProfissionaisCypher(),
-    questionariosAtuacao: listarCategoriasProfissionaisCypher().map(categoria => ({
-      categoria,
-      perguntas: catalogoPerguntasPorCategoria(categoria),
-      legada: false,
-    })),
+    questionariosAtuacao: listarCategoriasProfissionaisCypher().map(
+      categoria => ({
+        categoria,
+        perguntas: catalogoPerguntasPorCategoria(categoria),
+        legada: false,
+      })
+    ),
     formatarRespostaAtuacao,
     nome: dados.nome ?? "",
     email: dados.email ?? "",
     categoriasSelecionadas: dados.categoriasSelecionadas ?? [],
     outraCategoria: dados.outraCategoria ?? "",
     atuacoesExistentes: dados.atuacoesExistentes ?? [],
+    etapaInicial,
   });
 }
 
@@ -386,7 +391,9 @@ function atuacoesRecebidas(
         : {};
     const camposPermitidos = new Set([
       "__categoria__",
-      ...catalogoPerguntasPorCategoria(categoria).map(pergunta => pergunta.campo),
+      ...catalogoPerguntasPorCategoria(categoria).map(
+        pergunta => pergunta.campo
+      ),
     ]);
     if (
       Object.entries(visibilidade).some(
@@ -400,7 +407,8 @@ function atuacoesRecebidas(
     }
     const visibilidades: VisibilidadesAtuacao = {
       __categoria__:
-        (visibilidade.__categoria__ as VisibilidadesAtuacao[string]) ?? "publico",
+        (visibilidade.__categoria__ as VisibilidadesAtuacao[string]) ??
+        "publico",
     };
     for (const campo of Object.keys(resposta)) {
       const valor = visibilidade[campo];
@@ -486,6 +494,7 @@ export function paginaAutenticacao(req: Request, res: Response) {
       : [],
     formatarRespostaAtuacao,
     atuacoesExistentes: [],
+    etapaInicial: "conta",
     nome: "",
     email: "",
     outraCategoria: "",
@@ -598,6 +607,31 @@ export async function login(req: Request, res: Response) {
   }
 }
 
+export function validarDadosCadastro(req: Request, res: Response) {
+  const nome = String(req.body.name ?? "").trim();
+  const email = String(req.body.email ?? "")
+    .trim()
+    .toLowerCase();
+  const senha = String(req.body.password ?? "");
+  const erroNome = validarNomeCadastro(nome);
+  if (erroNome)
+    return res.status(400).json({ field: "name", message: erroNome });
+  const erroEmail = validarEmail(email);
+  if (erroEmail)
+    return res.status(400).json({ field: "email", message: erroEmail });
+  const erroSenha = validarSenha(senha);
+  if (erroSenha)
+    return res.status(400).json({ field: "password", message: erroSenha });
+  if (buscarCredenciaisCypher(email)) {
+    return res.status(409).json({
+      field: "email",
+      message:
+        "Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.",
+    });
+  }
+  return res.json({ valido: true });
+}
+
 export async function register(req: Request, res: Response) {
   const nome = String(req.body.name ?? "").trim();
   const email = String(req.body.email ?? "")
@@ -623,7 +657,8 @@ export async function register(req: Request, res: Response) {
       res,
       400,
       "Informe um nome entre 2 e 80 caracteres.",
-      dadosFormulario
+      dadosFormulario,
+      "conta"
     );
   }
   if (validarEmail(email)) {
@@ -631,7 +666,8 @@ export async function register(req: Request, res: Response) {
       res,
       400,
       "Informe um endereço de e-mail válido.",
-      dadosFormulario
+      dadosFormulario,
+      "conta"
     );
   }
   if (validarSenha(senha)) {
@@ -639,7 +675,8 @@ export async function register(req: Request, res: Response) {
       res,
       400,
       "A senha precisa ter entre 8 e 128 caracteres.",
-      dadosFormulario
+      dadosFormulario,
+      "conta"
     );
   }
   if (
@@ -652,7 +689,8 @@ export async function register(req: Request, res: Response) {
       res,
       400,
       "Selecione pelo menos uma categoria válida.",
-      dadosFormulario
+      dadosFormulario,
+      "categorias"
     );
   }
   if (
@@ -663,7 +701,8 @@ export async function register(req: Request, res: Response) {
       res,
       400,
       "Descreva a outra categoria em até 60 caracteres.",
-      dadosFormulario
+      dadosFormulario,
+      "categorias"
     );
   }
 
@@ -687,12 +726,18 @@ export async function register(req: Request, res: Response) {
     if (categoriaJaAprovada) {
       const respostas = objetoJsonRecebido(respostasAtuacoesJson);
       const visibilidades = objetoJsonRecebido(visibilidadesAtuacoesJson);
-      if (respostas && Object.prototype.hasOwnProperty.call(respostas, "Outros")) {
+      if (
+        respostas &&
+        Object.prototype.hasOwnProperty.call(respostas, "Outros")
+      ) {
         respostas[outrasCategorias] = respostas.Outros;
         delete respostas.Outros;
         respostasAtuacoesJson = JSON.stringify(respostas);
       }
-      if (visibilidades && Object.prototype.hasOwnProperty.call(visibilidades, "Outros")) {
+      if (
+        visibilidades &&
+        Object.prototype.hasOwnProperty.call(visibilidades, "Outros")
+      ) {
         visibilidades[outrasCategorias] = visibilidades.Outros;
         delete visibilidades.Outros;
         visibilidadesAtuacoesJson = JSON.stringify(visibilidades);
@@ -717,7 +762,8 @@ export async function register(req: Request, res: Response) {
             respostasAtuacoesJson,
             visibilidadesAtuacoesJson
           ),
-        }
+        },
+        "questionarios"
       );
     }
     await cadastrarUsuario({
@@ -744,7 +790,8 @@ export async function register(req: Request, res: Response) {
         res,
         409,
         "Este e-mail já está cadastrado. Entre na sua conta ou use outro e-mail.",
-        dadosFormulario
+        dadosFormulario,
+        "conta"
       );
     }
 
@@ -753,7 +800,8 @@ export async function register(req: Request, res: Response) {
       res,
       500,
       "Não foi possível criar sua conta agora. Tente novamente.",
-      dadosFormulario
+      dadosFormulario,
+      "questionarios"
     );
   }
 }
@@ -1412,6 +1460,14 @@ function valoresPerfil(usuario: UsuarioDaSessao) {
   };
 }
 
+const secoesEdicaoPerfil = new Set([
+  "pessoal",
+  "profissional",
+  "portfolio",
+  "privacidade",
+  "conta",
+]);
+
 function renderizarPerfil(
   res: Response,
   usuario: UsuarioDaSessao,
@@ -1427,6 +1483,8 @@ function renderizarPerfil(
     atuacaoSelecionada?: string;
     atuacoesSolicitadas?: AtuacaoProfissionalPersistida[];
     categoriasSolicitadas?: string[];
+    secaoEdicao?: string;
+    privacidadeSalva?: boolean;
   } = {}
 ) {
   const estadoCategorias = usuario.demonstracao
@@ -1469,7 +1527,9 @@ function renderizarPerfil(
     categoriaLegadaRapperMC,
     formatarRespostaAtuacao,
     atuacaoSelecionada:
-      atuacoesExistentes.find(item => item.categoria === opcoes.atuacaoSelecionada) ?? null,
+      atuacoesExistentes.find(
+        item => item.categoria === opcoes.atuacaoSelecionada
+      ) ?? null,
     generosDisponiveis: generosObra.filter(genero => genero !== "Outro"),
     categoriasBloqueadas: estadoCategorias.bloqueada,
     excecaoCategoriaDisponivel: estadoCategorias.excecaoDisponivel,
@@ -1497,6 +1557,8 @@ function renderizarPerfil(
       )[opcoes.categoriaPropostaResultado ?? ""] ?? null,
     categoriaPropostaErro: opcoes.categoriaPropostaResultado === "invalida",
     valores: opcoes.valores ?? valoresPerfil(usuario),
+    secaoEdicao: opcoes.secaoEdicao ?? "pessoal",
+    privacidadeSalva: opcoes.privacidadeSalva ?? false,
     publicSlug: usuario.handle.replace(/^@/, ""),
   });
 }
@@ -1504,6 +1566,13 @@ function renderizarPerfil(
 export const perfil = (req: Request, res: Response) => {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
+  const secaoSolicitada = parametroTexto(req, "secao");
+  const erroSolicitado = parametroTexto(req, "erro");
+  const secaoProfissional = Boolean(
+    parametroTexto(req, "categoria") ||
+    parametroTexto(req, "solicitacao") ||
+    erroSolicitado.startsWith("excecao_")
+  );
   const erros: Record<string, string> = {
     excecao_justificativa:
       "Informe o motivo da solicitação em 10 a 500 caracteres.",
@@ -1515,13 +1584,20 @@ export const perfil = (req: Request, res: Response) => {
       "Revise as categorias e responda aos campos obrigatórios da atuação solicitada.",
     excecao_motivo:
       "Selecione um motivo e, se escolheu Outro, explique sua necessidade.",
-    excecao_iguais: "Selecione uma alteração real nas categorias profissionais.",
+    excecao_iguais:
+      "Selecione uma alteração real nas categorias profissionais.",
     resposta_esclarecimento:
       "Sua resposta precisa ter entre 5 e 1.000 caracteres.",
   };
   return renderizarPerfil(res, usuario, {
     editando: req.query.editar === "1",
+    secaoEdicao: secoesEdicaoPerfil.has(secaoSolicitada)
+      ? secaoSolicitada
+      : secaoProfissional
+        ? "profissional"
+        : "pessoal",
     salvo: req.query.salvo === "1",
+    privacidadeSalva: parametroTexto(req, "privacidade") === "salva",
     generoPendente: req.query.genero === "analise",
     categoriaPropostaResultado: parametroTexto(req, "categoria"),
     atuacaoSelecionada: parametroTexto(req, "atuacao"),
@@ -1538,7 +1614,10 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
   if (usuario.categories.includes(categoriaLegadaRapperMC)) {
     permitidas.push(categoriaLegadaRapperMC);
   }
-  const reexibir = (erro: string, atuacoesSolicitadas: AtuacaoProfissionalPersistida[] = []) =>
+  const reexibir = (
+    erro: string,
+    atuacoesSolicitadas: AtuacaoProfissionalPersistida[] = []
+  ) =>
     renderizarPerfil(res, usuario, {
       status: 400,
       editando: true,
@@ -1562,8 +1641,19 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
   };
   const motivoCodigo = String(req.body.motivoCodigo ?? "");
   const explicacao = String(req.body.motivoOutro ?? "").trim();
-  if (!Object.hasOwn(motivos, motivoCodigo) || (motivoCodigo === "outro" && (explicacao.length < 10 || explicacao.length > 500))) {
-    return reexibir("excecao_motivo", atuacoesParaRenderizar(categoriasSolicitadas, req.body.respostasAtuacoesJson, req.body.visibilidadesAtuacoesJson));
+  if (
+    !Object.hasOwn(motivos, motivoCodigo) ||
+    (motivoCodigo === "outro" &&
+      (explicacao.length < 10 || explicacao.length > 500))
+  ) {
+    return reexibir(
+      "excecao_motivo",
+      atuacoesParaRenderizar(
+        categoriasSolicitadas,
+        req.body.respostasAtuacoesJson,
+        req.body.visibilidadesAtuacoesJson
+      )
+    );
   }
   const motivo = `${motivos[motivoCodigo]}${motivoCodigo === "outro" ? ` ${explicacao}` : ""}`;
   const novasCategorias = categoriasSolicitadas.filter(
@@ -1578,7 +1668,11 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
   if (!atuacoes) {
     return reexibir(
       "excecao_questionario",
-      atuacoesParaRenderizar(categoriasSolicitadas, req.body.respostasAtuacoesJson, req.body.visibilidadesAtuacoesJson)
+      atuacoesParaRenderizar(
+        categoriasSolicitadas,
+        req.body.respostasAtuacoesJson,
+        req.body.visibilidadesAtuacoesJson
+      )
     );
   }
   const respostasSolicitadas = Object.fromEntries(
@@ -1702,7 +1796,9 @@ export const perfilPublico = (req: Request, res: Response) => {
     },
     obras: listarObrasPublicasPerfilCypher(perfilPublico.handle),
     atuacaoSelecionada:
-      perfilPublico.atuacoes.find(item => item.categoria === atuacaoSelecionada) ?? null,
+      perfilPublico.atuacoes.find(
+        item => item.categoria === atuacaoSelecionada
+      ) ?? null,
     questionariosAtuacao: perfilPublico.categories.map(categoria => ({
       categoria,
       perguntas: catalogoPerguntasPorCategoria(categoria),
@@ -1715,6 +1811,9 @@ export function atualizarPerfil(req: Request, res: Response) {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao) return res.sendStatus(403);
+  const secaoEdicao = secoesEdicaoPerfil.has(String(req.body.secaoEdicao ?? ""))
+    ? String(req.body.secaoEdicao)
+    : "";
 
   const nome = String(req.body.nome ?? "").trim();
   const cidade = String(req.body.cidade ?? "").trim();
@@ -1775,6 +1874,7 @@ export function atualizarPerfil(req: Request, res: Response) {
     return renderizarPerfil(res, usuario, {
       status: 400,
       editando: true,
+      secaoEdicao,
       erro,
       valores,
     });
@@ -1793,6 +1893,7 @@ export function atualizarPerfil(req: Request, res: Response) {
     return renderizarPerfil(res, usuario, {
       status: 400,
       editando: true,
+      secaoEdicao,
       erro: "Preencha as perguntas obrigatórias para cada nova categoria e confira suas respostas.",
       valores,
       atuacoesExistentes: atuacoesParaRenderizar(
@@ -1844,10 +1945,14 @@ export function atualizarPerfil(req: Request, res: Response) {
         : "profissional",
     });
     if (!atualizado) return res.sendStatus(404);
-    return res.redirect(
-      303,
-      propostaGenero ? "/profile?salvo=1&genero=analise" : "/profile?salvo=1"
-    );
+    const destino = new URLSearchParams();
+    if (secaoEdicao) {
+      destino.set("editar", "1");
+      destino.set("secao", secaoEdicao);
+    }
+    destino.set("salvo", "1");
+    if (propostaGenero) destino.set("genero", "analise");
+    return res.redirect(303, `/profile?${destino.toString()}`);
   } catch (erroAtualizacao) {
     const mensagemErro =
       erroAtualizacao instanceof Error ? erroAtualizacao.message : "";
@@ -1861,6 +1966,7 @@ export function atualizarPerfil(req: Request, res: Response) {
       return renderizarPerfil(res, usuario, {
         status: 409,
         editando: true,
+        secaoEdicao,
         erro: `As categorias profissionais foram alteradas recentemente. Você poderá alterá-las novamente em ${dataProxima}. As demais informações do perfil permanecem editáveis.`,
         valores,
       });
@@ -1869,10 +1975,86 @@ export function atualizarPerfil(req: Request, res: Response) {
     return renderizarPerfil(res, usuario, {
       status: 500,
       editando: true,
+      secaoEdicao,
       erro: "Não foi possível salvar o perfil agora. Tente novamente.",
       valores,
     });
   }
+}
+
+export function atualizarPerfilPorSecao(req: Request, res: Response) {
+  const usuario = exigeAcesso(req, res);
+  if (!usuario) return;
+  if (usuario.demonstracao) return res.sendStatus(403);
+
+  const secao = String(req.params.secao ?? "");
+  if (!["pessoal", "profissional", "contato"].includes(secao)) {
+    return res.sendStatus(404);
+  }
+
+  const valoresAtuais = valoresPerfil(usuario);
+  const atuacoesAtuais = listarAtuacoesUsuarioCypher(usuario.id);
+  const bodyRecebido = (req.body ?? {}) as Record<string, unknown>;
+  const corpoCompleto: Record<string, unknown> = {
+    nome: usuario.name,
+    cidade: usuario.city,
+    biografia: usuario.biography,
+    contato: usuario.contact,
+    categorias: usuario.categories,
+    disponibilidade: usuario.availability,
+    generos: valoresAtuais.outroGenero
+      ? [...valoresAtuais.generos, "Outro"]
+      : valoresAtuais.generos,
+    outroGenero: valoresAtuais.outroGenero,
+    equipamentos: valoresAtuais.equipamentos,
+    respostasAtuacoesJson: JSON.stringify(
+      Object.fromEntries(
+        atuacoesAtuais.map(item => [item.categoria, item.respostas])
+      )
+    ),
+    visibilidadesAtuacoesJson: JSON.stringify(
+      Object.fromEntries(
+        atuacoesAtuais.map(item => [item.categoria, item.visibilidades])
+      )
+    ),
+  };
+
+  const camposPermitidos: Record<string, string[]> = {
+    pessoal: ["nome", "cidade", "biografia"],
+    contato: ["contato"],
+    profissional: [
+      "disponibilidade",
+      "equipamentos",
+      "respostasAtuacoesJson",
+      "visibilidadesAtuacoesJson",
+    ],
+  };
+  for (const campo of camposPermitidos[secao]) {
+    if (Object.hasOwn(bodyRecebido, campo)) {
+      corpoCompleto[campo] = bodyRecebido[campo];
+    }
+  }
+
+  if (secao === "profissional") {
+    corpoCompleto.categorias = Object.hasOwn(bodyRecebido, "categorias")
+      ? bodyRecebido.categorias
+      : [];
+    corpoCompleto.generos = Object.hasOwn(bodyRecebido, "generos")
+      ? bodyRecebido.generos
+      : [];
+    const generosRecebidos = categoriasRecebidas(corpoCompleto.generos);
+    if (!generosRecebidos.includes("Outro")) {
+      corpoCompleto.outroGenero = "";
+    } else if (Object.hasOwn(bodyRecebido, "outroGenero")) {
+      corpoCompleto.outroGenero = bodyRecebido.outroGenero;
+    }
+  }
+
+  req.body = {
+    ...corpoCompleto,
+    secaoEdicao: secao === "contato" ? "privacidade" : secao,
+  };
+  return atualizarPerfil(req, res);
 }
 
 export function revisaoAdministrativa(req: Request, res: Response) {
@@ -1911,8 +2093,7 @@ export function revisaoAdministrativa(req: Request, res: Response) {
       "A solicitação já foi analisada ou não está mais pendente.",
     snapshot_alterado:
       "O perfil mudou desde o envio do pedido. Peça ao profissional para enviar uma nova solicitação.",
-    mensagem_esclarecimento:
-      "Escreva uma pergunta de 5 a 500 caracteres.",
+    mensagem_esclarecimento: "Escreva uma pergunta de 5 a 500 caracteres.",
     esclarecimento_indisponivel:
       "Não foi possível enviar outra pergunta até que o profissional responda.",
     aguarda_resposta:
@@ -1926,14 +2107,16 @@ export function revisaoAdministrativa(req: Request, res: Response) {
   ).map(solicitacao => ({
     ...solicitacao,
     motivoCodigoRotulo:
-      ({
-        recente: "Início recente de atuação",
-        novos_trabalhos: "Novos tipos de trabalho",
-        atualizar: "Correção ou atualização de perfil",
-        categoria_incorreta: "Categoria anterior incorreta",
-        ampliar: "Ampliação de atuação",
-        outro: "Outro motivo",
-      } as Record<string, string>)[solicitacao.motivoCodigo] ?? "Motivo informado",
+      (
+        {
+          recente: "Início recente de atuação",
+          novos_trabalhos: "Novos tipos de trabalho",
+          atualizar: "Correção ou atualização de perfil",
+          categoria_incorreta: "Categoria anterior incorreta",
+          ampliar: "Ampliação de atuação",
+          outro: "Outro motivo",
+        } as Record<string, string>
+      )[solicitacao.motivoCodigo] ?? "Motivo informado",
     questionarios: solicitacao.categoriasSolicitadas.map(categoria => ({
       categoria,
       perguntas: catalogoPerguntasPorCategoria(categoria),
@@ -2189,7 +2372,12 @@ export function atualizarPrivacidade(req: Request, res: Response) {
     contactPublic: req.body.contatoPublico === "on",
   });
   if (!atualizado) return res.sendStatus(404);
-  return res.redirect(303, "/settings?privacidade=salva");
+  return res.redirect(
+    303,
+    req.body.retorno === "perfil"
+      ? "/profile?editar=1&secao=privacidade&privacidade=salva"
+      : "/settings?privacidade=salva"
+  );
 }
 
 export async function excluirConta(req: Request, res: Response) {

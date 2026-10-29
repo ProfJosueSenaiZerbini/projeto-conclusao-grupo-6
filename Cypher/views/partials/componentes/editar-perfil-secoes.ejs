@@ -1,0 +1,305 @@
+<section class="profile-edit-panel profile-edit-workspace card-surface" id="editar-perfil" aria-labelledby="profile-edit-title" data-profile-editor data-default-section="<%= secaoEdicao %>">
+  <header class="profile-edit-heading">
+    <div>
+      <div class="eyebrow">ESPAÇO PROFISSIONAL · CYPHER</div>
+      <h2 id="profile-edit-title">Editar perfil</h2>
+      <p>Organize sua presença na cena. Cada área salva separadamente e mantém os dados das demais.</p>
+    </div>
+    <a class="button button-outline profile-edit-cancel" href="/profile">Voltar ao perfil</a>
+  </header>
+
+  <nav class="profile-edit-navigation" aria-label="Áreas de edição do perfil" role="tablist" data-profile-edit-nav>
+    <button type="button" class="profile-edit-tab" role="tab" id="edit-tab-pessoal" aria-controls="edit-panel-pessoal" data-profile-edit-tab="pessoal">Informações pessoais</button>
+    <button type="button" class="profile-edit-tab" role="tab" id="edit-tab-profissional" aria-controls="edit-panel-profissional" data-profile-edit-tab="profissional">Atuação profissional</button>
+    <button type="button" class="profile-edit-tab" role="tab" id="edit-tab-portfolio" aria-controls="edit-panel-portfolio" data-profile-edit-tab="portfolio">Portfólio e experiência</button>
+    <button type="button" class="profile-edit-tab" role="tab" id="edit-tab-privacidade" aria-controls="edit-panel-privacidade" data-profile-edit-tab="privacidade">Privacidade e contato</button>
+    <button type="button" class="profile-edit-tab" role="tab" id="edit-tab-conta" aria-controls="edit-panel-conta" data-profile-edit-tab="conta">Conta e segurança</button>
+  </nav>
+  <p class="profile-edit-draft-status" data-profile-draft-status role="status" hidden></p>
+
+  <div class="profile-edit-panels">
+    <section class="profile-edit-section" id="edit-panel-pessoal" role="tabpanel" aria-labelledby="edit-tab-pessoal" data-profile-edit-panel="pessoal"<%= secaoEdicao === 'pessoal' ? '' : ' hidden' %>>
+      <div class="profile-edit-section-heading">
+        <div class="eyebrow">IDENTIDADE E APRESENTAÇÃO</div>
+        <h3>Informações pessoais</h3>
+        <p>Edite o nome artístico e a apresentação que compõem seu perfil profissional.</p>
+      </div>
+      <p class="profile-field-note">A edição existente não separa nome civil de nome artístico e ainda não oferece envio de foto ou imagem de capa; nenhum campo ou controle fictício foi incluído.</p>
+      <form method="post" action="/profile/secoes/pessoal" class="profile-edit-form" data-profile-section-form data-profile-section="pessoal">
+        <div class="form-grid">
+          <label>
+            Nome artístico
+            <input name="nome" value="<%= valores.nome %>" minlength="2" maxlength="80" autocomplete="nickname" required>
+          </label>
+          <label>
+            Cidade e estado
+            <input name="cidade" value="<%= valores.cidade %>" maxlength="100" placeholder="Ex.: São Paulo, SP" autocomplete="address-level2">
+            <small>A exposição pública é controlada em Privacidade e contato.</small>
+          </label>
+        </div>
+        <label>
+          Biografia
+          <textarea name="biografia" maxlength="500" rows="5" placeholder="Conte um pouco sobre sua trajetória e seu trabalho"><%= valores.biografia %></textarea>
+        </label>
+        <div class="profile-edit-actions">
+          <button class="button button-lime" type="submit">Salvar informações pessoais</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="profile-edit-section" id="edit-panel-profissional" role="tabpanel" aria-labelledby="edit-tab-profissional" data-profile-edit-panel="profissional"<%= secaoEdicao === 'profissional' ? '' : ' hidden' %>>
+      <div class="profile-edit-section-heading">
+        <div class="eyebrow">CATEGORIAS · ESPECIALIDADES · FERRAMENTAS</div>
+        <h3>Atuação profissional</h3>
+        <p>As respostas ficam agrupadas por categoria e cada detalhe mantém sua configuração de visibilidade.</p>
+      </div>
+      <% if (categoriasBloqueadas) { %>
+        <p class="profile-policy-notice" role="status">Categorias profissionais ficam bloqueadas até <strong><%= proximaAlteracaoCategorias %></strong>. Você pode atualizar suas respostas, gêneros, status e equipamentos sem alterar as categorias. Se precisar mudar antes do prazo, solicite uma exceção abaixo.</p>
+      <% } else if (excecaoCategoriaDisponivel) { %>
+        <p class="profile-policy-notice" role="status">A equipe autorizou uma alteração excepcional de categorias. A autorização será consumida somente quando a mudança for salva; ao concluir, inicia-se um novo prazo de 60 dias.</p>
+      <% } %>
+      <form method="post" action="/profile/secoes/profissional" class="profile-edit-form" data-atuacao-form data-profile-section-form data-profile-section="profissional">
+        <fieldset class="profile-category-fieldset category-fieldset"<%= categoriasBloqueadas ? ' disabled' : '' %>>
+          <legend>Categorias profissionais atuais</legend>
+          <div class="profile-category-grid">
+            <% categoriasDisponiveis.forEach(categoria => { %>
+              <label class="profile-category-option category-option">
+                <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoria === 'Outros' ? ' data-category-other' : '' %><%= (categoriasBloqueadas ? usuario.categories : valores.categorias).includes(categoria) ? ' checked' : '' %>>
+                <span><%= categoria %></span>
+              </label>
+            <% }) %>
+          </div>
+          <p class="category-validation" data-category-validation role="alert" hidden>Selecione pelo menos uma categoria.</p>
+        </fieldset>
+        <% if (categoriasBloqueadas) { usuario.categories.forEach(categoria => { %>
+          <input type="hidden" name="categorias" value="<%= categoria %>">
+        <% }); } %>
+
+        <div class="profile-questionnaire-groups" aria-label="Questionários por categoria">
+          <h4>Trajetória por categoria</h4>
+          <p>Somente as categorias selecionadas exibem seus questionários. Alterar respostas não libera cargos nem concede permissões.</p>
+          <% questionariosAtuacao.forEach((questionario, indice) => { const categoriaAtiva = valores.categorias.includes(questionario.categoria); %>
+            <div class="profile-questionnaire-group" data-profile-category-group data-categoria="<%= questionario.categoria %>" data-categoria-atual="<%= usuario.categories.includes(questionario.categoria) %>"<%= categoriaAtiva ? '' : ' hidden' %>>
+              <p class="profile-question-validation" data-profile-question-validation role="alert" hidden></p>
+              <%- include('questionario-atuacao', {
+                categoriaAtuacao: questionario.categoria,
+                perguntasAtuacao: questionario.perguntas,
+                idQuestionario: `perfil-atuacao-${indice}`,
+                legada: questionario.legada,
+                atuacoesExistentes,
+                formatarRespostaAtuacao
+              }) %>
+            </div>
+          <% }) %>
+        </div>
+        <input type="hidden" name="respostasAtuacoesJson" data-respostas-atuacoes-json value="{}">
+        <input type="hidden" name="visibilidadesAtuacoesJson" data-visibilidades-atuacoes-json value="{}">
+
+        <label>
+          Status profissional
+          <select name="disponibilidade" data-profile-status>
+            <option value="">Não informar um status agora</option>
+            <% statusOptions.forEach(opcao => { %>
+              <option value="<%= opcao.value %>" data-categorias="<%= opcao.categorias.join('|') %>"<%= valores.disponibilidade === opcao.value ? ' selected' : '' %>><%= opcao.label %></option>
+            <% }) %>
+          </select>
+          <small>As opções consideram as categorias selecionadas.</small>
+        </label>
+
+        <fieldset class="profile-category-fieldset profile-genre-fieldset">
+          <legend>Gêneros e estilos musicais · selecione até 8</legend>
+          <div class="profile-category-grid">
+            <% generosDisponiveis.forEach(genero => { %>
+              <label class="profile-category-option profile-genre-option">
+                <input type="checkbox" name="generos" value="<%= genero %>"<%= valores.generos.includes(genero) ? ' checked' : '' %>>
+                <span><%= genero %></span>
+              </label>
+            <% }) %>
+            <label class="profile-category-option profile-genre-option">
+              <input type="checkbox" name="generos" value="Outro" data-genre-other<%= valores.outroGenero ? ' checked' : '' %>>
+              <span>Outro</span>
+            </label>
+          </div>
+        </fieldset>
+        <div class="profile-other-category" data-other-genre-field<%= valores.outroGenero ? '' : ' hidden' %>>
+          <label>
+            Sugira outro gênero
+            <input id="genero-personalizado" name="outroGenero" value="<%= valores.outroGenero %>" maxlength="40" minlength="2" placeholder="Ex.: Drill brasileiro">
+            <small>Essa sugestão será analisada pela equipe e não aparecerá publicamente antes da aprovação.</small>
+          </label>
+        </div>
+        <% if (usuario.genres.some(genero => !generosDisponiveis.includes(genero))) { %>
+          <p class="profile-field-note">Gêneros personalizados já aprovados são mantidos no seu perfil. Para sugerir outro, use “Outro”.</p>
+        <% } %>
+        <label id="profile-equipment-input">
+          Equipamentos e ferramentas profissionais <span class="profile-field-optional">(um por linha, até 12)</span>
+          <textarea name="equipamentos" maxlength="1000" rows="4" placeholder="Microfone, interface, DAW ou outra ferramenta"><%= valores.equipamentos %></textarea>
+        </label>
+        <div class="profile-edit-actions">
+          <button class="button button-lime" type="submit">Salvar atuação profissional</button>
+        </div>
+      </form>
+
+      <% if (categoriasBloqueadas && !excecaoCategoriaDisponivel) { %>
+        <section class="profile-category-request profile-exception-request" aria-labelledby="profile-exception-title">
+          <div>
+            <h4 id="profile-exception-title">Solicitar alteração antes do prazo</h4>
+            <p>Escolha as categorias que deseja manter, adicionar ou substituir e explique o motivo. A equipe avaliará o pedido; enviá-lo não altera o prazo nem libera a mudança.</p>
+          </div>
+          <% if (solicitacaoExcecao?.status === 'pendente') { %>
+            <p class="profile-policy-notice" role="status">Sua solicitação foi enviada e aguarda análise da equipe. Não é necessário enviá-la novamente.</p>
+            <% if (solicitacaoExcecao.categoriasSolicitadas.length) { %>
+              <p class="profile-field-note">Categorias solicitadas: <%= solicitacaoExcecao.categoriasSolicitadas.join(', ') %></p>
+            <% } %>
+            <% if (solicitacaoExcecao.historico.length) { %>
+              <ol class="category-request-thread" aria-label="Mensagens sobre a solicitação">
+                <% solicitacaoExcecao.historico.forEach(mensagem => { %>
+                  <li class="category-request-message category-request-message-<%= mensagem.autorTipo %>">
+                    <strong><%= mensagem.autorTipo === 'administrador' ? 'Equipe Cypher' : 'Você' %></strong>
+                    <p><%= mensagem.mensagem %></p>
+                    <time datetime="<%= mensagem.criadaEm %>"><%= new Date(`${mensagem.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR') %></time>
+                  </li>
+                <% }) %>
+              </ol>
+              <% const ultimaMensagemSolicitacao = solicitacaoExcecao.historico[solicitacaoExcecao.historico.length - 1]; %>
+              <% if (ultimaMensagemSolicitacao?.autorTipo === 'administrador') { %>
+                <form method="post" action="/profile/categorias/solicitacoes/<%= solicitacaoExcecao.id %>/responder" class="profile-exception-request-form" data-profile-section-form data-profile-section="profissional">
+                  <label for="profile-exception-reply">Responder à equipe
+                    <textarea id="profile-exception-reply" name="mensagem" minlength="5" maxlength="1000" rows="3" required></textarea>
+                  </label>
+                  <button class="button button-lime" type="submit">Enviar resposta</button>
+                </form>
+              <% } %>
+            <% } %>
+          <% } else { %>
+            <% if (solicitacaoExcecao?.status === 'rejeitado') { %>
+              <p class="profile-policy-notice profile-exception-decision" role="status">Solicitação anterior recusada: <%= solicitacaoExcecao.motivoRevisao %></p>
+            <% } else if (solicitacaoExcecao?.status === 'aprovado') { %>
+              <p class="profile-policy-notice" role="status">Uma solicitação anterior foi aprovada. Se uma nova alteração ainda estiver bloqueada, você pode enviar outro pedido.</p>
+            <% } %>
+            <form method="post" action="/profile/categorias/solicitar-excecao" class="profile-exception-request-form" data-atuacao-form data-profile-section-form data-profile-section="profissional">
+                <fieldset class="profile-category-fieldset">
+                <legend>Categorias após a alteração solicitada</legend>
+                <div class="profile-category-grid">
+                  <% categoriasDisponiveis.filter(categoria => categoria !== categoriaLegadaRapperMC).forEach(categoria => { %>
+                    <label class="profile-category-option">
+                      <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoriasSolicitadas.includes(categoria) ? ' checked' : '' %>>
+                      <span><%= categoria %></span>
+                    </label>
+                  <% }) %>
+                  <% if (usuario.categories.includes(categoriaLegadaRapperMC)) { %>
+                    <label class="profile-category-option">
+                      <input type="checkbox" name="categorias" value="<%= categoriaLegadaRapperMC %>"<%= categoriasSolicitadas.includes(categoriaLegadaRapperMC) ? ' checked' : '' %>>
+                      <span><%= categoriaLegadaRapperMC %> (legada)</span>
+                    </label>
+                  <% } %>
+                </div>
+                </fieldset>
+              <p class="category-validation" data-category-validation role="alert" hidden>Selecione ao menos uma categoria para enviar a solicitação.</p>
+              <section class="professional-questionnaires" aria-label="Respostas da alteração solicitada">
+                <% questionariosAtuacao.forEach((questionario, indice) => { const categoriaSolicitada = categoriasSolicitadas.includes(questionario.categoria); %>
+                  <div class="profile-questionnaire-group" data-profile-category-group data-categoria="<%= questionario.categoria %>" data-categoria-atual="<%= usuario.categories.includes(questionario.categoria) %>"<%= categoriaSolicitada ? '' : ' hidden' %>>
+                    <p class="profile-question-validation" data-profile-question-validation role="alert" hidden></p>
+                    <%- include('questionario-atuacao', {
+                      categoriaAtuacao: questionario.categoria,
+                      perguntasAtuacao: questionario.perguntas,
+                      idQuestionario: `pedido-atuacao-${indice}`,
+                      legada: questionario.legada,
+                      atuacoesExistentes: atuacoesSolicitadas,
+                      formatarRespostaAtuacao
+                    }) %>
+                  </div>
+                <% }) %>
+              </section>
+              <input type="hidden" name="respostasAtuacoesJson" data-respostas-atuacoes-json value="{}">
+              <input type="hidden" name="visibilidadesAtuacoesJson" data-visibilidades-atuacoes-json value="{}">
+              <label for="profile-exception-reason">Por que deseja adicionar ou modificar essa categoria?
+                <select id="profile-exception-reason" name="motivoCodigo" required>
+                  <option value="">Selecione um motivo</option>
+                  <option value="recente">Comecei a atuar nessa área recentemente</option>
+                  <option value="novos_trabalhos">Passei a desenvolver novos tipos de trabalho</option>
+                  <option value="atualizar">Quero corrigir ou atualizar informações do meu perfil</option>
+                  <option value="categoria_incorreta">Selecionei a categoria incorreta anteriormente</option>
+                  <option value="ampliar">Quero ampliar minha atuação e buscar oportunidades nessa área</option>
+                  <option value="outro">Outro motivo</option>
+                </select>
+              </label>
+              <label>Explique, se selecionou “Outro”
+                <textarea name="motivoOutro" minlength="10" maxlength="500" rows="3" placeholder="Explique brevemente (obrigatório para Outro)"></textarea>
+              </label>
+              <button class="button button-lime" type="submit">Enviar para análise</button>
+            </form>
+          <% } %>
+        </section>
+      <% } %>
+      <form method="post" action="/profile/categorias/sugerir" class="profile-category-request" data-profile-section-form data-profile-section="profissional">
+        <div>
+          <h4>Sugerir nova categoria profissional</h4>
+          <p>Se aprovada pela equipe, a categoria será adicionada às opções disponíveis para todos. O pedido não altera suas categorias atuais nem o prazo de 60 dias.</p>
+        </div>
+        <label>
+          Categoria sugerida
+          <input name="categoria" minlength="2" maxlength="60" required placeholder="Ex.: engenheiro de áudio">
+        </label>
+        <button class="button button-outline" type="submit">Enviar para análise</button>
+      </form>
+    </section>
+
+    <section class="profile-edit-section" id="edit-panel-portfolio" role="tabpanel" aria-labelledby="edit-tab-portfolio" data-profile-edit-panel="portfolio"<%= secaoEdicao === 'portfolio' ? '' : ' hidden' %>>
+      <div class="profile-edit-section-heading">
+        <div class="eyebrow">OBRAS E PARTICIPAÇÕES</div>
+        <h3>Portfólio e experiência</h3>
+        <p>O perfil mostra obras vinculadas e sua trajetória declarada; os cadastros de conteúdo continuam em suas áreas próprias.</p>
+      </div>
+      <div class="profile-portfolio-summary">
+        <div><span>Obras no seu catálogo</span><strong><%= obras.length %></strong></div>
+        <a class="button button-lime" href="/works">Gerenciar obras e créditos <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="profile-portfolio-links">
+        <a class="settings-link-row" href="/beats"><span><strong>Banco de beats</strong><small>Explore o catálogo de beats disponível na Cypher.</small></span><span aria-hidden="true">↗</span></a>
+        <a class="settings-link-row" href="/events"><span><strong>Eventos e oportunidades</strong><small>Consulte eventos e oportunidades na plataforma.</small></span><span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="profile-field-note">A Cypher não possui um formulário de marcos de experiência verificados. As respostas profissionais são declarações do perfil e ficam em Atuação profissional.</p>
+    </section>
+
+    <section class="profile-edit-section" id="edit-panel-privacidade" role="tabpanel" aria-labelledby="edit-tab-privacidade" data-profile-edit-panel="privacidade"<%= secaoEdicao === 'privacidade' ? '' : ' hidden' %>>
+      <div class="profile-edit-section-heading">
+        <div class="eyebrow">VISIBILIDADE · CONTATO</div>
+        <h3>Privacidade e contato</h3>
+        <p>O contato profissional é diferente do e-mail usado para entrar. As opções abaixo controlam o que aparece no perfil público.</p>
+      </div>
+      <form method="post" action="/profile/secoes/contato" class="profile-edit-form" data-profile-section-form data-profile-section="privacidade">
+        <label>
+          Contato profissional
+          <input name="contato" value="<%= valores.contato %>" maxlength="200" placeholder="E-mail profissional, Instagram ou outro canal">
+          <small>Seu e-mail de acesso não é publicado por este campo.</small>
+        </label>
+        <button class="button button-lime" type="submit">Salvar contato profissional</button>
+      </form>
+      <div class="profile-privacy-card">
+        <h4>Preferências de visibilidade</h4>
+        <p>Estas preferências são aplicadas pelo servidor na página pública. A visibilidade de cada resposta profissional é configurada separadamente em Atuação profissional.</p>
+        <%- include('preferencias-privacidade-perfil', { usuario, retornoPerfil: true }) %>
+      </div>
+      <a class="text-link" href="/settings#privacidade">Abrir todas as configurações</a>
+    </section>
+
+    <section class="profile-edit-section" id="edit-panel-conta" role="tabpanel" aria-labelledby="edit-tab-conta" data-profile-edit-panel="conta"<%= secaoEdicao === 'conta' ? '' : ' hidden' %>>
+      <div class="profile-edit-section-heading">
+        <div class="eyebrow">ACESSO · SEGURANÇA</div>
+        <h3>Conta e segurança</h3>
+        <p>Dados de acesso e operações de conta permanecem em Configurações; não há aqui controles que não tenham suporte no servidor.</p>
+      </div>
+      <dl class="profile-account-summary">
+        <div><dt>E-mail de acesso</dt><dd><%= usuario.email || 'Não informado' %></dd></div>
+        <div><dt>Identificador Cypher</dt><dd><%= usuario.publicCode %> <span>Imutável</span></dd></div>
+        <div><dt>Tipo de conta</dt><dd><%= usuario.tipoConta === 'organizador' ? 'Organizador' : 'Profissional' %></dd></div>
+      </dl>
+      <div class="profile-portfolio-links">
+        <a class="settings-link-row" href="/settings#conta"><span><strong>Configurações da conta</strong><small>Consulte seu e-mail e as opções de conta existentes.</small></span><span aria-hidden="true">↗</span></a>
+        <a class="settings-link-row" href="/settings#conta-seguranca"><span><strong>Encerramento de conta</strong><small>Exclusão exige senha atual e confirmação explícita.</small></span><span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="profile-field-note">Alteração de e-mail, troca de senha e gerenciamento de sessões não estão disponíveis na interface atual; por isso não são apresentados como ações.</p>
+    </section>
+  </div>
+</section>

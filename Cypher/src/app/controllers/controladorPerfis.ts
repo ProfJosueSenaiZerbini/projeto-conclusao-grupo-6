@@ -3,6 +3,7 @@ export {
   buscarPessoas,
   perfil,
   atualizarPerfil,
+  atualizarPerfilPorSecao,
   solicitarCategoriaProfissional,
   solicitarExcecaoCategoria,
   responderSolicitacaoCategoria,

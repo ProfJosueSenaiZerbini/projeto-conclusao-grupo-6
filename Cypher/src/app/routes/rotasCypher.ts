@@ -14,6 +14,7 @@ const router = Router();
 router.use(middlewareAutorizacao);
 router.get(["/login", "/register"], autenticacao.paginaAutenticacao);
 router.post("/login", autenticacao.login);
+router.post("/register/validate", autenticacao.validarDadosCadastro);
 router.post("/register", autenticacao.register);
 router.post("/logout", autenticacao.logout);
 router.get("/notificacoes", notificacoes.notificacoes);
@@ -49,6 +50,7 @@ router.post("/beats/:id/delete", beats.excluirBeat);
 router.get("/central", beats.central);
 router.get("/profile", perfis.perfil);
 router.post("/profile", perfis.atualizarPerfil);
+router.post("/profile/secoes/:secao", perfis.atualizarPerfilPorSecao);
 router.post(
   "/profile/categorias/sugerir",
   perfis.solicitarCategoriaProfissional

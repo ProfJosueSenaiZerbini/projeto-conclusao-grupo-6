@@ -1,0 +1,37 @@
+<% if (!usuario.demonstracao) { %>
+  <form method="post" action="/settings/privacy" class="privacy-form<%= retornoPerfil ? ' profile-edit-form' : '' %>"<% if (retornoPerfil) { %> data-profile-section-form data-profile-section="privacidade"<% } %>>
+    <% if (retornoPerfil) { %>
+      <input type="hidden" name="retorno" value="perfil">
+    <% } %>
+    <label class="privacy-option">
+      <span>
+        <strong>Perfil público</strong>
+        <small>Permite abrir seu perfil pelo link compartilhável.</small>
+      </span>
+      <input type="checkbox" name="perfilPublico"<%= usuario.profilePublic ? ' checked' : '' %>>
+    </label>
+    <label class="privacy-option">
+      <span>
+        <strong>Mostrar localização</strong>
+        <small>Exibe cidade e estado no perfil público.</small>
+      </span>
+      <input type="checkbox" name="localizacaoPublica"<%= usuario.locationPublic ? ' checked' : '' %>>
+    </label>
+    <label class="privacy-option">
+      <span>
+        <strong>Mostrar contato profissional</strong>
+        <small>Exibe o contato informado no perfil. O e-mail de acesso nunca é publicado.</small>
+      </span>
+      <input type="checkbox" name="contatoPublico"<%= usuario.contactPublic ? ' checked' : '' %>>
+    </label>
+    <button class="button button-lime" type="submit">Salvar visibilidade</button>
+  </form>
+  <% if (usuario.profilePublic) { %>
+    <p class="public-profile-link">
+      Link do perfil:
+      <a href="/p/<%= usuario.handle.replace(/^@/, '') %>">/p/<%= usuario.handle.replace(/^@/, '') %></a>
+    </p>
+  <% } %>
+<% } else { %>
+  <p class="settings-note">As preferências de visibilidade ficam disponíveis para contas pessoais.</p>
+<% } %>

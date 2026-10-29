@@ -32,8 +32,8 @@
         const valor = valorResposta(pergunta);
         const dependente = pergunta.dependeDe;
       %>
-        <fieldset class="professional-questionnaire__field"<% if (dependente) { %> data-depende-campo="<%= dependente.campo %>" data-depende-valor="<%= dependente.valor %>" hidden<% } %>>
-          <legend><%= pergunta.pergunta %><% if (pergunta.obrigatoria) { %> <span>(obrigatória)</span><% } else { %> <span>(opcional)</span><% } %></legend>
+        <fieldset class="professional-questionnaire__field" data-obrigatoria="<%= pergunta.obrigatoria || dependente ? 'true' : 'false' %>"<% if (dependente) { %> data-depende-campo="<%= dependente.campo %>" data-depende-valor="<%= dependente.valor %>" hidden<% } %>>
+          <legend><%= pergunta.pergunta %><% if (pergunta.obrigatoria) { %> <span>(obrigatória)</span><% } else if (dependente) { %> <span>(obrigatória se selecionar “Outro”)</span><% } else { %> <span>(opcional)</span><% } %></legend>
           <% if (pergunta.tipo === 'texto') { %>
             <textarea data-resposta-atuacao="<%= pergunta.campo %>" maxlength="<%= pergunta.maximoCaracteres ?? 500 %>" rows="3"><%= typeof valor === 'string' ? valor : '' %></textarea>
           <% } else if (pergunta.tipo === 'enum') { %>

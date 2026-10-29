@@ -152,7 +152,7 @@
         Mantenha sua identidade profissional clara para a cena.
       </p>
       <div class="settings-link-list">
-        <a class="settings-link-row" href="/profile?editar=1#editar-perfil">
+        <a class="settings-link-row" href="/profile?editar=1&amp;secao=pessoal#editar-perfil">
           <span class="settings-link-icon lucide-icon" aria-hidden="true">
             <%- icones.user %>
           </span>
@@ -196,58 +196,7 @@
       <p>
         As opções abaixo controlam os dados exibidos na página pública do seu perfil.
       </p>
-      <% if (!usuario.demonstracao) { %>
-        <form method="post" action="/settings/privacy" class="privacy-form">
-          <label class="privacy-option">
-            <span>
-              <strong>
-                Perfil público
-              </strong>
-              <small>
-                Permite abrir seu perfil pelo link compartilhável.
-              </small>
-            </span>
-            <input type="checkbox" name="perfilPublico"<%= usuario.profilePublic ? 'checked' : '' %>>
-          </label>
-          <label class="privacy-option">
-            <span>
-              <strong>
-                Mostrar localização
-              </strong>
-              <small>
-                Exibe cidade e estado no perfil público.
-              </small>
-            </span>
-            <input type="checkbox" name="localizacaoPublica"<%= usuario.locationPublic ? 'checked' : '' %>>
-          </label>
-          <label class="privacy-option">
-            <span>
-              <strong>
-                Mostrar contato profissional
-              </strong>
-              <small>
-                Exibe o contato informado no seu perfil. Seu e-mail de acesso não é publicado.
-              </small>
-            </span>
-            <input type="checkbox" name="contatoPublico"<%= usuario.contactPublic ? 'checked' : '' %>>
-          </label>
-          <button class="button button-lime" type="submit">
-            Salvar visibilidade
-          </button>
-        </form>
-        <% if (usuario.profilePublic) { %>
-          <p class="public-profile-link">
-            Link do perfil:
-            <a href="/p/<%= usuario.handle.replace(/^@/, '') %>">
-              /p/<%= usuario.handle.replace(/^@/, '') %>
-            </a>
-          </p>
-        <% } %>
-      <% } else { %>
-        <p class="settings-note">
-          As preferências de visibilidade ficam disponíveis para contas pessoais.
-        </p>
-      <% } %>
+      <%- include('../partials/componentes/preferencias-privacidade-perfil', { usuario, retornoPerfil: false }) %>
     </section>
     <section id="descoberta" class="settings-section">
       <div class="eyebrow">
@@ -278,7 +227,7 @@
         </div>
       </div>
       <% if (!usuario.demonstracao) { %>
-        <a class="button button-outline" href="/profile?editar=1#editar-perfil">
+        <a class="button button-outline" href="/profile?editar=1&amp;secao=profissional#editar-perfil">
           Atualizar informações
         </a>
       <% } %>
@@ -343,7 +292,7 @@
       </button>
     </form>
     <% if (!usuario.demonstracao) { %>
-      <section class="settings-section account-delete-section">
+      <section id="conta-seguranca" class="settings-section account-delete-section">
         <div class="eyebrow">
           ENCERRAMENTO DE CONTA
         </div>
