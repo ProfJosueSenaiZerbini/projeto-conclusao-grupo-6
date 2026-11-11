@@ -52,7 +52,7 @@
     </p>
   </div>
 </div>
-<form class="work-form" method="post" action="<%= editando ? `/works/${encodeURIComponent(obraId)}/edit` : '/works/new' %>" data-work-form data-work-categories="<%= (usuario.categories ?? []).join('|') %>">
+<form class="work-form" method="post" action="<%= editando ? `/works/${encodeURIComponent(obraId)}/edit` : '/works/new' %>" data-work-form data-work-categories="<%= (usuario.categories ?? []).join('|') %>" data-type-other-legacy-empty="<%= tipoOutroLegadoVazio %>" data-genre-other-legacy-empty="<%= generoOutroLegadoVazio %>" data-role-other-legacy-empty="<%= papelOutroLegadoVazio %>">
   <section class="work-selected-type" aria-labelledby="work-selected-type-title">
     <div class="work-selected-type-icon lucide-icon" aria-hidden="true">
       <%- valores.tipo === 'Instrumental' ? icones.headphones : valores.tipo === 'Outro' ? icones.sparkles : icones.fileMusic %>
@@ -109,6 +109,12 @@
         </span>
         <input name="titulo" required minlength="2" maxlength="120" placeholder="Ex.: Metrô depois das duas" value="<%= valores.titulo %>">
       </label>
+      <label class="field-full" data-work-type-other-field<%= valores.tipo === 'Outro' ? '' : ' hidden' %>>
+        Especifique o tipo de projeto
+        <span class="required-mark" data-type-other-required<%= tipoOutroLegadoVazio ? ' hidden' : '' %>*</span>
+        <input name="tipoOutro" data-work-type-other-input minlength="2" maxlength="80" value="<%= valores.tipoOutro %>"<%= valores.tipo === 'Outro' && !tipoOutroLegadoVazio ? ' required' : '' %><%= valores.tipo === 'Outro' ? '' : ' disabled' %> placeholder="Ex.: coletivo audiovisual ou projeto de pesquisa musical">
+        <small>O valor fica como detalhe do tipo “Outro”; não altera os tipos gerais do catálogo.</small>
+      </label>
       <label>
         Gênero ou categoria<% if (valores.tipo !== 'Outro') { %>
         <span class="required-mark">
@@ -119,7 +125,7 @@
           Opcional
         </span>
       <% } %>
-      <select name="genero"<%= valores.tipo !== 'Outro' ? ' required' : '' %>>
+      <select name="genero" data-work-genre-select<%= valores.tipo !== 'Outro' ? ' required' : '' %>>
         <option value="">
           Selecione
         </option>
@@ -129,6 +135,12 @@
           </option>
         <% }) %>
       </select>
+    </label>
+    <label class="field-full" data-work-genre-other-field<%= valores.genero === 'Outro' ? '' : ' hidden' %>>
+      Especifique o gênero
+      <span class="required-mark" data-genre-other-required<%= generoOutroLegadoVazio ? ' hidden' : '' %>*</span>
+      <input name="generoOutro" data-work-genre-other-input minlength="2" maxlength="40" value="<%= valores.generoOutro %>"<%= valores.genero === 'Outro' && !generoOutroLegadoVazio ? ' required' : '' %><%= valores.genero === 'Outro' ? '' : ' disabled' %> placeholder="Ex.: drill, grime ou fusão local">
+      <small>Esse detalhe acompanha o gênero da obra e não cria nem altera o catálogo geral de gêneros.</small>
     </label>
     <label data-work-field="bpm">
       BPM
@@ -197,6 +209,12 @@
           </option>
         <% }) %>
       </select>
+    </label>
+    <label class="field-full" data-work-role-other-field<%= valores.papel === 'Outro crédito' ? '' : ' hidden' %>>
+      Especifique seu crédito na obra
+      <span class="required-mark" data-role-other-required<%= papelOutroLegadoVazio ? ' hidden' : '' %>*</span>
+      <input name="papelOutro" data-work-role-other-input minlength="2" maxlength="80" value="<%= valores.papelOutro %>"<%= valores.papel === 'Outro crédito' && !papelOutroLegadoVazio ? ' required' : '' %><%= valores.papel === 'Outro crédito' ? '' : ' disabled' %> placeholder="Ex.: direção de arte, pesquisa sonora ou consultoria">
+      <small>O detalhe descreve sua contribuição sem criar outro papel canônico para o catálogo.</small>
     </label>
   </div>
   <div class="ghost-credit-form profile-credit-form">

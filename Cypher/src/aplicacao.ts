@@ -1,7 +1,7 @@
 import express from "express";
 import path from "node:path";
 import routes from "./app/routes/rotasCypher.js";
-import { inicializarDadosDemonstrativos } from "./app/models/modeloCypher.js";
+import { inicializarAplicacaoCypher } from "./app/models/modeloCypher.js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -46,7 +46,7 @@ import {
   X,
 } from "lucide-static";
 
-inicializarDadosDemonstrativos();
+inicializarAplicacaoCypher();
 
 const app = express();
 const port = Number(process.env.PORT ?? 3000);

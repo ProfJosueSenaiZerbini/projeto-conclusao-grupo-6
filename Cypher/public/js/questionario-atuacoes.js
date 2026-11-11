@@ -141,9 +141,12 @@
       );
       field.dataset.dependencyInactive = String(!active);
       field.hidden = !active;
+      const dependencyRequired = active && Boolean(field.dataset.dependeCampo);
       field.querySelectorAll("input, select, textarea").forEach(control => {
         control.disabled = !active;
-        control.required = false;
+        control.required = dependencyRequired;
+        if (dependencyRequired) control.setAttribute("aria-required", "true");
+        else control.removeAttribute("aria-required");
         if (!active) {
           if (control.type === "checkbox" || control.type === "radio")
             control.checked = false;
@@ -180,6 +183,20 @@
   function refreshProgress() {
     const answered = questions.filter(item => isAnswered(item.fieldset)).length;
     const total = questions.length;
+    if (!total) {
+      if (questionCurrent)
+        questionCurrent.textContent = "Nenhuma pergunta disponível";
+      if (questionAnswered)
+        questionAnswered.textContent =
+          "Selecione ao menos uma profissão para continuar";
+      if (progress) progress.setAttribute("aria-valuenow", "0");
+      if (progressBar) progressBar.style.width = "0%";
+      if (progressPercent) progressPercent.textContent = "0%";
+      if (questionNext) questionNext.hidden = true;
+      if (questionPrevious) questionPrevious.hidden = true;
+      if (finishButton) finishButton.hidden = true;
+      return;
+    }
     const current = Math.min(questionIndex + 1, Math.max(total, 1));
     const percent = total ? Math.round((answered / total) * 100) : 100;
     if (questionCurrent)
@@ -209,7 +226,8 @@
       });
     if (!active) {
       if (categoryContext)
-        categoryContext.textContent = "Nenhuma categoria selecionada.";
+        categoryContext.textContent =
+          "Nenhuma profissão selecionada. Volte e escolha ao menos uma para continuar.";
       refreshProgress();
       return;
     }
@@ -223,9 +241,25 @@
   }
 
   function updateCategoryCards(targetForm = form) {
+    if (!targetForm) return;
+    const selected = selectedCategories(targetForm);
     targetForm.querySelectorAll(".category-option").forEach(card => {
       const input = card.querySelector('[name="categorias"]');
       card.classList.toggle("selected", Boolean(input?.checked));
+    });
+    const summary = targetForm.querySelector("[data-category-summary]");
+    if (summary) {
+      summary.textContent = selected.size
+        ? `${selected.size} profissão${selected.size === 1 ? " selecionada" : " selecionadas"}`
+        : "Nenhuma profissão selecionada";
+    }
+    targetForm.querySelectorAll("[data-category-count]").forEach(counter => {
+      const group = counter.closest("[data-professional-group]");
+      const count = group
+        ? [...group.querySelectorAll('[name="categorias"]:checked')].length
+        : 0;
+      counter.textContent = String(count);
+      counter.hidden = count === 0;
     });
     if (otherField && otherInput && otherCategory) {
       otherField.hidden = !otherCategory.checked;

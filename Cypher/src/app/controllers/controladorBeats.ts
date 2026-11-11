@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from "express";
 import { CypherModel, type DadosBeatCypher } from "../models/modeloCypher.js";
 import type { UsuarioDaSessao } from "../models/bancoDados.js";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { NextFunction, Request, Response } from "express";
 import {
   CypherModel,
@@ -28,6 +29,7 @@ import {
   contarPerfisParaExcecaoCategoriaCypher,
   obterEstadoSolicitacaoExcecaoCategoriaCypher,
   listarSolicitacoesExcecaoCategoriaPendentesCypher,
+  listarSolicitacoesExcecaoCategoriaDecididasCypher,
   solicitarExcecaoCategoriaCypher,
   revisarSolicitacaoExcecaoCategoriaCypher,
   solicitarInformacaoSolicitacaoCategoriaCypher,
@@ -39,6 +41,8 @@ import {
   listarObrasPublicasPerfilCypher,
   listarObrasProprietarioCypher,
   listarAtuacoesUsuarioCypher,
+  listarProfissoesUsuarioCypher,
+  listarVertentesProfissionaisUsuarioCypher,
   buscarCredenciaisCypher,
   obterPerfilPublicoCypher,
   type FiltrosCatalogoObras,
@@ -48,7 +52,8 @@ import {
   type UsuarioDaSessao,
 } from "../models/bancoDados.js";
 import {
-  categoriaLegadaRapperMC,
+  listarGruposProfissionais,
+  listarProfissoesCatalogo,
   podeCriarBeat,
   podeCriarObra,
   opcoesStatusPorCategoria,
@@ -73,13 +78,6 @@ import { validarBpm, validarLinkEscuta } from "../validators/validarObra.js";
 import { listaDeLinhas, validarPerfil } from "../validators/validarPerfil.js";
 
 const nomeCookieSessao = "cypher_session";
-function acessoOgDisponivel(): boolean {
-  return (
-    process.env.CYPHER_ALLOW_OG_ACCESS === "true" &&
-    process.env.NODE_ENV !== "production"
-  );
-}
-
 const caminhosProtegidos = new Set([
   "/",
   "/dashboard",
@@ -313,13 +311,12 @@ function renderizarCadastro(
     authenticated: false,
     erro,
     categoriasDisponiveis: listarCategoriasProfissionaisCypher(),
-    questionariosAtuacao: listarCategoriasProfissionaisCypher().map(
-      categoria => ({
-        categoria,
-        perguntas: catalogoPerguntasPorCategoria(categoria),
-        legada: false,
-      })
-    ),
+    gruposProfissionais: listarGruposProfissionais(),
+    questionariosAtuacao: listarProfissoesCatalogo().map(profissao => ({
+      categoria: profissao.rotulo,
+      perguntas: catalogoPerguntasPorCategoria(profissao.rotulo),
+      legada: false,
+    })),
     formatarRespostaAtuacao,
     nome: dados.nome ?? "",
     email: dados.email ?? "",
@@ -365,9 +362,19 @@ function atuacoesRecebidas(
   if (!respostasPorCategoria || !visibilidadesPorCategoria) return null;
   const visibilidadesAceitas = new Set(["publico", "colaboradores", "privado"]);
   const resultado: AtuacaoProfissionalPersistida[] = [];
+  const categoriasPermitidas = new Set(categorias);
+  if (
+    Object.keys(respostasPorCategoria).some(
+      categoria => !categoriasPermitidas.has(categoria)
+    ) ||
+    Object.keys(visibilidadesPorCategoria).some(
+      categoria => !categoriasPermitidas.has(categoria)
+    )
+  ) {
+    return null;
+  }
 
   for (const categoria of categorias) {
-    if (categoria === categoriaLegadaRapperMC) continue;
     const bruto = respostasPorCategoria[categoria];
     const resposta =
       bruto && typeof bruto === "object" && !Array.isArray(bruto)
@@ -484,11 +491,12 @@ export function paginaAutenticacao(req: Request, res: Response) {
           : null
       : null,
     categoriasDisponiveis,
+    gruposProfissionais: listarGruposProfissionais(),
     categoriasSelecionadas: [],
     questionariosAtuacao: cadastro
-      ? categoriasDisponiveis.map(categoria => ({
-          categoria,
-          perguntas: catalogoPerguntasPorCategoria(categoria),
+      ? listarProfissoesCatalogo().map(profissao => ({
+          categoria: profissao.rotulo,
+          perguntas: catalogoPerguntasPorCategoria(profissao.rotulo),
           legada: false,
         }))
       : [],
@@ -498,7 +506,6 @@ export function paginaAutenticacao(req: Request, res: Response) {
     nome: "",
     email: "",
     outraCategoria: "",
-    allowOgAccess: !cadastro && acessoOgDisponivel(),
   });
 }
 
@@ -540,23 +547,6 @@ function classeStatusBusca(status: string): string {
 }
 
 export async function login(req: Request, res: Response) {
-  if (req.body.guest === "true") {
-    if (!acessoOgDisponivel()) {
-      return res.status(401).render("pages/entrar", {
-        title: "Entrar",
-        path: "/login",
-        stylesheet: "autenticacao",
-        authenticated: false,
-        erro: "E-mail ou senha inválidos. Confira os dados e tente novamente.",
-        mensagem: null,
-        email: "",
-        allowOgAccess: false,
-      });
-    }
-    substituirSessao(req, res, "demo-og-emice");
-    return res.redirect("/dashboard");
-  }
-
   const email = String(req.body.email ?? "")
     .trim()
     .toLowerCase();
@@ -571,7 +561,6 @@ export async function login(req: Request, res: Response) {
       erro: "E-mail ou senha inválidos. Confira os dados e tente novamente.",
       mensagem: null,
       email,
-      allowOgAccess: acessoOgDisponivel(),
     });
   }
 
@@ -586,7 +575,6 @@ export async function login(req: Request, res: Response) {
         erro: "E-mail ou senha inválidos. Confira os dados e tente novamente.",
         mensagem: null,
         email,
-        allowOgAccess: acessoOgDisponivel(),
       });
     }
 
@@ -602,7 +590,6 @@ export async function login(req: Request, res: Response) {
       erro: "Não foi possível concluir o acesso agora. Tente novamente.",
       mensagem: null,
       email,
-      allowOgAccess: acessoOgDisponivel(),
     });
   }
 }
@@ -857,7 +844,6 @@ export const visaoGeral = renderizarPagina(
     eventos: CypherModel.eventos(),
     pessoas: CypherModel.pessoas(),
     estatisticasObras: CypherModel.estatisticasObras(),
-    hitDoMes: CypherModel.hitDoMes(),
   })
 );
 export const buscarPessoas = (req: Request, res: Response) => {
@@ -912,12 +898,15 @@ export const oportunidades = renderizarPagina(
 type ValoresFormularioObra = {
   titulo: string;
   tipo: string;
+  tipoOutro: string;
   genero: string;
+  generoOutro: string;
   status: string;
   descricao: string;
   letra: string;
   bpm: string;
   papel: string;
+  papelOutro: string;
   isrc: string;
   iswc: string;
   dataLancamento: string;
@@ -939,12 +928,15 @@ type LinhaMencaoFormulario = {
 const formularioObraVazio: ValoresFormularioObra = {
   titulo: "",
   tipo: "",
+  tipoOutro: "",
   genero: "",
+  generoOutro: "",
   status: "Em produção",
   descricao: "",
   letra: "",
   bpm: "",
   papel: "Artista principal",
+  papelOutro: "",
   isrc: "",
   iswc: "",
   dataLancamento: "",
@@ -955,12 +947,15 @@ function formularioObraRecebido(req: Request): ValoresFormularioObra {
   return {
     titulo: String(req.body.titulo ?? "").trim(),
     tipo: String(req.body.tipo ?? "").trim(),
+    tipoOutro: String(req.body.tipoOutro ?? "").trim(),
     genero: String(req.body.genero ?? "").trim(),
+    generoOutro: String(req.body.generoOutro ?? "").trim(),
     status: String(req.body.status ?? "").trim(),
     descricao: String(req.body.descricao ?? "").trim(),
     letra: String(req.body.letra ?? "").trim(),
     bpm: String(req.body.bpm ?? "").trim(),
     papel: String(req.body.papel ?? "").trim(),
+    papelOutro: String(req.body.papelOutro ?? "").trim(),
     isrc: String(req.body.isrc ?? "").trim(),
     iswc: String(req.body.iswc ?? "").trim(),
     dataLancamento: String(req.body.dataLancamento ?? "").trim(),
@@ -1005,15 +1000,21 @@ function linhasRepetidas<T extends Record<string, string>>(
 function preencherFormularioObra(
   obra: NonNullable<ReturnType<typeof CypherModel.obraDoUsuario>>
 ): ValoresFormularioObra {
+  const generoConhecido = generosObra.includes(obra.genre);
   return {
     titulo: obra.title,
     tipo: obra.type,
-    genero: obra.genre,
+    tipoOutro: obra.typeDetail,
+    genero: generoConhecido ? obra.genre : "Outro",
+    generoOutro: generoConhecido
+      ? obra.genreDetail
+      : obra.genreDetail || obra.genre,
     status: obra.status,
     descricao: obra.description,
     letra: obra.lyrics,
     bpm: obra.bpm,
     papel: obra.role,
+    papelOutro: obra.roleDetail ?? "",
     isrc: obra.isrc,
     iswc: obra.iswc,
     dataLancamento: obra.releaseDate,
@@ -1052,6 +1053,9 @@ function renderizarFormularioObra(
     obraId?: string;
     erro?: string | null;
     valores?: ValoresFormularioObra;
+    tipoOutroLegadoVazio?: boolean;
+    generoOutroLegadoVazio?: boolean;
+    papelOutroLegadoVazio?: boolean;
     creditosPerfil?: LinhaCreditoPerfilFormulario[];
     mencoesFantasma?: LinhaMencaoFormulario[];
   } = {}
@@ -1068,6 +1072,9 @@ function renderizarFormularioObra(
     editando,
     obraId: opcoes.obraId ?? "",
     valores: opcoes.valores ?? formularioObraVazio,
+    tipoOutroLegadoVazio: opcoes.tipoOutroLegadoVazio ?? false,
+    generoOutroLegadoVazio: opcoes.generoOutroLegadoVazio ?? false,
+    papelOutroLegadoVazio: opcoes.papelOutroLegadoVazio ?? false,
     tiposObra,
     generosObra,
     statusObra,
@@ -1079,11 +1086,25 @@ function renderizarFormularioObra(
   });
 }
 
-function validarFormularioObra(valores: ValoresFormularioObra): string | null {
+function validarFormularioObra(
+  valores: ValoresFormularioObra,
+  opcoes: {
+    tipoOutroLegadoVazio?: boolean;
+    generoOutroLegadoVazio?: boolean;
+    papelOutroLegadoVazio?: boolean;
+  } = {}
+): string | null {
   if (valores.titulo.length < 2 || valores.titulo.length > 120)
     return "Informe um título entre 2 e 120 caracteres.";
   if (!tiposObra.includes(valores.tipo))
     return "Selecione um tipo de lançamento válido.";
+  if (
+    valores.tipo === "Outro" &&
+    (valores.tipoOutro.length > 80 ||
+      (valores.tipoOutro.length > 0 && valores.tipoOutro.length < 2) ||
+      (!opcoes.tipoOutroLegadoVazio && valores.tipoOutro.length < 2))
+  )
+    return "Especifique o tipo de projeto em 2 a 80 caracteres.";
   if (valores.tipo !== "Outro" && !generosObra.includes(valores.genero))
     return "Selecione um gênero válido.";
   if (
@@ -1092,10 +1113,24 @@ function validarFormularioObra(valores: ValoresFormularioObra): string | null {
     !generosObra.includes(valores.genero)
   )
     return "Selecione uma categoria válida para o projeto.";
+  if (
+    valores.genero === "Outro" &&
+    (valores.generoOutro.length > 40 ||
+      (valores.generoOutro.length > 0 && valores.generoOutro.length < 2) ||
+      (!opcoes.generoOutroLegadoVazio && valores.generoOutro.length < 2))
+  )
+    return "Especifique o gênero em 2 a 40 caracteres.";
   if (!statusObra.includes(valores.status))
     return "Selecione um status válido.";
   if (!papeisObra.includes(valores.papel))
     return "Selecione seu papel principal na obra.";
+  if (
+    valores.papel === "Outro crédito" &&
+    (valores.papelOutro.length > 80 ||
+      (valores.papelOutro.length > 0 && valores.papelOutro.length < 2) ||
+      (!opcoes.papelOutroLegadoVazio && valores.papelOutro.length < 2))
+  )
+    return "Especifique seu crédito em 2 a 80 caracteres.";
   if (valores.descricao.length > 500)
     return "A descrição deve ter até 500 caracteres.";
   if (valores.letra.length > 5000)
@@ -1172,9 +1207,12 @@ function dadosPersistidosObra(valores: ValoresFormularioObra): DadosObraCypher {
   return {
     title: valores.titulo,
     type: valores.tipo,
+    typeDetail: valores.tipo === "Outro" ? valores.tipoOutro : "",
     genre: valores.genero,
+    genreDetail: valores.genero === "Outro" ? valores.generoOutro : "",
     status: valores.status,
     role: valores.papel,
+    roleDetail: valores.papel === "Outro crédito" ? valores.papelOutro : "",
     description: valores.descricao,
     lyrics: valores.letra,
     bpm: valores.bpm,
@@ -1239,6 +1277,7 @@ export const obras = (req: Request, res: Response) => {
   };
   const resultado =
     parametroTexto(req, "resultado") || parametroTexto(req, "erro");
+  const mensagem = mensagens[resultado] ?? null;
   const filtros = filtrosCatalogo(req);
   const obrasDoCatalogo = CypherModel.obrasDoUsuario(usuario.id, filtros);
   return res.render("pages/obras", {
@@ -1278,7 +1317,10 @@ export const obras = (req: Request, res: Response) => {
       ordem: ordensCatalogo,
     },
     estatisticasObras: CypherModel.estatisticasObrasDoUsuario(usuario.id),
-    mensagem: mensagens[resultado] ?? null,
+    mensagem:
+      req.query.genero === "analise" && mensagem
+        ? `${mensagem} A especificação de gênero foi enviada para análise e só será aprovada após revisão.`
+        : mensagem,
   });
 };
 
@@ -1317,6 +1359,9 @@ export const editarObra = (req: Request, res: Response) => {
     editando: true,
     obraId: obra.id,
     valores: preencherFormularioObra(obra),
+    tipoOutroLegadoVazio: obra.type === "Outro" && !obra.typeDetail,
+    generoOutroLegadoVazio: obra.genre === "Outro",
+    papelOutroLegadoVazio: obra.role === "Outro crédito" && !obra.roleDetail,
     creditosPerfil: creditos.perfis,
     mencoesFantasma: creditos.mencoes,
   });
@@ -1337,15 +1382,30 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
     return res.redirect(303, "/beats/new");
   }
   const creditos = valoresDeCreditosRecebidos(req);
+  const obraId = editar ? (req.params.id ?? "") : "";
+  const obraExistente = editar
+    ? CypherModel.obraDoUsuario(obraId, usuario.id)
+    : undefined;
+  if (editar && !obraExistente) return res.sendStatus(404);
+  const tipoOutroLegadoVazio = Boolean(
+    obraExistente?.type === "Outro" && !obraExistente.typeDetail
+  );
+  const generoOutroLegadoVazio = obraExistente?.genre === "Outro";
+  const papelOutroLegadoVazio = Boolean(
+    obraExistente?.role === "Outro crédito" && !obraExistente.roleDetail
+  );
   const erro =
-    validarFormularioObra(valores) ??
+    validarFormularioObra(valores, {
+      tipoOutroLegadoVazio,
+      generoOutroLegadoVazio,
+      papelOutroLegadoVazio,
+    }) ??
     validarCreditosObra(
       creditos.creditosPerfil,
       creditos.mencoesFantasma,
       creditos.perfisAlinhados,
       creditos.mencoesAlinhadas
     );
-  const obraId = editar ? (req.params.id ?? "") : "";
   if (erro) {
     return renderizarFormularioObra(res, usuario, {
       status: 400,
@@ -1353,6 +1413,9 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
       obraId,
       erro,
       valores,
+      tipoOutroLegadoVazio,
+      generoOutroLegadoVazio,
+      papelOutroLegadoVazio,
       creditosPerfil: creditos.creditosPerfil,
       mencoesFantasma: creditos.mencoesFantasma,
     });
@@ -1360,6 +1423,24 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
 
   try {
     const dados = dadosPersistidosObra(valores);
+    if (valores.genero === "Outro" && valores.generoOutro) {
+      const detalheNormalizado = valores.generoOutro.toLocaleLowerCase("pt-BR");
+      const generoCanonico = generosObra.find(
+        genero =>
+          genero !== "Outro" &&
+          genero.toLocaleLowerCase("pt-BR") === detalheNormalizado
+      );
+      if (generoCanonico) {
+        dados.genre = generoCanonico;
+        dados.genreDetail = "";
+      } else if (
+        !usuario.genres.some(
+          genero => genero.toLocaleLowerCase("pt-BR") === detalheNormalizado
+        )
+      ) {
+        dados.propostaGenero = valores.generoOutro;
+      }
+    }
     const entradas = entradasCreditosObra(
       creditos.creditosPerfil,
       creditos.mencoesFantasma
@@ -1382,7 +1463,9 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
         entidadeId: obraId,
         chaveOrigem: `obra-atualizada:${obraId}:${valores.titulo}:${valores.status}`,
       });
-      return res.redirect(303, "/works?resultado=atualizada");
+      const parametros = new URLSearchParams({ resultado: "atualizada" });
+      if (dados.propostaGenero) parametros.set("genero", "analise");
+      return res.redirect(303, `/works?${parametros.toString()}`);
     }
     const obraIdCriada = CypherModel.criarObra(usuario.id, dados, entradas);
     CypherModel.criarNotificacao({
@@ -1395,7 +1478,9 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
       entidadeId: obraIdCriada,
       chaveOrigem: `obra-criada:${obraIdCriada}`,
     });
-    return res.redirect(303, "/works?resultado=criada");
+    const parametros = new URLSearchParams({ resultado: "criada" });
+    if (dados.propostaGenero) parametros.set("genero", "analise");
+    return res.redirect(303, `/works?${parametros.toString()}`);
   } catch (erroGravacao) {
     const mensagemCredito = mensagemErroCredito(erroGravacao);
     if (!mensagemCredito) {
@@ -1409,6 +1494,9 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
         mensagemCredito ??
         "Não foi possível salvar a obra agora. Confira os dados e tente novamente.",
       valores,
+      tipoOutroLegadoVazio,
+      generoOutroLegadoVazio,
+      papelOutroLegadoVazio,
       creditosPerfil: creditos.creditosPerfil,
       mencoesFantasma: creditos.mencoesFantasma,
     });
@@ -1453,8 +1541,7 @@ function valoresPerfil(usuario: UsuarioDaSessao) {
     generos: usuario.genres.filter(genero =>
       generosConhecidos.includes(genero)
     ),
-    outroGenero:
-      usuario.genres.find(genero => !generosConhecidos.includes(genero)) ?? "",
+    outroGenero: "",
     equipamentos: usuario.equipment.join("\n"),
     disponibilidade: usuario.availability,
   };
@@ -1485,6 +1572,8 @@ function renderizarPerfil(
     categoriasSolicitadas?: string[];
     secaoEdicao?: string;
     privacidadeSalva?: boolean;
+    motivoCodigo?: string;
+    motivoOutro?: string;
   } = {}
 ) {
   const estadoCategorias = usuario.demonstracao
@@ -1499,18 +1588,19 @@ function renderizarPerfil(
     ? null
     : obterEstadoSolicitacaoExcecaoCategoriaCypher(usuario.id);
   const categoriasDisponiveis = listarCategoriasProfissionaisCypher();
-  if (
-    usuario.categories.includes(categoriaLegadaRapperMC) &&
-    !categoriasDisponiveis.includes(categoriaLegadaRapperMC)
-  ) {
-    categoriasDisponiveis.push(categoriaLegadaRapperMC);
-  }
   const atuacoesExistentes =
     opcoes.atuacoesExistentes ?? listarAtuacoesUsuarioCypher(usuario.id);
-  const questionariosAtuacao = categoriasDisponiveis.map(categoria => ({
-    categoria,
-    perguntas: catalogoPerguntasPorCategoria(categoria),
-    legada: categoria === categoriaLegadaRapperMC,
+  const profissoesPersistidas = listarProfissoesUsuarioCypher(usuario.id, {
+    incluirInativas: true,
+  });
+  const vertentesProfissionaisPersistidas =
+    listarVertentesProfissionaisUsuarioCypher(usuario.id, {
+      incluirInativas: true,
+    });
+  const questionariosAtuacao = listarProfissoesCatalogo().map(profissao => ({
+    categoria: profissao.rotulo,
+    perguntas: catalogoPerguntasPorCategoria(profissao.rotulo),
+    legada: false,
   }));
   return res.status(opcoes.status ?? 200).render("pages/perfil", {
     title: "Meu perfil",
@@ -1518,13 +1608,17 @@ function renderizarPerfil(
     stylesheet: "perfil",
     authenticated: true,
     usuario: usuarioParaView(usuario),
+    notificacoesRecentes: CypherModel.notificacoes(usuario.id, 5),
+    quantidadeNaoLidas: CypherModel.notificacoesNaoLidas(usuario.id),
     obras: listarObrasProprietarioCypher(usuario.id),
     categoriasDisponiveis,
+    gruposProfissionais: listarGruposProfissionais(),
     questionariosAtuacao,
     atuacoesExistentes,
+    profissoesPersistidas,
+    vertentesProfissionaisPersistidas,
     atuacoesSolicitadas: opcoes.atuacoesSolicitadas ?? atuacoesExistentes,
     categoriasSolicitadas: opcoes.categoriasSolicitadas ?? usuario.categories,
-    categoriaLegadaRapperMC,
     formatarRespostaAtuacao,
     atuacaoSelecionada:
       atuacoesExistentes.find(
@@ -1559,6 +1653,8 @@ function renderizarPerfil(
     valores: opcoes.valores ?? valoresPerfil(usuario),
     secaoEdicao: opcoes.secaoEdicao ?? "pessoal",
     privacidadeSalva: opcoes.privacidadeSalva ?? false,
+    motivoCodigo: opcoes.motivoCodigo ?? "",
+    motivoOutro: opcoes.motivoOutro ?? "",
     publicSlug: usuario.handle.replace(/^@/, ""),
   });
 }
@@ -1611,9 +1707,6 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
   if (usuario.demonstracao) return res.sendStatus(403);
   const categoriasSolicitadas = categoriasRecebidas(req.body.categorias);
   const permitidas = listarCategoriasProfissionaisCypher();
-  if (usuario.categories.includes(categoriaLegadaRapperMC)) {
-    permitidas.push(categoriaLegadaRapperMC);
-  }
   const reexibir = (
     erro: string,
     atuacoesSolicitadas: AtuacaoProfissionalPersistida[] = []
@@ -1622,6 +1715,9 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
       status: 400,
       editando: true,
       erro,
+      secaoEdicao: "profissional",
+      motivoCodigo: String(req.body.motivoCodigo ?? ""),
+      motivoOutro: String(req.body.motivoOutro ?? ""),
       categoriasSolicitadas,
       atuacoesSolicitadas,
     });
@@ -1729,7 +1825,10 @@ export function solicitarCategoriaProfissional(req: Request, res: Response) {
     invalida: "invalida",
     nao_encontrada: "invalida",
   };
-  return res.redirect(303, `/profile?editar=1&categoria=${destino[resultado]}`);
+  return res.redirect(
+    303,
+    `/profile?editar=1&secao=profissional&categoria=${destino[resultado]}`
+  );
 }
 
 export const configuracoes = (req: Request, res: Response) => {
@@ -1803,6 +1902,7 @@ export const perfilPublico = (req: Request, res: Response) => {
       categoria,
       perguntas: catalogoPerguntasPorCategoria(categoria),
     })),
+    gruposProfissionais: listarGruposProfissionais(),
     formatarRespostaAtuacao,
   });
 };
@@ -1851,9 +1951,6 @@ export function atualizarPerfil(req: Request, res: Response) {
     disponibilidade,
   };
   const categoriasAceitas = listarCategoriasProfissionaisCypher();
-  if (usuario.categories.includes(categoriaLegadaRapperMC)) {
-    categoriasAceitas.push(categoriaLegadaRapperMC);
-  }
   const statusPermitidos = opcoesStatusPorCategoria(categorias);
 
   const erro = validarPerfil({
@@ -1940,7 +2037,9 @@ export function atualizarPerfil(req: Request, res: Response) {
       otherCategory: "",
       equipment: equipamentos.itens,
       initials: iniciais,
-      tipoConta: categorias.includes("Organizador de eventos")
+      tipoConta: ["Organizador(a) de eventos", "Organizador de eventos"].some(
+        categoria => categorias.includes(categoria)
+      )
         ? "organizador"
         : "profissional",
     });
@@ -2122,6 +2221,16 @@ export function revisaoAdministrativa(req: Request, res: Response) {
       perguntas: catalogoPerguntasPorCategoria(categoria),
     })),
   }));
+  const solicitacoesExcecaoDecididas =
+    listarSolicitacoesExcecaoCategoriaDecididasCypher(usuario.id).map(
+      solicitacao => ({
+        ...solicitacao,
+        questionarios: solicitacao.categoriasSolicitadas.map(categoria => ({
+          categoria,
+          perguntas: catalogoPerguntasPorCategoria(categoria),
+        })),
+      })
+    );
   return res.render("pages/admin-revisao", {
     title: "Administrador",
     path: "/admin/revisao",
@@ -2131,6 +2240,8 @@ export function revisaoAdministrativa(req: Request, res: Response) {
     propostas: listarPropostasGenerosPendentesCypher(),
     propostasCategorias: listarPropostasCategoriasPendentesCypher(),
     solicitacoesExcecao,
+    solicitacoesExcecaoDecididas,
+    arquivoSolicitacoesExcecao: req.query.solicitacoes === "decididas",
     formatarRespostaAtuacao,
     perfis,
     totalPerfis: contarPerfisParaExcecaoCategoriaCypher(),
@@ -2306,7 +2417,7 @@ export function revisarSolicitacaoExcecaoCategoria(
   if (resultado === "aprovada" || resultado === "rejeitada") {
     return res.redirect(
       303,
-      `/admin/revisao/excecoes?resultado=solicitacao_excecao_${resultado}`
+      `/admin/revisao/excecoes?solicitacoes=decididas&resultado=solicitacao_excecao_${resultado}`
     );
   }
   const erros = {

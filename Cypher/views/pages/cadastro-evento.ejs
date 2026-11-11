@@ -44,7 +44,7 @@
     </p>
   </div>
 </div>
-<form class="work-form" method="post" action="<%= editando ? `/events/${encodeURIComponent(eventoId)}/edit` : '/events/new' %>">
+<form class="work-form" method="post" action="<%= editando ? `/events/${encodeURIComponent(eventoId)}/edit` : '/events/new' %>" data-event-form data-category-other-legacy-empty="<%= categoriaOutroLegadaVazia %>">
   <section class="form-section">
     <div class="form-section-heading">
       <span class="form-step">
@@ -72,7 +72,7 @@
         <span class="required-mark">
           *
         </span>
-        <select name="categoria" required>
+        <select name="categoria" data-event-category-select required>
           <option value="">
             Selecione
           </option>
@@ -82,6 +82,12 @@
             </option>
           <% }) %>
         </select>
+      </label>
+      <label class="field-full" data-event-category-other-field<%= valores.categoria === 'Outro' ? '' : ' hidden' %>>
+        Especifique a categoria do evento
+        <span class="required-mark" data-event-category-other-required<%= categoriaOutroLegadaVazia ? ' hidden' : '' %>*</span>
+        <input name="categoriaDetalhe" data-event-category-other-input minlength="2" maxlength="80" value="<%= valores.categoriaDetalhe %>"<%= valores.categoria === 'Outro' && !categoriaOutroLegadaVazia ? ' required' : '' %><%= valores.categoria === 'Outro' ? '' : ' disabled' %> placeholder="Ex.: encontro de DJs, feira de música independente">
+        <small>O detalhe será exibido junto ao evento; a categoria continua “Outro” para os filtros e relatórios.</small>
       </label>
       <label>
         Situação

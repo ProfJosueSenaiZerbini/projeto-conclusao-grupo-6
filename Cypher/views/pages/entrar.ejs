@@ -85,19 +85,6 @@
         </span>
       </button>
     </form>
-    <% if (allowOgAccess) { %>
-      <div class="auth-divider">
-        <span>
-          ou
-        </span>
-      </div>
-      <form method="post" action="/login">
-        <input type="hidden" name="guest" value="true">
-        <button class="button button-outline full" type="submit">
-          Acessar OG Emicê
-        </button>
-      </form>
-    <% } %>
     <p class="auth-switch">
       Ainda não está no Cypher?
       <a href="/register">

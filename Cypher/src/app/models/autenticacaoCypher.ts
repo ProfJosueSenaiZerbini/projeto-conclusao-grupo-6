@@ -143,7 +143,9 @@ export async function cadastrarUsuario(dados: {
   const iniciais = iniciaisBase
     ? (iniciaisBase + (iniciaisBase[1] ?? iniciaisBase[0])).slice(0, 2)
     : "AA";
-  const outrasCategorias = dados.categorias.includes("Organizador de eventos");
+  const outrasCategorias = dados.categorias.some(categoria =>
+    ["Organizador(a) de eventos", "Organizador de eventos"].includes(categoria)
+  );
   const funcao = dados.categorias.join(" · ");
 
   try {

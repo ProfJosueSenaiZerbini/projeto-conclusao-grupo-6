@@ -59,14 +59,22 @@
         <p class="profile-policy-notice" role="status">A equipe autorizou uma alteração excepcional de categorias. A autorização será consumida somente quando a mudança for salva; ao concluir, inicia-se um novo prazo de 60 dias.</p>
       <% } %>
       <form method="post" action="/profile/secoes/profissional" class="profile-edit-form" data-atuacao-form data-profile-section-form data-profile-section="profissional">
-        <fieldset class="profile-category-fieldset category-fieldset"<%= categoriasBloqueadas ? ' disabled' : '' %>>
-          <legend>Categorias profissionais atuais</legend>
-          <div class="profile-category-grid">
-            <% categoriasDisponiveis.forEach(categoria => { %>
-              <label class="profile-category-option category-option">
-                <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoria === 'Outros' ? ' data-category-other' : '' %><%= (categoriasBloqueadas ? usuario.categories : valores.categorias).includes(categoria) ? ' checked' : '' %>>
-                <span><%= categoria %></span>
-              </label>
+          <fieldset class="profile-category-fieldset category-fieldset"<%= categoriasBloqueadas ? ' disabled' : '' %>>
+            <legend>Categorias profissionais atuais</legend>
+          <p class="category-selection-summary" data-category-summary>Nenhuma profissão selecionada</p>
+          <div class="professional-catalog-groups profile-category-grid">
+            <% gruposProfissionais.forEach(grupo => { %>
+              <section class="professional-catalog-group" data-professional-group="<%= grupo.id %>">
+                <h4><%= grupo.rotulo %> <span data-category-count hidden>0</span></h4>
+                <div class="professional-catalog-group__options">
+                  <% grupo.profissoes.forEach(profissao => { %>
+                    <label class="profile-category-option category-option">
+                      <input type="checkbox" name="categorias" value="<%= profissao.rotulo %>"<%= (categoriasBloqueadas ? usuario.categories : valores.categorias).includes(profissao.rotulo) ? ' checked' : '' %>>
+                      <span><%= profissao.rotulo %></span>
+                    </label>
+                  <% }) %>
+                </div>
+              </section>
             <% }) %>
           </div>
           <p class="category-validation" data-category-validation role="alert" hidden>Selecione pelo menos uma categoria.</p>
@@ -177,22 +185,23 @@
             <% } else if (solicitacaoExcecao?.status === 'aprovado') { %>
               <p class="profile-policy-notice" role="status">Uma solicitação anterior foi aprovada. Se uma nova alteração ainda estiver bloqueada, você pode enviar outro pedido.</p>
             <% } %>
-            <form method="post" action="/profile/categorias/solicitar-excecao" class="profile-exception-request-form" data-atuacao-form data-profile-section-form data-profile-section="profissional">
+            <form method="post" action="/profile/categorias/solicitar-excecao" class="profile-exception-request-form" data-atuacao-form data-profile-section-form data-profile-section="profissional" data-profile-exception-request>
                 <fieldset class="profile-category-fieldset">
                 <legend>Categorias após a alteração solicitada</legend>
-                <div class="profile-category-grid">
-                  <% categoriasDisponiveis.filter(categoria => categoria !== categoriaLegadaRapperMC).forEach(categoria => { %>
-                    <label class="profile-category-option">
-                      <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoriasSolicitadas.includes(categoria) ? ' checked' : '' %>>
-                      <span><%= categoria %></span>
-                    </label>
+                <div class="professional-catalog-groups profile-category-grid">
+                  <% gruposProfissionais.forEach(grupo => { %>
+                    <section class="professional-catalog-group" data-professional-group="<%= grupo.id %>">
+                      <h4><%= grupo.rotulo %></h4>
+                      <div class="professional-catalog-group__options">
+                        <% grupo.profissoes.forEach(profissao => { %>
+                          <label class="profile-category-option">
+                            <input type="checkbox" name="categorias" value="<%= profissao.rotulo %>"<%= categoriasSolicitadas.includes(profissao.rotulo) ? ' checked' : '' %>>
+                            <span><%= profissao.rotulo %></span>
+                          </label>
+                        <% }) %>
+                      </div>
+                    </section>
                   <% }) %>
-                  <% if (usuario.categories.includes(categoriaLegadaRapperMC)) { %>
-                    <label class="profile-category-option">
-                      <input type="checkbox" name="categorias" value="<%= categoriaLegadaRapperMC %>"<%= categoriasSolicitadas.includes(categoriaLegadaRapperMC) ? ' checked' : '' %>>
-                      <span><%= categoriaLegadaRapperMC %> (legada)</span>
-                    </label>
-                  <% } %>
                 </div>
                 </fieldset>
               <p class="category-validation" data-category-validation role="alert" hidden>Selecione ao menos uma categoria para enviar a solicitação.</p>
@@ -216,29 +225,33 @@
               <label for="profile-exception-reason">Por que deseja adicionar ou modificar essa categoria?
                 <select id="profile-exception-reason" name="motivoCodigo" required>
                   <option value="">Selecione um motivo</option>
-                  <option value="recente">Comecei a atuar nessa área recentemente</option>
-                  <option value="novos_trabalhos">Passei a desenvolver novos tipos de trabalho</option>
-                  <option value="atualizar">Quero corrigir ou atualizar informações do meu perfil</option>
-                  <option value="categoria_incorreta">Selecionei a categoria incorreta anteriormente</option>
-                  <option value="ampliar">Quero ampliar minha atuação e buscar oportunidades nessa área</option>
-                  <option value="outro">Outro motivo</option>
+                  <option value="recente"<%= motivoCodigo === 'recente' ? ' selected' : '' %>>Comecei a atuar nessa área recentemente</option>
+                  <option value="novos_trabalhos"<%= motivoCodigo === 'novos_trabalhos' ? ' selected' : '' %>>Passei a desenvolver novos tipos de trabalho</option>
+                  <option value="atualizar"<%= motivoCodigo === 'atualizar' ? ' selected' : '' %>>Quero corrigir ou atualizar informações do meu perfil</option>
+                  <option value="categoria_incorreta"<%= motivoCodigo === 'categoria_incorreta' ? ' selected' : '' %>>Selecionei a categoria incorreta anteriormente</option>
+                  <option value="ampliar"<%= motivoCodigo === 'ampliar' ? ' selected' : '' %>>Quero ampliar minha atuação e buscar oportunidades nessa área</option>
+                  <option value="outro"<%= motivoCodigo === 'outro' ? ' selected' : '' %>>Outro motivo</option>
                 </select>
               </label>
-              <label>Explique, se selecionou “Outro”
-                <textarea name="motivoOutro" minlength="10" maxlength="500" rows="3" placeholder="Explique brevemente (obrigatório para Outro)"></textarea>
-              </label>
+              <div data-exception-other-reason-field hidden>
+                <label for="profile-exception-other-reason">Explique o motivo
+                  <textarea id="profile-exception-other-reason" name="motivoOutro" minlength="10" maxlength="500" rows="3"<%= motivoCodigo === 'outro' ? ' required' : '' %><%= motivoCodigo === 'outro' ? '' : ' disabled' %> placeholder="Explique brevemente (obrigatório para Outro)"><%= motivoOutro %></textarea>
+                  <small>A explicação é obrigatória quando “Outro motivo” está selecionado (10 a 500 caracteres).</small>
+                </label>
+              </div>
               <button class="button button-lime" type="submit">Enviar para análise</button>
             </form>
           <% } %>
         </section>
       <% } %>
-      <form method="post" action="/profile/categorias/sugerir" class="profile-category-request" data-profile-section-form data-profile-section="profissional">
+      <button class="button button-outline" type="button" data-category-suggestion-toggle aria-expanded="<%= valores.categorias.includes('Outros') || categoriasSolicitadas.includes('Outros') ? 'true' : 'false' %>"<%= valores.categorias.includes('Outros') || categoriasSolicitadas.includes('Outros') ? ' hidden' : '' %>>Sugerir uma categoria profissional</button>
+      <form id="profile-category-suggestion-form" method="post" action="/profile/categorias/sugerir" class="profile-category-request" data-profile-section-form data-profile-section="profissional" data-category-other-suggestion<%= valores.categorias.includes('Outros') || categoriasSolicitadas.includes('Outros') ? '' : ' hidden' %>>
         <div>
-          <h4>Sugerir nova categoria profissional</h4>
-          <p>Se aprovada pela equipe, a categoria será adicionada às opções disponíveis para todos. O pedido não altera suas categorias atuais nem o prazo de 60 dias.</p>
+          <h4 data-category-suggestion-heading>Sugerir nova categoria profissional</h4>
+          <p>Informe a atuação que “Outros” representa. A sugestão será analisada separadamente; não altera suas categorias atuais, não entra no pedido de exceção e não fica ativa antes da aprovação.</p>
         </div>
         <label>
-          Categoria sugerida
+          Qual atuação profissional deseja sugerir?
           <input name="categoria" minlength="2" maxlength="60" required placeholder="Ex.: engenheiro de áudio">
         </label>
         <button class="button button-outline" type="submit">Enviar para análise</button>

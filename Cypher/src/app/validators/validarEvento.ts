@@ -27,6 +27,7 @@ export const tiposParticipacaoEvento = ["aberta", "aprovacao"] as const;
 export type ValoresFormularioEvento = {
   titulo: string;
   categoria: string;
+  categoriaDetalhe: string;
   data: string;
   horario: string;
   local: string;
@@ -48,7 +49,8 @@ export function validarCategoriaEvento(categoria: unknown): string | null {
 }
 
 export function validarFormularioEvento(
-  valores: ValoresFormularioEvento
+  valores: ValoresFormularioEvento,
+  permitirCategoriaOutroLegadaVazia = false
 ): string | null {
   if (valores.titulo.length < 2 || valores.titulo.length > 120)
     return "Informe um título entre 2 e 120 caracteres.";
@@ -58,6 +60,15 @@ export function validarFormularioEvento(
     )
   )
     return "Selecione uma categoria de evento válida.";
+  if (
+    valores.categoria === "Outro" &&
+    (valores.categoriaDetalhe.length > 80 ||
+      (valores.categoriaDetalhe.length > 0 &&
+        valores.categoriaDetalhe.length < 2) ||
+      (!permitirCategoriaOutroLegadaVazia &&
+        valores.categoriaDetalhe.length < 2))
+  )
+    return "Especifique a categoria do evento em 2 a 80 caracteres.";
   if (!/^\d{4}-\d{2}-\d{2}$/.test(valores.data))
     return "Informe uma data válida para o evento.";
   const data = new Date(`${valores.data}T00:00:00Z`);

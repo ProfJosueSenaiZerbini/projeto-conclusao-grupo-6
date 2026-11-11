@@ -240,6 +240,53 @@
     });
   }
 
+  const listaDecisoesAdmin = document.querySelector(
+    "[data-admin-decision-list]"
+  );
+  if (listaDecisoesAdmin) {
+    const botoesFiltro = Array.from(
+      document.querySelectorAll("[data-admin-decision-filter]")
+    );
+    const contagemDecisoes = document.querySelector(
+      "[data-admin-decision-count]"
+    );
+    const vazioDecisoes = document.querySelector(
+      "[data-admin-decision-empty]"
+    );
+    const pedidosDecididos = Array.from(
+      listaDecisoesAdmin.querySelectorAll("[data-exception-decision]")
+    );
+    const filtrarDecisoes = filtro => {
+      let totalVisivel = 0;
+      pedidosDecididos.forEach(pedido => {
+        const corresponde =
+          filtro === "todas" || pedido.dataset.exceptionDecision === filtro;
+        pedido.hidden = !corresponde;
+        if (corresponde) totalVisivel += 1;
+      });
+      botoesFiltro.forEach(botao => {
+        const ativo = botao.dataset.adminDecisionFilter === filtro;
+        botao.classList.toggle("is-active", ativo);
+        botao.setAttribute("aria-pressed", String(ativo));
+      });
+      if (contagemDecisoes) {
+        const rotulo =
+          filtro === "aprovado"
+            ? "aprovadas"
+            : filtro === "rejeitado"
+              ? "recusadas"
+              : "solicitações no histórico";
+        contagemDecisoes.textContent = `${totalVisivel} ${rotulo}`;
+      }
+      if (vazioDecisoes) vazioDecisoes.hidden = totalVisivel > 0;
+    };
+    botoesFiltro.forEach(botao =>
+      botao.addEventListener("click", () =>
+        filtrarDecisoes(botao.dataset.adminDecisionFilter)
+      )
+    );
+  }
+
   document.querySelectorAll("[data-faq]").forEach(botao => {
     botao.addEventListener("click", () => {
       const item = botao.closest(".faq-item");
@@ -508,7 +555,9 @@
       definirTexto(
         dialogo,
         "[data-event-category-detail]",
-        dados.detailCategory
+        dados.detailCategoryDetail
+          ? `${dados.detailCategory} · ${dados.detailCategoryDetail}`
+          : dados.detailCategory
       );
       definirTexto(dialogo, "[data-event-date-detail]", dados.detailDate);
       definirTexto(dialogo, "[data-event-time-detail]", dados.detailTime);
@@ -790,6 +839,60 @@
   const sugestaoTipoObra = formularioObra?.querySelector(
     "[data-work-type-suggestion]"
   );
+  const campoTipoOutro = formularioObra?.querySelector(
+    "[data-work-type-other-field]"
+  );
+  const entradaTipoOutro = formularioObra?.querySelector(
+    "[data-work-type-other-input]"
+  );
+  const campoGeneroOutro = formularioObra?.querySelector(
+    "[data-work-genre-other-field]"
+  );
+  const seletorGeneroObra = formularioObra?.querySelector(
+    "[data-work-genre-select]"
+  );
+  const entradaGeneroOutro = formularioObra?.querySelector(
+    "[data-work-genre-other-input]"
+  );
+  const campoPapelOutro = formularioObra?.querySelector(
+    "[data-work-role-other-field]"
+  );
+  const seletorPapelObra = formularioObra?.querySelector('[name="papel"]');
+  const entradaPapelOutro = formularioObra?.querySelector(
+    "[data-work-role-other-input]"
+  );
+  const atualizarDetalhesOutrosObra = () => {
+    const tipoOutro = valorTipoObra?.value === "Outro";
+    const generoOutro = seletorGeneroObra?.value === "Outro";
+    const papelOutro = seletorPapelObra?.value === "Outro crédito";
+    if (campoTipoOutro) campoTipoOutro.hidden = !tipoOutro;
+    if (entradaTipoOutro) {
+      entradaTipoOutro.disabled = !tipoOutro;
+      entradaTipoOutro.required =
+        Boolean(tipoOutro) &&
+        formularioObra?.dataset.typeOtherLegacyEmpty !== "true";
+      if (!tipoOutro) entradaTipoOutro.value = "";
+    }
+    if (campoGeneroOutro) campoGeneroOutro.hidden = !generoOutro;
+    if (entradaGeneroOutro) {
+      entradaGeneroOutro.disabled = !generoOutro;
+      entradaGeneroOutro.required =
+        Boolean(generoOutro) &&
+        formularioObra?.dataset.genreOtherLegacyEmpty !== "true";
+      if (!generoOutro) entradaGeneroOutro.value = "";
+    }
+    if (campoPapelOutro) campoPapelOutro.hidden = !papelOutro;
+    if (entradaPapelOutro) {
+      entradaPapelOutro.disabled = !papelOutro;
+      entradaPapelOutro.required =
+        Boolean(papelOutro) &&
+        formularioObra?.dataset.roleOtherLegacyEmpty !== "true";
+      if (!papelOutro) entradaPapelOutro.value = "";
+    }
+  };
+  seletorGeneroObra?.addEventListener("change", atualizarDetalhesOutrosObra);
+  seletorPapelObra?.addEventListener("change", atualizarDetalhesOutrosObra);
+  atualizarDetalhesOutrosObra();
 
   const contextoPorTipo = {
     Música: {
@@ -910,6 +1013,7 @@
         Boolean(configuracao) &&
         !configuracao.campos.includes(campo.dataset.workField);
     });
+    atualizarDetalhesOutrosObra();
     const creditos = formularioObra.querySelector(
       "[data-work-section=credits] h2"
     );
@@ -942,7 +1046,29 @@
       escolhasTipoObra[0]?.focus();
     });
   }
-
+  const formularioEvento = document.querySelector("[data-event-form]");
+  const categoriaEvento = formularioEvento?.querySelector(
+    "[data-event-category-select]"
+  );
+  const campoCategoriaEventoOutro = formularioEvento?.querySelector(
+    "[data-event-category-other-field]"
+  );
+  const entradaCategoriaEventoOutro = formularioEvento?.querySelector(
+    "[data-event-category-other-input]"
+  );
+  const atualizarDetalheCategoriaEvento = () => {
+    const outro = categoriaEvento?.value === "Outro";
+    if (campoCategoriaEventoOutro) campoCategoriaEventoOutro.hidden = !outro;
+    if (entradaCategoriaEventoOutro) {
+      entradaCategoriaEventoOutro.disabled = !outro;
+      entradaCategoriaEventoOutro.required =
+        Boolean(outro) &&
+        formularioEvento?.dataset.categoryOtherLegacyEmpty !== "true";
+      if (!outro) entradaCategoriaEventoOutro.value = "";
+    }
+  };
+  categoriaEvento?.addEventListener("change", atualizarDetalheCategoriaEvento);
+  atualizarDetalheCategoriaEvento();
   const categoriaOutros = document.querySelector("[data-category-other]");
   const blocoOutraCategoria = document.querySelector(
     "[data-other-category-field]"

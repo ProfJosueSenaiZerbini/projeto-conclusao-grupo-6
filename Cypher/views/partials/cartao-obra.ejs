@@ -1,4 +1,4 @@
-<button class="work-card" type="button" data-work-card data-work-id="<%= obra.id %>" data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.role %>" data-work-credits="<%= obra.credits %>" data-work-owned="<%= obra.owned ? 'true' : 'false' %>" data-work-credit-details="<%= encodeURIComponent(JSON.stringify(obra.creditDetails)) %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>" data-work-link="<%= obra.listenLink %>" >
+<button class="work-card" type="button" data-work-card data-work-id="<%= obra.id %>" data-work-title="<%= obra.title %>" data-work-type="<%= obra.type %>" data-work-type-detail="<%= obra.typeDetail %>" data-work-status="<%= obra.status %>" data-work-meta="<%= obra.meta %>" data-work-role="<%= obra.roleDetail ? `${obra.role} · ${obra.roleDetail}` : obra.role %>" data-work-credits="<%= obra.credits %>" data-work-owned="<%= obra.owned ? 'true' : 'false' %>" data-work-credit-details="<%= encodeURIComponent(JSON.stringify(obra.creditDetails)) %>" data-work-description="<%= obra.description %>" data-work-bpm="<%= obra.bpm %>" data-work-isrc="<%= obra.isrc %>" data-work-iswc="<%= obra.iswc %>" data-work-link="<%= obra.listenLink %>" >
   <span class="work-card-index index-<%= i % 5 %>">
     <%= String(i + 1).padStart(2, '0') %>
   </span>
@@ -11,7 +11,7 @@
     </span>
     <span class="work-card-badges">
       <span class="type-label">
-        <%= obra.type %>
+        <%= obra.type %><%= obra.typeDetail ? ` · ${obra.typeDetail}` : '' %>
       </span>
       <span class="status-label">
         <i>
@@ -30,7 +30,7 @@
       PAPEL NA OBRA
     </small>
     <b>
-      <%= obra.role || 'Crédito associado' %>
+      <%= obra.roleDetail ? `${obra.role} · ${obra.roleDetail}` : (obra.role || 'Crédito associado') %>
     </b>
     <small>
       <span class="lucide-icon" aria-hidden="true">

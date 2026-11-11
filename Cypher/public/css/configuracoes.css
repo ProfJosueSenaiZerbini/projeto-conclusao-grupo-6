@@ -1141,6 +1141,40 @@
   align-items: flex-start;
 }
 
+.admin-request-tabs {
+  margin: 15px 0 0;
+}
+
+.admin-decision-card {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+}
+
+.admin-decision-status {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 9px;
+  padding: 5px 9px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  color: #45521f;
+  background: #eff5da;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-decision-status.is-rejected {
+  border-color: #e7c8c0;
+  color: #853e31;
+  background: #fff0ec;
+}
+
+.admin-decision-card > .admin-request-thread {
+  grid-column: 1 / -1;
+}
+
 .admin-review-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
@@ -1417,6 +1451,16 @@
 .dark .admin-review-card {
   background: #1b251a;
 }
+.dark .admin-decision-status {
+  border-color: #53633a;
+  color: #ddedaa;
+  background: #26321b;
+}
+.dark .admin-decision-status.is-rejected {
+  border-color: #70483e;
+  color: #ffc2b5;
+  background: #38231f;
+}
 
 .dark .admin-review-subject a,
 .dark .admin-account-identity strong,
@@ -1623,5 +1667,198 @@
 @media (max-width: 700px) {
   .admin-request-categories {
     grid-template-columns: 1fr;
+  }
+}
+
+
+/* Organização de status na fila administrativa de exceções. */
+.admin-request-tabs a > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.admin-request-tabs a small {
+  color: var(--admin-muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.admin-request-tabs a.active small {
+  color: #303b1c;
+}
+
+.admin-request-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  border: 1px solid #e4d39d;
+  border-radius: 999px;
+  color: #765a12;
+  background: #fff8e5;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.admin-request-status.is-waiting-user {
+  border-color: #c8d5e8;
+  color: #34577c;
+  background: #edf4fc;
+}
+
+.admin-status-dot {
+  display: inline-block;
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.admin-decision-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.admin-decision-toolbar > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-decision-toolbar strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.admin-decision-toolbar [data-admin-decision-count] {
+  color: var(--admin-muted);
+  font-size: 10px;
+}
+
+.admin-decision-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-decision-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  color: var(--admin-muted);
+  background: var(--admin-surface);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.admin-decision-filters button span {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.admin-decision-filters button:hover {
+  border-color: #a8c34c;
+  color: var(--ink);
+}
+
+.admin-decision-filters button.is-active {
+  border-color: #a8c34c;
+  color: #263313;
+  background: #e8f3c5;
+}
+
+.admin-decision-filters button:focus-visible {
+  outline: 3px solid #789b16;
+  outline-offset: 2px;
+}
+
+.admin-decision-status {
+  align-items: center;
+  gap: 7px;
+}
+
+.dark .admin-request-tabs a.active small {
+  color: #263313;
+}
+
+.dark .admin-request-status {
+  border-color: #6b5b31;
+  color: #f3d983;
+  background: #302a19;
+}
+
+.dark .admin-request-status.is-waiting-user {
+  border-color: #425b75;
+  color: #b9d5f3;
+  background: #1d2a38;
+}
+
+.dark .admin-decision-toolbar {
+  background: #141b14;
+}
+
+.dark .admin-decision-filters button {
+  border-color: var(--admin-border);
+  color: #d0d8c7;
+  background: #1b251a;
+}
+
+.dark .admin-decision-filters button span {
+  color: #f0f3e9;
+  background: #101710;
+}
+
+.dark .admin-decision-filters button.is-active {
+  border-color: #9ab73d;
+  color: #17200d;
+  background: #c8f22b;
+}
+
+@media (max-width: 700px) {
+  .admin-decision-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-decision-filters {
+    width: 100%;
+  }
+
+  .admin-decision-filters button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-decision-filters button {
+    transition: none;
   }
 }

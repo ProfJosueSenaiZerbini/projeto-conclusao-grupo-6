@@ -266,11 +266,27 @@
             pendentes
           </span>
         </div>
-        <% if (solicitacoesExcecao.length) { %>
+        <nav class="admin-tabs admin-request-tabs" aria-label="Estado das solicitações de exceção">
+          <a href="/admin/revisao/excecoes" class="<%= !arquivoSolicitacoesExcecao ? 'active' : '' %>"<%= !arquivoSolicitacoesExcecao ? 'aria-current="page"' : '' %>>
+            <span>Pendentes <small>aguardando decisão ou resposta</small></span>
+            <span class="admin-tab-count"><%= solicitacoesExcecao.length %></span>
+          </a>
+          <a href="/admin/revisao/excecoes?solicitacoes=decididas" class="<%= arquivoSolicitacoesExcecao ? 'active' : '' %>"<%= arquivoSolicitacoesExcecao ? 'aria-current="page"' : '' %>>
+            <span>Decididos <small>aprovados e recusados</small></span>
+            <span class="admin-tab-count"><%= solicitacoesExcecaoDecididas.length %></span>
+          </a>
+        </nav>
+        <% if (!arquivoSolicitacoesExcecao && solicitacoesExcecao.length) { %>
           <div class="admin-review-list">
             <% solicitacoesExcecao.forEach(solicitacao => { %>
+              <% const ultimaMensagemSolicitacao = solicitacao.historico[solicitacao.historico.length - 1]; %>
+              <% const aguardandoRespostaProfissional = ultimaMensagemSolicitacao?.autorTipo === 'administrador'; %>
               <article class="admin-review-card" data-exception-request="<%= solicitacao.id %>">
                 <div class="admin-review-subject">
+                  <span class="admin-request-status <%= aguardandoRespostaProfissional ? 'is-waiting-user' : 'is-waiting-admin' %>" role="status">
+                    <span class="admin-status-dot" aria-hidden="true"></span>
+                    <%= aguardandoRespostaProfissional ? 'Aguardando resposta do profissional' : 'Aguardando análise da equipe' %>
+                  </span>
                   <strong>
                     <%= solicitacao.nome %>
                   </strong>
@@ -332,9 +348,8 @@
                   </div>
                 <% } %>
                 <div class="admin-review-actions">
-                  <% const ultimaMensagemSolicitacao = solicitacao.historico[solicitacao.historico.length - 1]; %>
                   <% if (ultimaMensagemSolicitacao?.autorTipo === 'administrador') { %>
-                    <p class="admin-policy-note" role="status">Aguardando resposta do profissional antes de uma decisão.</p>
+                    <p class="admin-policy-note" role="status">A decisão fica pausada até o profissional responder. Assim que houver retorno, o pedido volta para análise.</p>
                   <% } else { %>
                     <form method="post" action="/admin/revisao/solicitacoes-excecao/<%= solicitacao.id %>/esclarecimento">
                       <label for="exception-question-<%= solicitacao.id %>">Solicitar esclarecimento
@@ -363,10 +378,59 @@
               </article>
             <% }) %>
           </div>
-        <% } else { %>
+        <% } else if (!arquivoSolicitacoesExcecao) { %>
           <p class="settings-empty admin-empty">
             Não há solicitações de exceção aguardando análise.
           </p>
+        <% } else if (solicitacoesExcecaoDecididas.length) { %>
+          <% const totalAprovadas = solicitacoesExcecaoDecididas.filter(solicitacao => solicitacao.status === 'aprovado').length; %>
+          <% const totalRecusadas = solicitacoesExcecaoDecididas.filter(solicitacao => solicitacao.status === 'rejeitado').length; %>
+          <div class="admin-decision-toolbar" data-admin-decision-toolbar>
+            <div>
+              <strong>Filtrar por decisão</strong>
+              <span data-admin-decision-count role="status"><%= `${solicitacoesExcecaoDecididas.length} solicitações no histórico` %></span>
+            </div>
+            <div class="admin-decision-filters" role="group" aria-label="Filtrar solicitações decididas">
+              <button type="button" class="is-active" data-admin-decision-filter="todas" aria-pressed="true">Todas <span><%= solicitacoesExcecaoDecididas.length %></span></button>
+              <button type="button" data-admin-decision-filter="aprovado" aria-pressed="false">Aprovadas <span><%= totalAprovadas %></span></button>
+              <button type="button" data-admin-decision-filter="rejeitado" aria-pressed="false">Recusadas <span><%= totalRecusadas %></span></button>
+            </div>
+          </div>
+          <p class="admin-search-empty" data-admin-decision-empty hidden>Nenhum pedido corresponde a este filtro.</p>
+          <div class="admin-review-list admin-decision-archive" data-admin-decision-list>
+            <% solicitacoesExcecaoDecididas.forEach(solicitacao => { %>
+              <article class="admin-review-card admin-decision-card" data-exception-decision="<%= solicitacao.status %>" data-exception-request="<%= solicitacao.id %>">
+                <div class="admin-review-subject">
+                  <span class="admin-decision-status <%= solicitacao.status === 'aprovado' ? 'is-approved' : 'is-rejected' %>"><span class="admin-status-dot" aria-hidden="true"></span><%= solicitacao.status === 'aprovado' ? 'Aprovada' : 'Recusada' %></span>
+                  <strong><%= solicitacao.nome %></strong>
+                  <p><%= solicitacao.email %> · <a href="/p/<%= solicitacao.handle.replace(/^@/, '') %>">Ver perfil</a></p>
+                  <small><%= `Enviada em ${new Date(`${solicitacao.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR')}` %></small>
+                  <% if (solicitacao.revisadaEm) { %><small><%= `Decidida em ${new Date(`${solicitacao.revisadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR')}` %></small><% } %>
+                </div>
+                <div class="admin-request-snapshot">
+                  <h4>Resumo da solicitação</h4>
+                  <p><strong>Motivo informado:</strong> <%= solicitacao.motivo %></p>
+                  <p><strong>Categorias antes:</strong> <%= solicitacao.categoriasAntes.join(', ') || 'Nenhuma categoria registrada' %></p>
+                  <p><strong>Categorias solicitadas:</strong> <%= solicitacao.categoriasSolicitadas.join(', ') || 'Nenhuma categoria' %></p>
+                  <p><strong>Justificativa da equipe:</strong> <%= solicitacao.motivoRevisao || 'Não informada' %></p>
+                </div>
+                <% if (solicitacao.historico.length) { %>
+                  <div class="admin-request-thread">
+                    <h4>Conversa registrada</h4>
+                    <% solicitacao.historico.forEach(mensagem => { %>
+                      <article class="admin-request-message">
+                        <strong><%= mensagem.autorTipo === 'administrador' ? 'Equipe Cypher' : 'Profissional' %></strong>
+                        <p><%= mensagem.mensagem %></p>
+                        <time datetime="<%= mensagem.criadaEm %>"><%= new Date(`${mensagem.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR') %></time>
+                      </article>
+                    <% }) %>
+                  </div>
+                <% } %>
+              </article>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="settings-empty admin-empty">Ainda não há solicitações aprovadas ou recusadas.</p>
         <% } %>
       </section>
       <% if (totalPerfis) { %>

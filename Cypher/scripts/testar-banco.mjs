@@ -9,8 +9,8 @@ const diretorio = fs.mkdtempSync(path.join(os.tmpdir(), "cypher-db-test-"));
 const arquivoBanco = path.join(diretorio, "cypher.sqlite");
 const arquivoRegras = path.join(diretorio, "regras.sqlite");
 const inicializar = `
-  import { inicializarDadosDemonstrativos } from "./src/app/models/modeloCypher.ts";
-  inicializarDadosDemonstrativos();
+  import { inicializarAplicacaoCypher } from "./src/app/models/modeloCypher.ts";
+  inicializarAplicacaoCypher();
 `;
 
 function executarBootstrap(rotulo) {
@@ -51,7 +51,7 @@ try {
   executarBootstrap("Bootstrap de banco novo");
 
   let db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   const tabelas = new Set(
     db
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table'")
@@ -75,15 +75,47 @@ try {
     "categorias_profissionais_aprovadas",
     "excecoes_categorias",
     "auditoria_categorias",
+    "respostas_atuacao_profissao",
+    "profissoes_usuario",
+    "vertentes_profissionais_usuario",
   ]) {
     assert.ok(tabelas.has(tabela), `Tabela ausente: ${tabela}`);
   }
+  assert.equal(
+    db.prepare("SELECT COUNT(*) AS total FROM profissoes_usuario").get().total,
+    0,
+    "A migração v20 não deve converter categorias legadas automaticamente"
+  );
+  assert.equal(
+    db
+      .prepare("SELECT COUNT(*) AS total FROM vertentes_profissionais_usuario")
+      .get().total,
+    0,
+    "A migração v20 não deve criar vertentes sem seleção explícita"
+  );
+  assert.equal(
+    db
+      .prepare("SELECT COUNT(*) AS total FROM respostas_atuacao_profissao")
+      .get().total,
+    0,
+    "O banco novo não deve criar respostas profissionais automaticamente"
+  );
   const colunasPerfil = new Set(
     db.pragma("table_info(perfis)").map(({ name }) => name)
   );
   assert.ok(colunasPerfil.has("funcao"));
   assert.ok(colunasPerfil.has("ultima_alteracao_categorias_em"));
   assert.ok(!colunasPerfil.has("role"));
+  const colunasObrasIniciais = new Set(
+    db.pragma("table_info(obras)").map(({ name }) => name)
+  );
+  const colunasEventosIniciais = new Set(
+    db.pragma("table_info(eventos)").map(({ name }) => name)
+  );
+  assert.ok(colunasObrasIniciais.has("tipo_detalhe"));
+  assert.ok(colunasObrasIniciais.has("genero_detalhe"));
+  assert.ok(colunasObrasIniciais.has("funcao_detalhe"));
+  assert.ok(colunasEventosIniciais.has("categoria_detalhe"));
   assert.ok(
     db
       .prepare(
@@ -105,12 +137,81 @@ try {
   db.prepare(
     "INSERT INTO perfis (usuario_id, c_tag, nome, funcao, identificador, iniciais, categorias_json, outra_categoria) VALUES ('legacy-category-user', 'CYP-LEGACY-CAT', 'Perfil legado categoria', 'Outros: Engenheiro de áudio', '@perfil-legado-categoria', 'PLC', '[\"Outros\"]', 'Engenheiro de áudio')"
   ).run();
+  db.prepare(
+    "INSERT INTO usuarios (id, email, senha_hash, tipo_conta, demonstracao, codigo_publico, numero_sequencial) VALUES ('legacy-canonical-user', 'legacy-canonical@example.test', NULL, 'profissional', 0, 'CYP-LGCAN0009004', 900004)"
+  ).run();
+  db.prepare(
+    "INSERT INTO perfis (usuario_id, c_tag, nome, funcao, identificador, iniciais, categorias_json) VALUES ('legacy-canonical-user', 'CYP-LEGACY-CAN', 'Perfil legado canônico', 'Rapper / MC · Produtor musical', '@perfil-legado-canonico', 'PLC', '[\"Rapper / MC\", \"Produtor musical\"]')"
+  ).run();
+  db.prepare(
+    "INSERT INTO profissoes_usuario (id, usuario_id, profissao_id, valor_original, origem) VALUES ('legacy-profissao', 'legacy-canonical-user', NULL, 'Produtor musical', 'legado')"
+  ).run();
+  db.prepare(
+    "INSERT INTO profissoes_usuario (id, usuario_id, profissao_id, valor_original, origem) VALUES ('legacy-rapper-mc', 'legacy-canonical-user', NULL, 'Rapper / MC', 'legado')"
+  ).run();
   const totalUsuarios = db
     .prepare("SELECT COUNT(*) AS total FROM usuarios")
     .get().total;
   const totalObras = db
     .prepare("SELECT COUNT(*) AS total FROM obras")
     .get().total;
+  db.pragma("user_version = 17");
+  db.close();
+
+  // Recupera bases v16 anteriores sem os campos de detalhe, sem alterar a versão.
+  db = new Database(arquivoBanco);
+  db.exec("ALTER TABLE obras DROP COLUMN tipo_detalhe");
+  db.exec("ALTER TABLE obras DROP COLUMN genero_detalhe");
+  db.exec("ALTER TABLE obras DROP COLUMN funcao_detalhe");
+  db.exec("ALTER TABLE eventos DROP COLUMN categoria_detalhe");
+  db.close();
+  executarBootstrap("Migração compatível do schema v16 para v20");
+  db = new Database(arquivoBanco);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
+  assert.ok(
+    db.pragma("table_info(obras)").some(({ name }) => name === "tipo_detalhe")
+  );
+  assert.ok(
+    db.pragma("table_info(obras)").some(({ name }) => name === "genero_detalhe")
+  );
+  assert.ok(
+    db.pragma("table_info(obras)").some(({ name }) => name === "funcao_detalhe")
+  );
+  assert.ok(
+    db
+      .pragma("table_info(eventos)")
+      .some(({ name }) => name === "categoria_detalhe")
+  );
+  assert.deepEqual(db.prepare("PRAGMA foreign_key_check").all(), []);
+  assert.deepEqual(
+    JSON.parse(
+      db
+        .prepare("SELECT categorias_json FROM perfis WHERE usuario_id = ?")
+        .get("legacy-canonical-user").categorias_json
+    ),
+    ["Rapper", "MC", "Produtor(a)"]
+  );
+  assert.ok(
+    db
+      .prepare(
+        "SELECT 1 FROM profissoes_usuario WHERE usuario_id = ? AND profissao_id = 'produtor' AND estado = 'ativa'"
+      )
+      .get("legacy-canonical-user")
+  );
+  assert.ok(
+    db
+      .prepare(
+        "SELECT 1 FROM profissoes_usuario WHERE usuario_id = ? AND profissao_id = 'rapper' AND estado = 'ativa'"
+      )
+      .get("legacy-canonical-user")
+  );
+  assert.ok(
+    db
+      .prepare(
+        "SELECT 1 FROM profissoes_usuario WHERE usuario_id = ? AND profissao_id = 'mc' AND estado = 'ativa'"
+      )
+      .get("legacy-canonical-user")
+  );
   db.close();
 
   // Simula um banco v5 anterior a interesses, ofertas e campos recentes.
@@ -125,7 +226,7 @@ try {
 
   executarBootstrap("Migração de banco v5");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.ok(
     db
       .prepare(
@@ -150,7 +251,7 @@ try {
 
   executarBootstrap("Migração de banco v7");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.equal(
     db.prepare("SELECT COUNT(*) AS total FROM usuarios").get().total,
     totalUsuarios
@@ -197,7 +298,7 @@ try {
 
   executarBootstrap("Migração de banco v11");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.ok(
     db
       .pragma("table_info(perfis)")
@@ -246,7 +347,7 @@ try {
   db.close();
   executarBootstrap("Migração de banco v13");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.deepEqual(
     db
       .prepare(
@@ -264,7 +365,7 @@ try {
   db.close();
   executarBootstrap("Migração de banco v12");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   for (const tabela of [
     "propostas_categorias",
     "categorias_profissionais_aprovadas",
@@ -284,16 +385,16 @@ try {
   db.exec("DROP TABLE IF EXISTS solicitacoes_excecao_categorias");
   db.pragma("user_version = 14");
   db.close();
-  executarBootstrap("Migração de banco v14 para v16");
+  executarBootstrap("Migração de banco v14 para v20");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.ok(
     db
       .prepare(
         "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'solicitacoes_excecao_categorias'"
       )
       .get(),
-    "A tabela de solicitações de exceção deve existir após a migração v16"
+    "A tabela de solicitações de exceção deve existir após a migração v20"
   );
   assert.ok(
     db
@@ -305,7 +406,9 @@ try {
   );
 
   const usuarioMigracao = db
-    .prepare("SELECT usuario_id AS id, categorias_json AS categoriasJson FROM perfis LIMIT 1")
+    .prepare(
+      "SELECT usuario_id AS id, categorias_json AS categoriasJson FROM perfis LIMIT 1"
+    )
     .get();
   const revisorMigracao = db
     .prepare("SELECT id FROM usuarios WHERE id <> ? LIMIT 1")
@@ -327,30 +430,41 @@ try {
   db.pragma("user_version = 15");
   db.close();
 
-  executarBootstrap("Migração de banco v15 para v16");
+  executarBootstrap("Migração de banco v15 para v20");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.deepEqual(
     JSON.parse(
-      db.prepare("SELECT categorias_antes_json AS categorias FROM solicitacoes_excecao_categorias WHERE id = ?")
+      db
+        .prepare(
+          "SELECT categorias_antes_json AS categorias FROM solicitacoes_excecao_categorias WHERE id = ?"
+        )
         .get("solicitacao-legada-v15").categorias
     ),
     JSON.parse(usuarioMigracao.categoriasJson)
   );
   assert.deepEqual(
-    db.prepare(
-      "SELECT autor_tipo AS autorTipo, mensagem FROM historico_solicitacoes_categorias WHERE solicitacao_id = ? ORDER BY autor_tipo"
-    ).all("solicitacao-legada-v15"),
+    db
+      .prepare(
+        "SELECT autor_tipo AS autorTipo, mensagem FROM historico_solicitacoes_categorias WHERE solicitacao_id = ? ORDER BY autor_tipo"
+      )
+      .all("solicitacao-legada-v15"),
     [
-      { autorTipo: "administrador", mensagem: "Solicitação recusada após análise." },
-      { autorTipo: "usuario", mensagem: "Pedido legado de alteração profissional." },
+      {
+        autorTipo: "administrador",
+        mensagem: "Solicitação recusada após análise.",
+      },
+      {
+        autorTipo: "usuario",
+        mensagem: "Pedido legado de alteração profissional.",
+      },
     ]
   );
   db.close();
 
-  executarBootstrap("Reinicialização idempotente v16");
+  executarBootstrap("Reinicialização idempotente v20");
   db = new Database(arquivoBanco);
-  assert.equal(db.pragma("user_version", { simple: true }), 16);
+  assert.equal(db.pragma("user_version", { simple: true }), 20);
   assert.equal(
     db.prepare("SELECT COUNT(*) AS total FROM usuarios").get().total,
     totalUsuarios
@@ -369,7 +483,7 @@ try {
   db.close();
 
   console.log(
-    "OK: banco novo, migrações v5/v7/v11/v12/v13/v14/v15 → v16, propostas legadas e taxonomia aprovada persistente, integridade referencial, idempotência e recusa segura de schema futuro."
+    "OK: banco novo, migrações v5/v7/v11/v12/v13/v14/v15/v16 → v20, propostas legadas e taxonomia aprovada persistente, integridade referencial, idempotência e recusa segura de schema futuro."
   );
 } finally {
   fs.rmSync(diretorio, { recursive: true, force: true });

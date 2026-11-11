@@ -1,7 +1,7 @@
 # Análise técnica do projeto Cypher
 
 **Pacote analisado:** `cypher-etapa-08.zip` (registro histórico, não retrato do pacote atual)  
-**Estado analisado originalmente:** Etapas 0–8 concluídas e Etapa 1 de eventos implementada; schema SQLite v7. O runtime deste pacote suporta schema v16.
+**Estado analisado originalmente:** Etapas 0–8 concluídas e Etapa 1 de eventos implementada; schema SQLite v7. O runtime deste pacote suporta schema v20 e inicializa o banco sem dados demonstrativos.
 **Data da análise:** 15 de outubro de 2026.
 
 ## 1. Visão geral
@@ -17,9 +17,9 @@ Cypher é uma aplicação web para profissionais da cena musical underground. A 
 - CSS modular por área, com tema claro/escuro e responsividade;
 - arquitetura MVC sem framework adicional.
 
-Contas reais mantêm um UUID interno e também recebem um ID Cypher público imutável no formato `CYP-{INICIAIS}{NÚMERO}`. O acesso fantasma usa `CYP-FANTASMA`; contas demonstrativas restantes usam códigos `CYP-DEMO####` e não consomem a sequência real.
+Contas reais mantêm um UUID interno e também recebem um ID Cypher público imutável no formato `CYP-{INICIAIS}{NÚMERO}`. Não existem contas demonstrativas ou acesso convidado.
 
-O servidor inicia o SQLite antes de aceitar requisições, carrega fixtures demonstrativas de forma idempotente e depois registra as rotas Express.
+O servidor inicia o SQLite antes de aceitar requisições, remove resíduos demonstrativos antigos de forma idempotente e depois registra as rotas Express.
 
 ## 2. Estrutura e responsabilidades
 
@@ -59,7 +59,7 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 
 ## 3. Inicialização e ciclo de uma requisição
 
-1. `src/aplicacao.ts` chama `inicializarDadosDemonstrativos()`.
+1. `src/aplicacao.ts` chama `inicializarAplicacaoCypher()`.
 2. `modeloCypher.ts` monta pessoas, eventos, beats e obras de demonstração.
 3. `bancoDados.ts` cria o diretório/arquivo SQLite, ativa `foreign_keys` e `busy_timeout`, aplica schema/migrações e semeia fixtures.
 4. Express configura `trust proxy = 1`, body parsers, arquivos estáticos, EJS e as rotas.
@@ -78,7 +78,7 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 | POST     | `/categories/analyze`                         | demonstrativo               | pré-análise simulada de categoria                         |
 | GET      | `/`, `/dashboard`                             | funcional + dados demo      | visão geral                                               |
 | GET      | `/search`                                     | funcional                   | busca persistida de perfis públicos                       |
-| GET      | `/events`                                     | funcional                   | descoberta de eventos reais e demonstrativos, com filtros |
+| GET      | `/events`                                     | funcional                   | descoberta de eventos reais, com filtros |
 | GET/POST | `/events/new`                                 | funcional                   | criação de evento por organizador                         |
 | GET/POST | `/events/:id/edit`                            | funcional                   | edição do próprio evento                                  |
 | POST     | `/events/:id/delete`                          | funcional                   | exclusão do próprio evento                                |
@@ -88,7 +88,7 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 | GET/POST | `/works`, `/works/new`                        | funcional                   | catálogo e criação de obras                               |
 | GET/POST | `/works/:id/edit`                             | funcional                   | edição própria, com autorização por proprietário          |
 | POST     | `/works/:id/delete`                           | funcional                   | exclusão própria                                          |
-| GET      | `/beats`                                      | funcional                   | descoberta de beats demonstrativos e reais                |
+| GET      | `/beats`                                      | funcional                   | descoberta de beats reais                |
 | GET/POST | `/beats/new`                                  | funcional                   | cadastro persistente de beat                              |
 | GET/POST | `/beats/:id/edit`                             | funcional                   | edição própria, com autorização por proprietário          |
 | POST     | `/beats/:id/delete`                           | funcional                   | exclusão própria                                          |
@@ -105,7 +105,7 @@ As rotas são compostas por entry points separados por domínio. `controladorCyp
 | POST     | `/settings/delete-account`                    | funcional com pré-condições | encerramento da própria conta                             |
 | GET      | `/p/:identificador`                           | funcional                   | perfil público, respeitando privacidade                   |
 
-As rotas protegidas são verificadas tanto no middleware global quanto, em operações sensíveis, no controller. Contas demonstrativas podem navegar, mas recebem `403` em operações de escrita.
+As rotas protegidas são verificadas tanto no middleware global quanto, em operações sensíveis, no controller. Todas as contas autenticadas são contas reais e recebem as permissões correspondentes ao próprio estado.
 
 ## 5. Banco de dados e integridade
 
@@ -115,9 +115,9 @@ O schema suportado pelo código atual é a versão **15**. Este documento conté
 - `perfis`: dados profissionais, categorias/gêneros/equipamentos serializados como JSON, status e flags de visibilidade;
 - `obras`: catálogo do proprietário, metadados, letra, códigos, data, link e estado de publicação;
 - `creditos`: créditos ligados a usuário ou menções textuais sem perfil;
-- `eventos`: eventos operacionais persistidos; registros demonstrativos antigos são limpos no bootstrap;
+- `eventos`: eventos operacionais persistidos; resíduos demonstrativos antigos são removidos no bootstrap;
 - `interesses_eventos`: relação única entre usuário e evento, com status e timestamps;
-- `beats`: beats operacionais persistidos com dados técnicos, condições de uso e modo de venda exclusiva; registros demonstrativos antigos são limpos no bootstrap;
+- `beats`: beats operacionais persistidos com dados técnicos, condições de uso e modo de venda exclusiva; resíduos demonstrativos antigos são removidos no bootstrap;
 - `ofertas_beats`: uma ou mais ofertas ativas por Beat, com tipo de licença, preço opcional em centavos e descrição;
 - `sessoes`: hash SHA-256 do token, usuário e expiração;
 - `notificacoes`: avisos persistentes por usuário destinatário, com estado de leitura e chave de origem idempotente.
@@ -138,9 +138,9 @@ Relacionamentos relevantes:
 - crédito ligado a usuário usa `ON DELETE SET NULL` para preservar o nome textual após exclusão;
 - eventos e beats também bloqueiam exclusão do usuário enquanto forem próprios.
 
-As migrações são incrementais e condicionais, e a inicialização aplica mudanças estruturais e de dados numa transação. O histórico antigo neste arquivo descreve etapas até v7; relatórios posteriores documentam interesses em eventos (v7), notificações (v8) e evolução subsequente. O runtime atual declara v15, garante os campos necessários, cria a tabela e o índice parcial de pedidos de exceção, completa IDs públicos/sequências ausentes e só grava a versão depois das migrações concluírem. A migração de valores livres antigos encaminha nomes para revisão pendente e remove a publicação direta do perfil; aprovações anteriores passam ao catálogo independente para sobreviver à exclusão do solicitante. Não há conversão textual de categorias por `REPLACE`; `Empresário` é o valor canônico do código atual.
+As migrações são incrementais e condicionais, e a inicialização aplica mudanças estruturais e de dados numa transação. O histórico antigo neste arquivo descreve etapas até v7; relatórios posteriores documentam interesses em eventos (v7), notificações (v8) e evolução subsequente. O runtime atual declara v17, garante os campos necessários, cria as tabelas de persistência profissional e os índices correspondentes, completa IDs públicos/sequências ausentes e só grava a versão depois das migrações concluírem. A migração de valores livres antigos encaminha nomes para revisão pendente e remove a publicação direta do perfil; aprovações anteriores passam ao catálogo independente para sobreviver à exclusão do solicitante. Não há conversão textual de categorias por `REPLACE`; `Empresário` é o valor canônico do código atual.
 
-Fixtures são marcadas com `demonstracao = 1`, atualizadas por conflito apenas quando continuam demonstrativas e não substituem registros reais.
+O bootstrap v20 remove qualquer linha marcada como demonstrativa e não cria novas fixtures.
 
 ## 6. Autenticação e autorização
 
@@ -151,7 +151,7 @@ Fixtures são marcadas com `demonstracao = 1`, atualizadas por conflito apenas q
 - Somente SHA-256 do token vai para o banco.
 - Sessão dura 24 horas e uma sessão anterior é revogada no novo login do mesmo navegador.
 - Cookie é `HttpOnly`; usa `SameSite=Lax` em HTTP e `SameSite=None; Secure` quando `req.secure` é verdadeiro.
-- O atalho OG Emicê exige `CYPHER_ALLOW_OG_ACCESS=true` e nunca funciona em produção.
+- Não existe atalho de acesso convidado ou conta técnica.
 - O e-mail de acesso não é exposto no perfil público.
 
 ## 7. Perfil, descoberta e privacidade
@@ -224,7 +224,7 @@ Executado no projeto extraído, em banco temporário isolado:
 - HTTP público: `/login` e `/register` retornam 200;
 - rotas privadas sem sessão redirecionam para `/login`;
 - arquivos estáticos CSS/JS retornam 200;
-- banco inicializado com usuários, perfis, obras, créditos, eventos e beats demonstrativos;
+- banco inicializado sem registros demonstrativos;
 - fluxo real isolado de cadastro, login, descoberta, criação, edição e exclusão de beat passou;
 - fluxo real isolado de cadastro, login, dashboard, perfil, criação de obra e logout passou;
 - após logout, o dashboard volta a redirecionar para `/login`.
@@ -259,10 +259,10 @@ A execução gerou apenas o aviso conhecido da dependência transitiva `prebuild
 - conta só pode ser excluída depois que obras, eventos e beats próprios forem removidos ou transferidos;
 - créditos em obras de terceiros permanecem textuais após a exclusão da conta;
 - a propriedade deve continuar derivada da sessão, nunca de IDs enviados pelo navegador;
-- dados demonstrativos não devem ser tratados como dados reais em novas features;
+- novos dados devem ser criados apenas por funcionalidades factuais da aplicação;
 - beats reais usam `ON DELETE RESTRICT`; a exclusão de conta continua exigindo remoção ou transferência dos beats próprios;
 - a participação confirmada ainda não alimenta métricas históricas detalhadas por categoria e período;
-- a categoria `Produtor musical` ainda não habilita automaticamente o cadastro de Beats; a capacidade atual de criação exige `Beatmaker`;
+- a categoria `Produtor(a)` ainda não habilita automaticamente o cadastro de Beats; a capacidade atual de criação exige `Beatmaker`;
 
 ## 13. Próximo ponto natural do plano
 
@@ -332,10 +332,15 @@ O relatório completo está em `relatorios-incrementacao/melhoria-18-cadastro-ob
 
 ## Estado atual — governança de categorias, gêneros e exceções (melhorias 24, 25 e 27)
 
-O schema v16 contém `perfis.ultima_alteracao_categorias_em`, as filas `propostas_generos`, `propostas_categorias` e `solicitacoes_excecao_categorias`, o catálogo independente `categorias_profissionais_aprovadas`, a tabela `excecoes_categorias` e o histórico `auditoria_categorias`. A seleção inicial feita no cadastro inicia o prazo; mudanças posteriores são recusadas até 60 dias, salvo uma autorização administrativa não usada. A pessoa pode justificar um pedido antecipado; a equipe aprova ou recusa pela fila protegida, e a decisão registra revisor, horário e justificativa. A aprovação cria ou vincula uma autorização de uso único, consumida apenas junto da mudança efetiva. O prazo é determinado no servidor/SQLite, não apenas pela interface.
+O schema v20 contém `perfis.ultima_alteracao_categorias_em`, as filas `propostas_generos`, `propostas_categorias` e `solicitacoes_excecao_categorias`, o catálogo independente `categorias_profissionais_aprovadas`, a tabela `excecoes_categorias` e o histórico `auditoria_categorias`. A seleção inicial feita no cadastro inicia o prazo; mudanças posteriores são recusadas até 60 dias, salvo uma autorização administrativa não usada. A pessoa pode justificar um pedido antecipado; a equipe aprova ou recusa pela fila protegida, e a decisão registra revisor, horário e justificativa. A aprovação cria ou vincula uma autorização de uso único, consumida apenas junto da mudança efetiva. O prazo é determinado no servidor/SQLite, não apenas pela interface.
 
 O formulário de gêneros usa opções canônicas; “Outro” cria uma proposta privada pendente. Novas categorias profissionais podem ser sugeridas durante o cadastro ou pela edição do perfil; também ficam pendentes. As duas filas são moderadas na aba **Administrador → Análises**. Uma categoria aprovada entra nas listas de cadastro/perfil para todos, mas não altera automaticamente o perfil do solicitante, não encurta o prazo de 60 dias e não concede permissões ou capacidades especiais. A migração retira valores livres antigos de perfis reais e os submete à mesma revisão. Aprovações/rejeições guardam motivo, revisor e data. O nome aprovado fica em `categorias_profissionais_aprovadas`, independente da conta autora; apagar a conta não apaga a opção global aprovada.
 
 O acesso à página `/admin/revisao` e aos POSTs de decisão depende da allowlist de e-mails `CYPHER_ADMIN_EMAILS`, definida no ambiente do servidor; não depende da função, categoria, tipo de conta nem de campos editáveis pelo cliente. A navegação lateral apresenta **Administrador** somente a esses e-mails, e as exceções auditadas ficam em seção interna própria. Uma conta só pode manter um pedido de exceção pendente; enquanto isso, a concessão direta fica bloqueada para evitar conflito com a decisão da fila. A avaliação não usa inatividade isolada como sinal de fraude.
 
 `npm run test:db` cobre banco novo, migrações v5/v7/v11/v12/v13/v14 para v15, conversão de categoria legada para pendente, backfill de aprovações, idempotência, schema futuro, integridade referencial, bloqueio e consumo da exceção, solicitação duplicada, recusa, reenvio, aprovação auditada, aprovação de gêneros/categorias, disponibilidade dinâmica, deduplicação e persistência da categoria após exclusão do solicitante. `npm run test:admin-ui` também cobre a submissão HTTP por usuário, fila administrativa, aprovação, recusa e negação a não-administrador.
+
+
+### Questionários por profissão
+
+O contrato atual possui quatro perguntas exatas para cada uma das 36 profissões, com validação por ID estável e persistência separada em `respostas_atuacao_profissao`.

@@ -353,6 +353,56 @@
   gap: 8px;
 }
 
+.profile-category-grid.professional-catalog-groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.profile-category-grid .professional-catalog-group {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e5e8df;
+  border-radius: 8px;
+  background: #fbfcf8;
+}
+
+.profile-category-grid .professional-catalog-group h4 {
+  margin: 0;
+  color: #697568;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.profile-category-grid .professional-catalog-group h4 span {
+  display: inline-grid;
+  min-width: 18px;
+  min-height: 18px;
+  margin-left: 4px;
+  place-items: center;
+  border-radius: 50%;
+  color: #10140f;
+  background: #c8ff57;
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.profile-edit-form .category-selection-summary {
+  margin: 0 0 10px;
+  color: #697568;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profile-category-grid .professional-catalog-group__options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .profile-edit-form .profile-category-option {
   display: flex;
   align-items: center;
@@ -772,6 +822,28 @@
   margin-top: 16px;
 }
 
+.professional-category-groups {
+  display: grid;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.professional-category-group {
+  min-width: 0;
+}
+
+.professional-category-group h4 {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.professional-category-group .professional-category-cards {
+  margin-top: 9px;
+}
+
 .professional-category-card {
   display: grid;
   gap: 7px;
@@ -1161,7 +1233,7 @@
   width: fit-content;
   max-width: 100%;
   min-height: 40px;
-  margin: -22px 0 0 22px;
+  margin: 0 0 0 22px;
   padding: 7px 12px;
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -1603,7 +1675,7 @@
     font-size: 9px;
   }
   .profile-id-strip {
-    margin: -8px 0 0 10px;
+    margin: 0 0 0 10px;
   }
   .profile-section-nav {
     gap: 19px;

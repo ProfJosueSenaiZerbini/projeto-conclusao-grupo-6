@@ -132,6 +132,63 @@
     });
   });
 
+  const otherCategoryInputs = [
+    ...editor.querySelectorAll("[data-category-other]"),
+  ];
+  const categorySuggestionForm = editor.querySelector(
+    "[data-category-other-suggestion]"
+  );
+  const categorySuggestionToggle = editor.querySelector(
+    "[data-category-suggestion-toggle]"
+  );
+  let categorySuggestionManuallyOpen = false;
+  const updateCategorySuggestion = () => {
+    const selected = otherCategoryInputs.some(input => input.checked);
+    const visible = selected || categorySuggestionManuallyOpen;
+    if (categorySuggestionForm) categorySuggestionForm.hidden = !visible;
+    if (categorySuggestionToggle) {
+      categorySuggestionToggle.hidden = selected;
+      categorySuggestionToggle.setAttribute("aria-expanded", String(visible));
+      categorySuggestionToggle.textContent = categorySuggestionManuallyOpen
+        ? "Fechar sugestão de categoria"
+        : "Sugerir uma categoria profissional";
+    }
+  };
+  otherCategoryInputs.forEach(input =>
+    input.addEventListener("change", updateCategorySuggestion)
+  );
+  categorySuggestionToggle?.addEventListener("click", () => {
+    categorySuggestionManuallyOpen = !categorySuggestionManuallyOpen;
+    updateCategorySuggestion();
+    if (categorySuggestionManuallyOpen)
+      categorySuggestionForm?.querySelector('input[name="categoria"]')?.focus();
+  });
+  updateCategorySuggestion();
+
+  const exceptionForm = editor.querySelector(
+    "form[data-profile-exception-request]"
+  );
+  const exceptionReason = exceptionForm?.querySelector(
+    'select[name="motivoCodigo"]'
+  );
+  const otherReasonField = exceptionForm?.querySelector(
+    "[data-exception-other-reason-field]"
+  );
+  const otherReasonInput = otherReasonField?.querySelector(
+    'textarea[name="motivoOutro"]'
+  );
+  const updateExceptionReason = () => {
+    const active = exceptionReason?.value === "outro";
+    if (otherReasonField) otherReasonField.hidden = !active;
+    if (otherReasonInput) {
+      otherReasonInput.disabled = !active;
+      otherReasonInput.required = Boolean(active);
+      if (!active) otherReasonInput.value = "";
+    }
+  };
+  exceptionReason?.addEventListener("change", updateExceptionReason);
+  updateExceptionReason();
+
   window.addEventListener("beforeunload", event => {
     if (dirtyForms.size === 0 || submitting) return;
     event.preventDefault();

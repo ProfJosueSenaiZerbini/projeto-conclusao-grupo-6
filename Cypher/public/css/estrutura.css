@@ -266,6 +266,8 @@
 }
 
 .topbar {
+  position: relative;
+  z-index: 35;
   height: 72px;
   display: flex;
   align-items: center;
@@ -573,6 +575,15 @@ a.topbar-avatar:hover {
   box-shadow: 0 7px 16px rgba(112, 145, 21, 0.14);
 }
 
+.sidebar .side-link.active:hover,
+.sidebar .side-link.active:focus-visible {
+  color: #f4f8e8;
+  background: #26351f;
+  box-shadow:
+    inset 0 0 0 2px #d5ef74,
+    0 7px 16px rgba(20, 34, 16, 0.24);
+}
+
 .sidebar .reputation-mini {
   border-color: #d1dccb;
   background: rgba(255, 255, 255, 0.46);
@@ -640,6 +651,15 @@ a.topbar-avatar:hover {
 .dark .sidebar .side-link.active {
   color: #10140f;
   background: var(--lime);
+}
+
+.dark .sidebar .side-link.active:hover,
+.dark .sidebar .side-link.active:focus-visible {
+  color: #f4f8e8;
+  background: #344a2d;
+  box-shadow:
+    inset 0 0 0 2px #d5ef74,
+    0 7px 18px rgba(0, 0, 0, 0.38);
 }
 
 .dark .sidebar .reputation-mini {

@@ -108,13 +108,13 @@
             </h4>
           </div>
           <span class="status-label">
-            <%= obra.type %>
+            <%= obra.type %><%= obra.typeDetail ? ` · ${obra.typeDetail}` : '' %>
           </span>
         </div>
         <p class="public-work-meta">
-          <%= obra.genre || 'Gênero não informado' %>
+          <%= obra.genreDetail ? `${obra.genre} · ${obra.genreDetail}` : obra.genre || 'Gênero não informado' %>
           <%= obra.releaseDate ? ` · ${obra.releaseDate.split('-').reverse().join('/')}` : '' %>
-          <%= obra.role ? ` · ${obra.role}` : '' %>
+          <%= obra.role ? ` · ${obra.role}` : '' %><%= obra.roleDetail ? ` · ${obra.roleDetail}` : '' %>
         </p>
         <% if (obra.listenLink) { %>
           <a class="text-link" href="<%= obra.listenLink %>" target="_blank" rel="noopener noreferrer">
@@ -188,14 +188,24 @@
   <h3 id="public-category-title">Categorias e trajetória compartilhada</h3>
   <p>As respostas são filtradas no servidor de acordo com as preferências de visibilidade desta pessoa e sua relação de colaboração registrada.</p>
   <% if (perfil.categories.length) { %>
-    <div class="professional-category-cards">
-      <% perfil.categories.forEach(categoria => { %>
-        <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
-          <span>Categoria profissional</span>
-          <strong><%= categoria %></strong>
-          <span>Ver trajetória</span>
-        </a>
-      <% }) %>
+    <div class="professional-category-groups">
+      <% gruposProfissionais.forEach(grupo => { const categoriasDoGrupo = perfil.categories.filter(categoria => grupo.profissoes.some(profissao => profissao.rotulo === categoria)); if (categoriasDoGrupo.length) { %>
+        <section class="professional-category-group" aria-labelledby="public-group-<%= grupo.id %>">
+          <h4 id="public-group-<%= grupo.id %>"><%= grupo.rotulo %></h4>
+          <div class="professional-category-cards">
+            <% categoriasDoGrupo.forEach(categoria => { %>
+              <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
+                <span>Profissão compartilhada</span>
+                <strong><%= categoria %></strong>
+                <span>Ver trajetória</span>
+              </a>
+            <% }) %>
+          </div>
+        </section>
+      <% } }) %>
+      <% const categoriasForaDoCatalogo = perfil.categories.filter(categoria => !gruposProfissionais.some(grupo => grupo.profissoes.some(profissao => profissao.rotulo === categoria))); if (categoriasForaDoCatalogo.length) { %>
+        <section class="professional-category-group" aria-labelledby="public-group-other"><h4 id="public-group-other">Outras atuações compartilhadas</h4><div class="professional-category-cards"><% categoriasForaDoCatalogo.forEach(categoria => { %><a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>"><span>Atuação compartilhada</span><strong><%= categoria %></strong><span>Ver trajetória</span></a><% }) %></div></section>
+      <% } %>
     </div>
   <% } else { %>
     <p class="profile-field-note">Nenhuma categoria profissional foi compartilhada publicamente.</p>

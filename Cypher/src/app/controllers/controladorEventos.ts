@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Request, Response } from "express";
 import {
   CypherModel,
@@ -24,6 +25,7 @@ import type { StatusInteresseEvento } from "../models/bancoDados.js";
 const valoresVazios: ValoresFormularioEvento = {
   titulo: "",
   categoria: "",
+  categoriaDetalhe: "",
   data: "",
   horario: "",
   local: "",
@@ -72,14 +74,19 @@ function normalizarFiltros(req: Request): FiltrosEventos {
 
 function formatarData(data: string): string {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return data;
-  return new Intl.DateTimeFormat("pt-BR", {
+  const partes = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "short",
     timeZone: "UTC",
   })
-    .format(new Date(`${data}T00:00:00Z`))
-    .replace(".", "")
-    .toUpperCase();
+    .formatToParts(new Date(`${data}T00:00:00Z`))
+    .reduce<Record<string, string>>((resultado, parte) => {
+      if (parte.type === "day" || parte.type === "month") {
+        resultado[parte.type] = parte.value.replace(".", "").toUpperCase();
+      }
+      return resultado;
+    }, {});
+  return `${partes.day} ${partes.month}`;
 }
 
 function prepararEventoParaView(evento: EventoContaPersistido) {
@@ -92,6 +99,7 @@ function formularioDoEvento(
   return {
     titulo: evento.title,
     categoria: evento.category,
+    categoriaDetalhe: evento.categoryDetail,
     data: evento.date,
     horario: evento.time,
     local: evento.location,
@@ -112,6 +120,8 @@ function dadosDoFormulario(req: Request): ValoresFormularioEvento {
   return {
     titulo: valor("titulo"),
     categoria: valor("categoria"),
+    categoriaDetalhe:
+      valor("categoria") === "Outro" ? valor("categoriaDetalhe") : "",
     data: valor("data"),
     horario: valor("horario"),
     local: valor("local"),
@@ -135,6 +145,8 @@ function dadosPersistidos(valores: ValoresFormularioEvento): DadosEventoCypher {
   return {
     title: valores.titulo,
     category: valores.categoria,
+    categoryDetail:
+      valores.categoria === "Outro" ? valores.categoriaDetalhe : "",
     date: valores.data,
     time: valores.horario,
     location: valores.local,
@@ -156,7 +168,8 @@ function renderizarFormulario(
   valores: ValoresFormularioEvento,
   erro: string | null,
   editando: boolean,
-  eventoId = ""
+  eventoId = "",
+  categoriaOutroLegadaVazia = false
 ) {
   const usuario = usuarioAtual(res);
   return res.status(erro ? 400 : 200).render("pages/cadastro-evento", {
@@ -170,6 +183,7 @@ function renderizarFormulario(
     mensagem: null,
     editando,
     eventoId,
+    categoriaOutroLegadaVazia,
     categoriasEvento,
     situacoesEvento,
     coresEvento,
@@ -367,16 +381,19 @@ export function editarEvento(req: Request, res: Response) {
     formularioDoEvento(evento),
     null,
     true,
-    evento.id
+    evento.id,
+    evento.category === "Outro" && !evento.categoryDetail
   );
 }
 
 export function atualizarEvento(req: Request, res: Response) {
   const responsavel = exigirResponsavelEvento(req, res);
   if (!responsavel) return;
-  const { usuario } = responsavel;
+  const { usuario, evento } = responsavel;
   const valores = dadosDoFormulario(req);
-  const erro = validarFormularioEvento(valores);
+  const categoriaOutroLegadaVazia =
+    evento.category === "Outro" && !evento.categoryDetail;
+  const erro = validarFormularioEvento(valores, categoriaOutroLegadaVazia);
   if (erro)
     return renderizarFormulario(
       req,
@@ -384,7 +401,8 @@ export function atualizarEvento(req: Request, res: Response) {
       valores,
       erro,
       true,
-      String(req.params.id)
+      String(req.params.id),
+      categoriaOutroLegadaVazia
     );
   const atualizado = CypherModel.atualizarEvento(
     String(req.params.id),

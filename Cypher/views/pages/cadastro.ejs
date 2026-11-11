@@ -3,13 +3,8 @@
   const descricoesCategorias = {
     'Rapper': 'Voz, escrita e presença na cultura rap.',
     'MC': 'Apresentações, batalhas, rodas e condução de eventos.',
-    'Letrista': 'Criação de letras, temas e narrativas.',
-    'Compositor': 'Melodias, harmonias e composições musicais.',
     'Beatmaker': 'Criação de beats, bases e instrumentais.',
-    'Produtor musical': 'Desenvolvimento e finalização de produções.',
     'DJ': 'Seleção musical, sets e apresentações.',
-    'Empresário': 'Gestão, serviços e negócios da cena musical.',
-    'Organizador de eventos': 'Produção de encontros e eventos culturais.',
     'Outros': 'Sugira uma atuação ainda não listada.'
   };
 %>
@@ -73,13 +68,21 @@
           </div>
           <fieldset class="category-fieldset">
             <legend class="category-label">SUAS CATEGORIAS <span>(selecione todas as aplicáveis)</span></legend>
-            <div class="category-grid category-grid--cards">
-              <% categoriasDisponiveis.filter(categoria => categoria !== 'Outros').forEach(categoria => { %>
-                <label class="category-option category-option--card<%= categoriasSelecionadas.includes(categoria) ? ' selected' : '' %>">
-                  <input type="checkbox" name="categorias" value="<%= categoria %>"<%= categoriasSelecionadas.includes(categoria) ? ' checked' : '' %>>
-                  <span class="category-option-copy"><strong><%= categoria %></strong><small><%= descricoesCategorias[categoria] ?? 'Compartilhe sua atuação profissional na Cypher.' %></small></span>
-                  <span class="category-check lucide-icon" aria-hidden="true"><%- icones.check %></span>
-                </label>
+            <p class="category-selection-summary" data-category-summary>Nenhuma profissão selecionada</p>
+            <div class="professional-catalog-groups category-grid category-grid--cards">
+              <% gruposProfissionais.forEach(grupo => { %>
+                <section class="professional-catalog-group" data-professional-group="<%= grupo.id %>">
+                  <h4><%= grupo.rotulo %> <span data-category-count hidden>0</span></h4>
+                  <div class="professional-catalog-group__options">
+                    <% grupo.profissoes.forEach(profissao => { %>
+                      <label class="category-option category-option--card<%= categoriasSelecionadas.includes(profissao.rotulo) ? ' selected' : '' %>">
+                        <input type="checkbox" name="categorias" value="<%= profissao.rotulo %>"<%= categoriasSelecionadas.includes(profissao.rotulo) ? ' checked' : '' %>>
+                        <span class="category-option-copy"><strong><%= profissao.rotulo %></strong><small><%= descricoesCategorias[profissao.rotulo] ?? 'Compartilhe sua atuação profissional na Cypher.' %></small></span>
+                        <span class="category-check lucide-icon" aria-hidden="true"><%- icones.check %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </section>
               <% }) %>
               <label class="category-option category-option--card other-option<%= categoriasSelecionadas.includes('Outros') ? ' selected' : '' %>">
                 <input type="checkbox" name="categorias" value="Outros" data-category-other<%= categoriasSelecionadas.includes('Outros') ? ' checked' : '' %>>

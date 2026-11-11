@@ -11,7 +11,7 @@ const arquivoBanco = path.join(diretorio, "cypher.sqlite");
 const roteiro = `
   import assert from "node:assert/strict";
   import Database from "better-sqlite3";
-  import { inicializarDadosDemonstrativos } from "./src/app/models/modeloCypher.ts";
+  import { inicializarAplicacaoCypher } from "./src/app/models/modeloCypher.ts";
   import {
     atualizarPerfilCypher,
     estadoAlteracaoCategoriasCypher,
@@ -29,8 +29,31 @@ const roteiro = `
     obterPerfilPublicoCypher,
   } from "./src/app/models/bancoDados.ts";
   import { podeCriarBeat, podeCriarObra, podeCriarEvento, opcoesStatusPorCategoria } from "./src/app/models/modeloPerfil.ts";
+  import { validarRespostasAtuacao } from "./src/app/models/questionarioAtuacao.ts";
 
-  inicializarDadosDemonstrativos();
+  const respostaIncompleta = validarRespostasAtuacao("Rapper", {
+    tempoAtuacao: "1-3a",
+    etapaProjetos: "em-desenvolvimento",
+  }, true);
+  assert.equal(respostaIncompleta.valido, false);
+  assert.ok(respostaIncompleta.erros.some(erro => erro.campo === "participacaoColetiva"));
+  assert.equal(validarRespostasAtuacao("Rapper", {
+    tempoAtuacao: "1-3a",
+    etapaProjetos: "em-desenvolvimento",
+    participacaoColetiva: "em-colaboracao",
+    atividadePratica: "pratica-inicial",
+  }, true).valido, true);
+  const campoDeOutraProfissao = validarRespostasAtuacao("Rapper", {
+    tempoAtuacao: "1-3a",
+    etapaProjetos: "em-desenvolvimento",
+    participacaoColetiva: "em-colaboracao",
+    atividadePratica: "pratica-inicial",
+    respostaEspecificaDeOutraProfissao: "não permitido",
+  }, true);
+  assert.equal(campoDeOutraProfissao.valido, false);
+  assert.ok(campoDeOutraProfissao.erros.some(erro => erro.codigo === "campo_desconhecido"));
+
+  inicializarAplicacaoCypher();
   const db = new Database(process.env.CYPHER_DB_PATH);
   const usuario = { id: "usuario-teste-politica", email: "teste-politica@example.test", codigo: "CYP-TST0000001", numero: 900001, nome: "Teste Política", tag: "CYP-TST-POL" };
   const admin = { id: "admin-teste-politica", email: "admin-politica@example.test", codigo: "CYP-ADM0000001", numero: 900002, nome: "Equipe Cypher", tag: "CYP-ADM-POL" };
@@ -39,7 +62,7 @@ const roteiro = `
   const solicitante = { id: "usuario-solicitante-excecao", email: "solicitante-excecao@example.test", codigo: "CYP-REQ0000001", numero: 900003, nome: "Solicitante Exceção", tag: "CYP-REQ-EXC" };
   for (const conta of [usuario, admin, solicitante]) {
     inserirUsuario.run(conta.id, conta.email, conta.codigo, conta.numero);
-    inserirPerfil.run(conta.id, conta.tag, conta.nome, "Rapper / MC", "@" + conta.id, "TP", JSON.stringify(["Rapper / MC"]));
+    inserirPerfil.run(conta.id, conta.tag, conta.nome, "Rapper", "@" + conta.id, "TP", JSON.stringify(["Rapper"]));
   }
   db.prepare("UPDATE perfis SET ultima_alteracao_categorias_em = datetime('now', '-10 days') WHERE usuario_id = ?").run(solicitante.id);
   const inserirAuditoriaAnterior = db.prepare(
@@ -50,8 +73,8 @@ const roteiro = `
       "auditoria-anterior-" + conta.id,
       conta.id,
       admin.id,
-      JSON.stringify(["Rapper / MC"]),
-      JSON.stringify(["Rapper / MC"]),
+      JSON.stringify(["Rapper"]),
+      JSON.stringify(["Rapper"]),
       "Registro anterior para o cenário de cooldown."
     );
   }
@@ -75,7 +98,7 @@ const roteiro = `
 
   assert.equal(estadoAlteracaoCategoriasCypher(usuario.id).bloqueada, true);
   assert.throws(
-    () => atualizarPerfilCypher(dados(["Rapper / MC", "Beatmaker"], "Drill")),
+    () => atualizarPerfilCypher(dados(["Rapper", "Beatmaker"], "Drill")),
     /CATEGORIAS_BLOQUEADAS/
   );
   assert.equal(
@@ -83,7 +106,7 @@ const roteiro = `
     "concedida"
   );
   assert.equal(estadoAlteracaoCategoriasCypher(usuario.id).excecaoDisponivel, true);
-  assert.equal(atualizarPerfilCypher(dados(["Rapper / MC", "Beatmaker"], "Drill")), true);
+  assert.equal(atualizarPerfilCypher(dados(["Rapper", "Beatmaker"], "Drill")), true);
   assert.equal(estadoAlteracaoCategoriasCypher(usuario.id).bloqueada, true);
   assert.equal(estadoAlteracaoCategoriasCypher(usuario.id).excecaoDisponivel, false);
   assert.throws(() => atualizarPerfilCypher(dados(["Beatmaker"])), /CATEGORIAS_BLOQUEADAS/);
@@ -101,7 +124,7 @@ const roteiro = `
   assert.equal(estadoPedidoRecusado.status, "rejeitado");
   assert.equal(estadoPedidoRecusado.motivo, "Preciso atualizar a categoria para refletir uma mudança de função.");
   assert.equal(estadoPedidoRecusado.motivoRevisao, "A justificativa não demonstra necessidade imediata.");
-  assert.equal(estadoPedidoRecusado.categoriasAntes[0], "Rapper / MC");
+  assert.equal(estadoPedidoRecusado.categoriasAntes[0], "Rapper");
   assert.equal(estadoPedidoRecusado.historico.length, 2);
   assert.equal(estadoPedidoRecusado.criadaEm, db.prepare("SELECT criada_em AS criadaEm FROM solicitacoes_excecao_categorias WHERE id = ?").get(pedidoRecusado).criadaEm);
   assert.deepEqual(db.prepare("SELECT status, revisor_email AS revisorEmail, motivo_revisao AS motivoRevisao FROM solicitacoes_excecao_categorias WHERE id = ?").get(pedidoRecusado), {
@@ -129,7 +152,7 @@ const roteiro = `
 
   db.prepare("UPDATE perfis SET ultima_alteracao_categorias_em = datetime('now', '-20 days') WHERE usuario_id = ?").run(usuario.id);
   const prazoAntes = db.prepare("SELECT ultima_alteracao_categorias_em AS value FROM perfis WHERE usuario_id = ?").get(usuario.id).value;
-  assert.equal(atualizarPerfilCypher(dados(["Rapper / MC", "Beatmaker"])), true);
+  assert.equal(atualizarPerfilCypher(dados(["Rapper", "Beatmaker"])), true);
   assert.equal(db.prepare("SELECT ultima_alteracao_categorias_em AS value FROM perfis WHERE usuario_id = ?").get(usuario.id).value, prazoAntes);
   assert.equal(estadoAlteracaoCategoriasCypher(usuario.id).bloqueada, true);
 
@@ -194,18 +217,16 @@ const roteiro = `
     usuario.id,
     JSON.stringify({
       tempoAtuacao: "1-3a",
-      situacaoAtual: "regular",
-      objetivos: ["colaboradores"],
-      projetos: "iniciando",
-      experiencia: "Detalhe compartilhado apenas com colaboradores creditados.",
+      etapaProjetos: "em-desenvolvimento",
+      participacaoColetiva: "em-colaboracao",
+      atividadePratica: "pratica-inicial",
     }),
     JSON.stringify({
       __categoria__: "publico",
       tempoAtuacao: "publico",
-      situacaoAtual: "privado",
-      objetivos: "privado",
-      projetos: "privado",
-      experiencia: "colaboradores",
+      etapaProjetos: "privado",
+      participacaoColetiva: "privado",
+      atividadePratica: "colaboradores",
     })
   );
   db.prepare(
@@ -222,14 +243,13 @@ const roteiro = `
   const perfilDoVisitante = obterPerfilPublicoCypher("@usuario-teste-politica", admin.id);
   assert.deepEqual(perfilDoTitular?.atuacoes[0].respostas, {
     tempoAtuacao: "1-3a",
-    situacaoAtual: "regular",
-    objetivos: ["colaboradores"],
-    projetos: "iniciando",
-    experiencia: "Detalhe compartilhado apenas com colaboradores creditados.",
+    etapaProjetos: "em-desenvolvimento",
+    participacaoColetiva: "em-colaboracao",
+    atividadePratica: "pratica-inicial",
   });
   assert.deepEqual(perfilDoColaborador?.atuacoes[0].respostas, {
     tempoAtuacao: "1-3a",
-    experiencia: "Detalhe compartilhado apenas com colaboradores creditados.",
+    atividadePratica: "pratica-inicial",
   });
   assert.deepEqual(perfilDoVisitante?.atuacoes[0].respostas, {
     tempoAtuacao: "1-3a",

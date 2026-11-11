@@ -147,9 +147,9 @@
         <a class="profile-work-card" href="/works" aria-label="Abrir catálogo: <%= obra.title %>">
           <span class="profile-work-art profile-work-art-<%= i %>" aria-hidden="true"><span><%= String(obra.type || 'OBRA').slice(0, 2).toLocaleUpperCase('pt-BR') %></span><i> CYPHER </i></span>
           <span class="profile-work-title"><%= obra.title %></span>
-          <span class="profile-work-meta"><%= obra.type %><%= obra.meta ? ` · ${obra.meta}` : '' %></span>
+          <span class="profile-work-meta"><%= obra.type %><%= obra.typeDetail ? ` · ${obra.typeDetail}` : '' %><%= obra.meta ? ` · ${obra.meta}` : '' %></span>
           <span class="profile-work-status<%= obra.status === 'Lançado' ? ' is-released' : '' %>"><%= obra.status %></span>
-          <% if (obra.role) { %><span class="profile-work-credit"><%= obra.role %></span><% } %>
+          <% if (obra.role) { %><span class="profile-work-credit"><%= obra.role %><%= obra.roleDetail ? ` · ${obra.roleDetail}` : '' %></span><% } %>
         </a>
       <% }) %>
       </div>
@@ -215,14 +215,24 @@
   <h3 id="professional-category-title">Suas categorias e trajetória declarada</h3>
   <p>Respostas organizadas por função. Este perfil não possui uma linha do tempo de marcos verificados; detalhes e visibilidades podem ser atualizados na edição.</p>
   <% if (usuario.categories.length) { %>
-    <div class="professional-category-cards">
-      <% usuario.categories.forEach(categoria => { %>
-        <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="/profile?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
-          <span>Categoria profissional</span>
-          <strong><%= categoria %></strong>
-          <span>Ver trajetória</span>
-        </a>
-      <% }) %>
+    <div class="professional-category-groups">
+      <% gruposProfissionais.forEach(grupo => { const categoriasDoGrupo = usuario.categories.filter(categoria => grupo.profissoes.some(profissao => profissao.rotulo === categoria)); if (categoriasDoGrupo.length) { %>
+        <section class="professional-category-group" aria-labelledby="profile-group-<%= grupo.id %>">
+          <h4 id="profile-group-<%= grupo.id %>"><%= grupo.rotulo %></h4>
+          <div class="professional-category-cards">
+            <% categoriasDoGrupo.forEach(categoria => { %>
+              <a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="/profile?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>">
+                <span>Profissão</span>
+                <strong><%= categoria %></strong>
+                <span>Ver trajetória</span>
+              </a>
+            <% }) %>
+          </div>
+        </section>
+      <% } }) %>
+      <% const categoriasForaDoCatalogo = usuario.categories.filter(categoria => !gruposProfissionais.some(grupo => grupo.profissoes.some(profissao => profissao.rotulo === categoria))); if (categoriasForaDoCatalogo.length) { %>
+        <section class="professional-category-group" aria-labelledby="profile-group-other"><h4 id="profile-group-other">Outras atuações</h4><div class="professional-category-cards"><% categoriasForaDoCatalogo.forEach(categoria => { %><a class="professional-category-card<%= atuacaoSelecionada?.categoria === categoria ? ' is-selected' : '' %>" href="/profile?atuacao=<%= encodeURIComponent(categoria) %>" aria-current="<%= atuacaoSelecionada?.categoria === categoria ? 'page' : 'false' %>"><span>Atuação profissional</span><strong><%= categoria %></strong><span>Ver trajetória</span></a><% }) %></div></section>
+      <% } %>
     </div>
   <% } else { %>
     <p class="profile-field-note">Adicione uma categoria profissional para organizar sua trajetória.</p>

@@ -129,13 +129,13 @@
   <div class="events-list<%= eventos.length === 1 ? ' events-list-single' : '' %>" data-events-list>
     <% eventos.forEach((evento, i) => { %>
       <div class="event-card-wrapper">
-        <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-id="<%= evento.id %>" data-detail-owned="<%= evento.owned %>" data-detail-demonstracao="<%= evento.demonstracao %>" data-detail-interest-status="<%= evento.interesseStatus ?? '' %>" data-detail-participation-type="<%= evento.participationType %>" data-detail-total-interested="<%= evento.totalInteressados %>" data-detail-interested="<%= encodeURIComponent(JSON.stringify(evento.interessados)) %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
+        <button class="event-card event-card-trigger" type="button" data-event-card data-event-category="<%= evento.category %>" data-detail-id="<%= evento.id %>" data-detail-owned="<%= evento.owned %>" data-detail-demonstracao="<%= evento.demonstracao %>" data-detail-interest-status="<%= evento.interesseStatus ?? '' %>" data-detail-participation-type="<%= evento.participationType %>" data-detail-total-interested="<%= evento.totalInteressados %>" data-detail-interested="<%= encodeURIComponent(JSON.stringify(evento.interessados)) %>" data-detail-title="<%= evento.title %>" data-detail-category="<%= evento.category %>" data-detail-category-detail="<%= evento.categoryDetail %>" data-detail-date="<%= evento.date %>" data-detail-time="<%= evento.time %>" data-detail-location="<%= evento.location %>" data-detail-org="<%= evento.org %>" data-detail-status="<%= evento.status %>" data-detail-description="<%= evento.description %>" data-detail-format="<%= evento.format %>" data-detail-registration="<%= evento.registration %>" data-detail-prize="<%= evento.prize %>" data-detail-tags="<%= evento.tags.join('|') %>">
           <span class="event-card-band band-<%= evento.color %>">
             <span>
               0<%= i + 1 %>
             </span>
             <span>
-              <%= evento.category %>
+                <%= evento.category %><%= evento.categoryDetail ? ` · ${evento.categoryDetail}` : '' %>
             </span>
             <% if (evento.demonstracao) { %>
               <span>

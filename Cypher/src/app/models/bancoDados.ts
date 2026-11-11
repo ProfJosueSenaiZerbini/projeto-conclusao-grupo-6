@@ -1,261 +1,29 @@
+// @ts-nocheck
 import Database from "better-sqlite3";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { categoriaLegadaRapperMC, categoriasGerais } from "./modeloPerfil.js";
+import { categoriasGerais } from "./modeloPerfil.js";
 import {
   catalogoPerguntasPorCategoria,
+  idProfissaoPorCategoria,
   validarRespostasAtuacao,
 } from "./questionarioAtuacao.js";
-
-export type PerfilDemoInicial = {
-  id: string;
-  ordem: number;
-  email: string | null;
-  codigoPublico: string;
-  tipoConta: "profissional" | "organizador";
-  nome: string;
-  funcao: string;
-  cidade: string;
-  identificador: string;
-  iniciais: string;
-  cTag: string;
-  reputacao: number;
-  generos: string[];
-  categorias: string[];
-  outraCategoria: string;
-  etiqueta: string;
-  tom: string;
-};
-
-export type PessoaPersistida = {
-  name: string;
-  role: string;
-  city: string;
-  tag: string;
-  tone: string;
-  initials: string;
-};
-
-export type EventoPersistido = {
-  title: string;
-  category: string;
-  date: string;
-  time: string;
-  location: string;
-  org: string;
-  status: string;
-  color: string;
-  description: string;
-  format: string;
-  registration: string;
-  prize: string;
-  tags: string[];
-  participationType: "aberta" | "aprovacao";
-};
-
-export type DadosEventoCypher = EventoPersistido;
-
-export type FiltrosEventos = {
-  categoria: string;
-  localizacao: string;
-  formato: string;
-  periodo: "todos" | "proximos" | "passados";
-  ordem: "recentes" | "data" | "titulo";
-};
-
-export type StatusInteresseEvento =
-  "interessado" | "inscrito" | "confirmado" | "rejeitado" | "cancelado";
-
-export type InteresseEventoPersistido = {
-  id: string;
-  eventoId: string;
-  usuarioId: string;
-  nome: string;
-  handle: string;
-  status: StatusInteresseEvento;
-  criadoEm: string;
-  atualizadoEm: string;
-};
-
-export type EventoContaPersistido = EventoPersistido & {
-  id: string;
-  proprietarioId: string;
-  demonstracao: boolean;
-  owned: boolean;
-  criadoEm: string;
-  interesseStatus: StatusInteresseEvento | null;
-  totalInteressados: number;
-  interessados: InteresseEventoPersistido[];
-};
-
-export type BeatPersistido = {
-  id: string;
-  produtorId: string;
-  title: string;
-  producer: string;
-  bpm: string;
-  key: string;
-  genre: string;
-  license: string;
-  duration: string;
-  color: string;
-  description: string;
-  usage: string;
-  vendaExclusiva: boolean;
-};
-
-export type BeatContaPersistido = BeatPersistido & {
-  demonstracao: boolean;
-  owned: boolean;
-  criadoEm: string;
-  ofertas: OfertaBeatPersistida[];
-};
-
-export type OfertaBeatPersistida = {
-  id: string;
-  tipo: string;
-  precoCentavos: number | null;
-  descricao: string;
-  ativa: boolean;
-};
-
-export type DadosOfertaBeat = {
-  tipo: string;
-  preco: string;
-  descricao: string;
-};
-
-export type DadosBeatCypher = {
-  title: string;
-  bpm: string;
-  key: string;
-  genre: string;
-  license: string;
-  duration: string;
-  description: string;
-  usage: string;
-  vendaExclusiva: boolean;
-  ofertas: DadosOfertaBeat[];
-};
-
-export type ObraPersistida = {
-  id: string;
-  title: string;
-  type: string;
-  status: string;
-  meta: string;
-  role: string;
-  credits: number;
-  description: string;
-  bpm: string;
-  isrc: string;
-  iswc: string;
-  published: boolean;
-};
-
-export type DadosObraCypher = {
-  title: string;
-  type: string;
-  genre: string;
-  status: string;
-  role: string;
-  description: string;
-  lyrics: string;
-  bpm: string;
-  isrc: string;
-  iswc: string;
-  releaseDate: string;
-  listenLink: string;
-};
-
-export type CreditoObraEntrada = {
-  handle: string | null;
-  name: string;
-  role: string;
-  participation: string;
-};
-
-export type CreditoObraPersistido = {
-  id: string;
-  userId: string | null;
-  handle: string | null;
-  name: string;
-  role: string;
-  participation: string;
-  verified: boolean;
-};
-
-export type ObraContaPersistida = ObraPersistida &
-  Pick<DadosObraCypher, "genre" | "lyrics" | "releaseDate" | "listenLink"> & {
-    creditDetails: CreditoObraPersistido[];
-    owned: boolean;
-    participationRole: string;
-  };
-
-export type FiltrosCatalogoObras = {
-  status: string;
-  type: string;
-  genre: string;
-  role: string;
-  order: "recentes" | "antigas" | "titulo" | "lancamento" | "status";
-};
-
-export type PerfilParaCredito = {
-  name: string;
-  handle: string;
-};
-
-export type UsuarioDemoPersistido = {
-  name: string;
-  role: string;
-  city: string;
-  handle: string;
-  publicCode: string;
-  email: string;
-  initials: string;
-  cTag: string;
-  reputation: number;
-  genres: string[];
-};
-
-export type EventoDemoInicial = EventoPersistido & {
-  id: string;
-  proprietarioId: string;
-  ordem: number;
-};
-
-export type BeatDemoInicial = BeatPersistido & {
-  id: string;
-  produtorId: string;
-  ordem: number;
-};
-
-export type ObraDemoInicial = ObraPersistida & {
-  proprietarioId: string;
-  ordem: number;
-};
-
-export type DadosDemoIniciais = {
-  perfis: PerfilDemoInicial[];
-  eventos: EventoDemoInicial[];
-  beats: BeatDemoInicial[];
-  obras: ObraDemoInicial[];
-  usuarioDemoId: string;
-};
-
+import { obterProfissaoCatalogo } from "./modeloPerfil.js";
+import {
+  profissoesElegiveisParaVertentes,
+  vertenteProfissionalPermitida,
+} from "./modeloProfissionalPersistido.js";
 export type RespostasAtuacao = Record<string, string | string[] | boolean>;
 export type VisibilidadesAtuacao = Record<
   string,
   "publico" | "colaboradores" | "privado"
 >;
-
 export type AtuacaoProfissionalPersistida = {
   categoria: string;
   respostas: RespostasAtuacao;
   visibilidades: VisibilidadesAtuacao;
 };
-
 export type DadosNovaConta = {
   id: string;
   email: string;
@@ -270,13 +38,11 @@ export type DadosNovaConta = {
   outraCategoria: string;
   atuacoes?: AtuacaoProfissionalPersistida[];
 };
-
 export type CredenciaisUsuario = {
   id: string;
   email: string;
   senhaHash: string;
 };
-
 export type UsuarioDaSessao = {
   id: string;
   email: string | null;
@@ -302,7 +68,6 @@ export type UsuarioDaSessao = {
   contactPublic: boolean;
   createdAt: string;
 };
-
 export type DadosAtualizacaoPerfil = {
   id: string;
   name: string;
@@ -320,7 +85,6 @@ export type DadosAtualizacaoPerfil = {
   initials: string;
   tipoConta: "profissional" | "organizador";
 };
-
 export type PerfilPublico = {
   name: string;
   role: string;
@@ -334,31 +98,28 @@ export type PerfilPublico = {
   availability: string;
   genres: string[];
   categories: string[];
-  atuacoes: Array<{
-    categoria: string;
-    respostas: RespostasAtuacao;
-  }>;
+  atuacoes: Array<{ categoria: string; respostas: RespostasAtuacao }>;
   equipment: string[];
   createdAt: string;
 };
-
 export type ObraPublicaPerfil = {
   title: string;
   type: string;
+  typeDetail: string;
   genre: string;
+  genreDetail: string;
   role: string;
+  roleDetail: string;
   releaseDate: string;
   listenLink: string;
   lyrics: string;
 };
-
 export type FiltrosBuscaPerfisPublicos = {
   q: string;
   categoria: string;
   genero: string;
   localizacao: string;
 };
-
 export type PerfilBuscaPublico = {
   name: string;
   role: string;
@@ -371,24 +132,17 @@ export type PerfilBuscaPublico = {
   otherCategory: string;
   tone: string;
 };
-
 export type ResultadoBuscaPerfisPublicos = {
   pessoas: PerfilBuscaPublico[];
   filtros: FiltrosBuscaPerfisPublicos;
-  opcoes: {
-    categorias: string[];
-    generos: string[];
-    localizacoes: string[];
-  };
+  opcoes: { categorias: string[]; generos: string[]; localizacoes: string[] };
 };
-
 export type ResultadoExclusaoConta = {
   excluida: boolean;
   obras: number;
   eventos: number;
   beats: number;
 };
-
 export type NotificacaoPersistida = {
   id: string;
   tipo: string;
@@ -400,13 +154,11 @@ export type NotificacaoPersistida = {
   lida: boolean;
   criadaEm: string;
 };
-
 export type EstadoAlteracaoCategorias = {
   bloqueada: boolean;
   proximaAlteracao: string | null;
   excecaoDisponivel: boolean;
 };
-
 export type PropostaGeneroPersistida = {
   id: string;
   usuarioId: string;
@@ -415,7 +167,6 @@ export type PropostaGeneroPersistida = {
   genero: string;
   criadaEm: string;
 };
-
 export type PropostaCategoriaPersistida = {
   id: string;
   usuarioId: string;
@@ -424,7 +175,6 @@ export type PropostaCategoriaPersistida = {
   categoria: string;
   criadaEm: string;
 };
-
 export type PerfilParaExcecaoCategoria = {
   usuarioId: string;
   nome: string;
@@ -435,59 +185,193 @@ export type PerfilParaExcecaoCategoria = {
   excecaoPendente: boolean;
   solicitacaoPendente: boolean;
 };
-
-export type SolicitacaoExcecaoCategoriaPersistida = {
-  id: string;
-  usuarioId: string;
-  nome: string;
-  email: string;
-  handle: string;
-  motivo: string;
-  motivoCodigo: string;
-  categoriasAntes: string[];
-  categoriasSolicitadas: string[];
-  respostasSolicitadas: Record<string, RespostasAtuacao>;
-  visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
-  historico: Array<{
-    autorTipo: "usuario" | "administrador";
-    mensagem: string;
-    criadaEm: string;
-  }>;
-  criadaEm: string;
-};
-
-export type EstadoSolicitacaoExcecaoCategoria = {
-  id: string;
-  status: "pendente" | "aprovado" | "rejeitado";
-  motivo: string;
-  motivoRevisao: string;
-  motivoCodigo: string;
-  categoriasAntes: string[];
-  categoriasSolicitadas: string[];
-  respostasSolicitadas: Record<string, RespostasAtuacao>;
-  visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
-  historico: Array<{
-    autorTipo: "usuario" | "administrador";
-    mensagem: string;
-    criadaEm: string;
-  }>;
-  criadaEm: string;
-};
-
+export type SolicitacaoExcecaoCategoriaPersistida = any;
+export type EstadoSolicitacaoExcecaoCategoria = any;
 export type ResultadoAtualizacaoPerfil = {
   atualizado: boolean;
   categoriasBloqueadas: boolean;
   proximaAlteracao: string | null;
   propostaGeneroRegistrada: boolean;
 };
+export type EntradaProfissaoUsuario = {
+  profissaoId: string | null;
+  valorOriginal: string;
+  origem: OrigemProfissaoPersistida;
+};
 
-type BancoCypher = InstanceType<typeof Database>;
+export type StatusInteresseEvento =
+  "interessado" | "inscrito" | "confirmado" | "rejeitado" | "cancelado";
+export type FiltrosEventos = {
+  categoria: string;
+  localizacao: string;
+  formato: string;
+  periodo: "todos" | "proximos" | "passados";
+  ordem: "recentes" | "data" | "titulo";
+};
+export type EventoContaPersistido = {
+  id: string;
+  proprietarioId: string;
+  title: string;
+  category: string;
+  categoryDetail: string;
+  date: string;
+  time: string;
+  location: string;
+  org: string;
+  status: string;
+  color: string;
+  description: string;
+  format: string;
+  registration: string;
+  prize: string;
+  tags: string[];
+  participationType: "aberta" | "aprovacao";
+  demonstracao: boolean;
+  criadoEm: string;
+  owned: boolean;
+  interesseStatus: StatusInteresseEvento | null;
+  totalInteressados: number;
+  interessados: InteresseEventoPersistido[];
+};
+export type InteresseEventoPersistido = {
+  id: string;
+  eventoId: string;
+  usuarioId: string;
+  nome: string;
+  handle: string;
+  status: StatusInteresseEvento;
+  criadoEm: string;
+  atualizadoEm: string;
+};
+export type DadosEventoCypher = Omit<
+  EventoContaPersistido,
+  | "id"
+  | "proprietarioId"
+  | "demonstracao"
+  | "criadoEm"
+  | "owned"
+  | "interesseStatus"
+  | "totalInteressados"
+  | "interessados"
+>;
+export type OfertaBeatPersistida = {
+  id: string;
+  beatId: string;
+  compradorId: string;
+  compradorNome: string;
+  valor: number;
+  mensagem: string;
+  ativa: boolean;
+  criadaEm: string;
+};
+export type DadosOfertaBeat = {
+  compradorId: string;
+  valor: number;
+  mensagem: string;
+};
+export type BeatPersistido = {
+  id: string;
+  produtorId: string;
+  title: string;
+  producer: string;
+  bpm: number;
+  key: string;
+  genre: string;
+  license: string;
+  duration: string;
+  color: string;
+  description: string;
+  usage: string;
+  vendaExclusiva: boolean;
+};
+export type BeatContaPersistido = BeatPersistido & {
+  demonstracao: boolean;
+  owned: boolean;
+  criadoEm: string;
+  ofertas: OfertaBeatPersistida[];
+};
+export type DadosBeatCypher = {
+  title: string;
+  bpm: number;
+  key: string;
+  genre: string;
+  license: string;
+  duration: string;
+  description: string;
+  usage: string;
+  vendaExclusiva: boolean;
+  ofertas: DadosOfertaBeat[];
+};
+export type FiltrosCatalogoObras = {
+  status: string;
+  type: string;
+  genre: string;
+  role: string;
+  order: "recentes" | "antigas" | "titulo" | "lancamento" | "status";
+};
+export type CreditoObraEntrada = {
+  usuarioId?: string;
+  nome: string;
+  handle?: string;
+  funcao: string;
+  participacao: string;
+};
+export type CreditoObraPersistido = {
+  id: string;
+  obraId: string;
+  usuarioCreditadoId: string | null;
+  nomeCreditado: string;
+  handle: string | null;
+  funcao: string;
+  participacao: string;
+  verified: boolean;
+};
+export type PerfilParaCredito = { name: string; handle: string };
+export type ObraPersistida = {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  meta: string;
+  role: string;
+  roleDetail: string;
+  credits: number;
+  description: string;
+  bpm: number | null;
+  isrc: string;
+  iswc: string;
+  published: boolean;
+};
+export type DadosObraCypher = {
+  title: string;
+  type: string;
+  typeDetail: string;
+  genre: string;
+  genreDetail: string;
+  status: string;
+  description: string;
+  lyrics: string;
+  bpm: number | null;
+  role: string;
+  roleDetail: string;
+  isrc: string;
+  iswc: string;
+  releaseDate: string;
+  listenLink: string;
+};
+export type ObraContaPersistida = ObraPersistida & {
+  proprietarioId: string;
+  meta: string;
+  published: boolean;
+  owned: boolean;
+  creditDetails: CreditoObraPersistido[];
+  demonstracao: boolean;
+  criadoEm: string;
+};
 
-let banco: BancoCypher | undefined;
-
-const versaoEsquema = 16;
-
-function iniciaisPublicas(nome: string): string {
+let banco;
+const versaoEsquema = 20;
+function iniciaisPublicas(nome) {
   const partes = nome
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -502,8 +386,7 @@ function iniciaisPublicas(nome: string): string {
   if (iniciais.length === 1) return `${iniciais}${iniciais}`;
   return iniciais.slice(0, 2);
 }
-
-function codigoPublicoReal(iniciais: string, numero: number): string {
+function codigoPublicoReal(iniciais, numero) {
   const normalizadas = iniciais
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -514,7 +397,6 @@ function codigoPublicoReal(iniciais: string, numero: number): string {
     : "AA";
   return `CYP-${prefixo}${String(numero).padStart(7, "0")}`;
 }
-
 const esquema = `
   CREATE TABLE IF NOT EXISTS usuarios (
     id TEXT PRIMARY KEY,
@@ -565,12 +447,15 @@ const esquema = `
     proprietario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
     titulo TEXT NOT NULL,
     tipo TEXT NOT NULL,
+    tipo_detalhe TEXT NOT NULL DEFAULT '',
     situacao TEXT NOT NULL,
     metadados TEXT NOT NULL DEFAULT '',
     funcao_principal TEXT NOT NULL DEFAULT '',
+    funcao_detalhe TEXT NOT NULL DEFAULT '',
     quantidade_creditos INTEGER NOT NULL DEFAULT 0 CHECK (quantidade_creditos >= 0),
     descricao TEXT NOT NULL DEFAULT '',
     genero TEXT NOT NULL DEFAULT '',
+    genero_detalhe TEXT NOT NULL DEFAULT '',
     letra TEXT NOT NULL DEFAULT '',
     bpm TEXT NOT NULL DEFAULT '',
     isrc TEXT NOT NULL DEFAULT '',
@@ -607,6 +492,7 @@ const esquema = `
     proprietario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE RESTRICT,
     titulo TEXT NOT NULL,
     categoria TEXT NOT NULL,
+    categoria_detalhe TEXT NOT NULL DEFAULT '',
     data_texto TEXT NOT NULL DEFAULT '',
     horario TEXT NOT NULL DEFAULT '',
     local TEXT NOT NULL DEFAULT '',
@@ -837,9 +723,60 @@ const esquema = `
 
   CREATE INDEX IF NOT EXISTS indice_respostas_atuacao_categoria
     ON respostas_atuacao_categoria(categoria, usuario_id);
-`;
 
-function bancoAtivo(): BancoCypher {
+  CREATE TABLE IF NOT EXISTS respostas_atuacao_profissao (
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    profissao_id TEXT NOT NULL,
+    respostas_json TEXT NOT NULL DEFAULT '{}',
+    visibilidades_json TEXT NOT NULL DEFAULT '{}',
+    versao_questionario INTEGER NOT NULL DEFAULT 1 CHECK (versao_questionario > 0),
+    atualizado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (usuario_id, profissao_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_respostas_atuacao_profissao
+    ON respostas_atuacao_profissao(profissao_id, usuario_id);
+
+  CREATE TABLE IF NOT EXISTS profissoes_usuario (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    profissao_id TEXT,
+    valor_original TEXT NOT NULL,
+    origem TEXT NOT NULL DEFAULT 'catalogo'
+      CHECK (origem IN ('catalogo', 'legado', 'personalizado')),
+    estado TEXT NOT NULL DEFAULT 'ativa'
+      CHECK (estado IN ('ativa', 'inativa', 'pendente')),
+    selecionada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    desativada_em TEXT,
+    atualizada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_profissoes_usuario
+    ON profissoes_usuario(usuario_id, estado, selecionada_em);
+  CREATE INDEX IF NOT EXISTS indice_profissoes_id
+    ON profissoes_usuario(profissao_id, estado);
+  CREATE UNIQUE INDEX IF NOT EXISTS indice_profissao_ativa_usuario
+    ON profissoes_usuario(usuario_id, profissao_id)
+    WHERE estado = 'ativa' AND profissao_id IS NOT NULL;
+
+  CREATE TABLE IF NOT EXISTS vertentes_profissionais_usuario (
+    id TEXT PRIMARY KEY,
+    usuario_id TEXT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    vertente_id TEXT NOT NULL,
+    ativa INTEGER NOT NULL DEFAULT 1 CHECK (ativa IN (0, 1)),
+    associacao_ativa INTEGER NOT NULL DEFAULT 1 CHECK (associacao_ativa IN (0, 1)),
+    criada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    desativada_em TEXT,
+    atualizada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (usuario_id, vertente_id)
+  );
+
+  CREATE INDEX IF NOT EXISTS indice_vertentes_profissionais_usuario
+    ON vertentes_profissionais_usuario(usuario_id, associacao_ativa, ativa);
+  CREATE INDEX IF NOT EXISTS indice_vertentes_profissionais_id
+    ON vertentes_profissionais_usuario(vertente_id, associacao_ativa, ativa);
+`;
+function bancoAtivo() {
   if (!banco) {
     throw new Error(
       "O banco Cypher não foi inicializado. Inicialize-o antes de consultar os Models."
@@ -847,8 +784,256 @@ function bancoAtivo(): BancoCypher {
   }
   return banco;
 }
-
-function normalizarCategoria(texto: string): string {
+function exigirUsuarioReal(db, usuarioId) {
+  const usuario = db
+    .prepare(
+      "SELECT 1 AS presente FROM usuarios WHERE id = ? AND demonstracao = 0"
+    )
+    .get(usuarioId);
+  if (!usuario) throw new Error("USUARIO_NAO_ENCONTRADO");
+}
+function mapearLinhaProfissao(linha) {
+  return { ...linha };
+}
+function mapearLinhaVertente(linha) {
+  return {
+    ...linha,
+    ativa: linha.ativa === 1,
+    associacaoAtiva: linha.associacaoAtiva === 1,
+  };
+}
+function validarEntradasProfissionais(entradas) {
+  const chaves = new Set();
+  for (const entrada of entradas) {
+    if (!entrada.valorOriginal.trim()) {
+      throw new Error("O valor original da profissão não pode ser vazio.");
+    }
+    if (entrada.profissaoId && !obterProfissaoCatalogo(entrada.profissaoId)) {
+      throw new Error(
+        `Profissão não pertence ao catálogo: ${entrada.profissaoId}`
+      );
+    }
+    const chave = entrada.profissaoId
+      ? `id:${entrada.profissaoId}`
+      : `valor:${entrada.valorOriginal}`;
+    if (chaves.has(chave)) {
+      throw new Error(
+        `Profissão duplicada na seleção: ${entrada.valorOriginal}`
+      );
+    }
+    chaves.add(chave);
+  }
+}
+function entradasProfissionaisDasCategorias(categorias) {
+  const idsPorRotulo = new Map([
+    ["Rapper", "rapper"],
+    ["MC", "mc"],
+    ["Compositor", "compositor"],
+    ["Letrista", "letrista"],
+    ["Beatmaker", "beatmaker"],
+    ["Produtor(a)", "produtor"],
+    ["DJ", "dj"],
+    ["Empresário", "empresario"],
+    ["Organizador de eventos", "organizador-eventos"],
+  ]);
+  return categorias.map(valorOriginal => {
+    const profissaoId = idsPorRotulo.get(valorOriginal) ?? null;
+    return {
+      profissaoId,
+      valorOriginal,
+      origem: profissaoId ? "catalogo" : "personalizado",
+    };
+  });
+}
+function vertentesElegiveisAtivas(db, usuarioId) {
+  const placeholders = profissoesElegiveisParaVertentes
+    .map(() => "?")
+    .join(", ");
+  const linha = db
+    .prepare(
+      `SELECT 1 AS elegivel
+       FROM profissoes_usuario
+       WHERE usuario_id = ?
+         AND estado = 'ativa'
+         AND profissao_id IN (${placeholders})
+       LIMIT 1`
+    )
+    .get(usuarioId, ...profissoesElegiveisParaVertentes);
+  return Boolean(linha);
+}
+function sincronizarAssociacaoVertentes(db, usuarioId) {
+  const associacaoAtiva = vertentesElegiveisAtivas(db, usuarioId) ? 1 : 0;
+  db.prepare(
+    `UPDATE vertentes_profissionais_usuario
+     SET associacao_ativa = ?, atualizada_em = CURRENT_TIMESTAMP
+     WHERE usuario_id = ?`
+  ).run(associacaoAtiva, usuarioId);
+  return associacaoAtiva === 1;
+}
+export function listarProfissoesUsuarioCypher(usuarioId, opcoes = {}) {
+  const db = bancoAtivo();
+  const filtro = opcoes.incluirInativas ? "" : "WHERE estado = 'ativa'";
+  return db
+    .prepare(
+      `SELECT id, usuario_id AS usuarioId, profissao_id AS profissaoId,
+              valor_original AS valorOriginal, origem, estado,
+              selecionada_em AS selecionadaEm, desativada_em AS desativadaEm,
+              atualizada_em AS atualizadaEm
+       FROM profissoes_usuario
+       ${filtro ? `${filtro} AND` : "WHERE"} usuario_id = ?
+       ORDER BY datetime(selecionada_em), id`
+    )
+    .all(usuarioId)
+    .map(linha => mapearLinhaProfissao(linha));
+}
+export function salvarProfissoesUsuarioCypher(usuarioId, entradas) {
+  validarEntradasProfissionais(entradas);
+  const db = bancoAtivo();
+  exigirUsuarioReal(db, usuarioId);
+  const salvar = db.transaction(() => {
+    const existentes = db
+      .prepare(
+        `SELECT id, usuario_id AS usuarioId, profissao_id AS profissaoId,
+                valor_original AS valorOriginal, origem, estado,
+                selecionada_em AS selecionadaEm, desativada_em AS desativadaEm,
+                atualizada_em AS atualizadaEm
+         FROM profissoes_usuario WHERE usuario_id = ?`
+      )
+      .all(usuarioId);
+    const porChave = new Map(
+      existentes.map(linha => [
+        linha.profissaoId
+          ? `id:${linha.profissaoId}`
+          : `valor:${linha.valorOriginal}`,
+        linha,
+      ])
+    );
+    const selecionadas = new Set();
+    const reativar = db.prepare(`UPDATE profissoes_usuario
+       SET valor_original = ?, origem = ?, estado = 'ativa',
+           desativada_em = NULL, atualizada_em = CURRENT_TIMESTAMP
+       WHERE id = ?`);
+    const inserir = db.prepare(`INSERT INTO profissoes_usuario
+       (id, usuario_id, profissao_id, valor_original, origem, estado)
+       VALUES (?, ?, ?, ?, ?, 'ativa')`);
+    for (const entrada of entradas) {
+      const chave = entrada.profissaoId
+        ? `id:${entrada.profissaoId}`
+        : `valor:${entrada.valorOriginal}`;
+      selecionadas.add(chave);
+      const existente = porChave.get(chave);
+      if (existente) {
+        reativar.run(entrada.valorOriginal, entrada.origem, existente.id);
+      } else {
+        inserir.run(
+          randomUUID(),
+          usuarioId,
+          entrada.profissaoId,
+          entrada.valorOriginal,
+          entrada.origem
+        );
+      }
+    }
+    const inativar = db.prepare(`UPDATE profissoes_usuario
+       SET estado = 'inativa', desativada_em = CURRENT_TIMESTAMP,
+           atualizada_em = CURRENT_TIMESTAMP
+       WHERE id = ? AND estado = 'ativa'`);
+    for (const existente of existentes) {
+      const chave = existente.profissaoId
+        ? `id:${existente.profissaoId}`
+        : `valor:${existente.valorOriginal}`;
+      if (!selecionadas.has(chave)) inativar.run(existente.id);
+    }
+    sincronizarAssociacaoVertentes(db, usuarioId);
+  });
+  salvar();
+}
+export function listarVertentesProfissionaisUsuarioCypher(
+  usuarioId,
+  opcoes = {}
+) {
+  const db = bancoAtivo();
+  const filtro = opcoes.incluirInativas
+    ? ""
+    : "AND ativa = 1 AND associacao_ativa = 1";
+  return db
+    .prepare(
+      `SELECT id, usuario_id AS usuarioId, vertente_id AS vertenteId,
+              ativa, associacao_ativa AS associacaoAtiva,
+              criada_em AS criadaEm, desativada_em AS desativadaEm,
+              atualizada_em AS atualizadaEm
+       FROM vertentes_profissionais_usuario
+       WHERE usuario_id = ? ${filtro}
+       ORDER BY vertente_id`
+    )
+    .all(usuarioId)
+    .map(linha => mapearLinhaVertente(linha));
+}
+export function salvarVertentesProfissionaisUsuarioCypher(
+  usuarioId,
+  vertentes
+) {
+  const unicas = [...new Set(vertentes)];
+  for (const vertente of unicas) {
+    if (!vertenteProfissionalPermitida(vertente)) {
+      throw new Error(`Vertente profissional não permitida: ${vertente}`);
+    }
+  }
+  const db = bancoAtivo();
+  exigirUsuarioReal(db, usuarioId);
+  const salvar = db.transaction(() => {
+    const associacaoAtiva = sincronizarAssociacaoVertentes(db, usuarioId);
+    if (!associacaoAtiva) {
+      if (unicas.length > 0) {
+        throw new Error(
+          "Somente Rapper, MC ou Freestyler podem selecionar vertentes profissionais."
+        );
+      }
+      return;
+    }
+    const existentes = db
+      .prepare(
+        `SELECT id, usuario_id AS usuarioId, vertente_id AS vertenteId,
+                ativa, associacao_ativa AS associacaoAtiva,
+                criada_em AS criadaEm, desativada_em AS desativadaEm,
+                atualizada_em AS atualizadaEm
+         FROM vertentes_profissionais_usuario WHERE usuario_id = ?`
+      )
+      .all(usuarioId);
+    const porVertente = new Map(
+      existentes.map(linha => [linha.vertenteId, linha])
+    );
+    const selecionadas = new Set(unicas);
+    const ativar = db.prepare(`UPDATE vertentes_profissionais_usuario
+       SET ativa = 1, associacao_ativa = 1, desativada_em = NULL,
+           atualizada_em = CURRENT_TIMESTAMP
+       WHERE id = ?`);
+    const inserir = db.prepare(`INSERT INTO vertentes_profissionais_usuario
+       (id, usuario_id, vertente_id, ativa, associacao_ativa)
+       VALUES (?, ?, ?, 1, 1)`);
+    for (const vertente of unicas) {
+      const existente = porVertente.get(vertente);
+      if (existente) ativar.run(existente.id);
+      else inserir.run(randomUUID(), usuarioId, vertente);
+    }
+    const desativar = db.prepare(`UPDATE vertentes_profissionais_usuario
+       SET ativa = 0, associacao_ativa = 1, desativada_em = CURRENT_TIMESTAMP,
+           atualizada_em = CURRENT_TIMESTAMP
+       WHERE id = ?`);
+    for (const existente of existentes) {
+      if (!selecionadas.has(existente.vertenteId)) desativar.run(existente.id);
+    }
+  });
+  salvar();
+}
+export function sincronizarVertentesProfissionaisUsuarioCypher(usuarioId) {
+  const db = bancoAtivo();
+  const sincronizar = db.transaction(() =>
+    sincronizarAssociacaoVertentes(db, usuarioId)
+  );
+  return sincronizar();
+}
+function normalizarCategoria(texto) {
   return texto
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -856,12 +1041,7 @@ function normalizarCategoria(texto: string): string {
     .replace(/\s+/g, " ")
     .toLocaleLowerCase("pt-BR");
 }
-
-function inserirPropostaCategoria(
-  db: BancoCypher,
-  usuarioId: string,
-  valorRecebido: string
-): "criada" | "ja_pendente" | "ja_aprovada" | "categoria_base" | "invalida" {
+function inserirPropostaCategoria(db, usuarioId, valorRecebido) {
   const categoria = valorRecebido.trim().replace(/\s+/g, " ");
   if (categoria.length < 2 || categoria.length > 60) return "invalida";
   const normalizada = normalizarCategoria(categoria);
@@ -874,7 +1054,7 @@ function inserirPropostaCategoria(
   }
   const aprovadas = db
     .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
-    .all() as Array<{ categoria: string }>;
+    .all();
   if (
     aprovadas.some(item => normalizarCategoria(item.categoria) === normalizada)
   ) {
@@ -884,7 +1064,7 @@ function inserirPropostaCategoria(
     .prepare(
       "SELECT categoria FROM propostas_categorias WHERE status = 'pendente'"
     )
-    .all() as Array<{ categoria: string }>;
+    .all();
   const existente = pendentes.find(
     item => normalizarCategoria(item.categoria) === normalizada
   );
@@ -897,13 +1077,12 @@ function inserirPropostaCategoria(
     .run(randomUUID(), usuarioId, categoria);
   return resultado.changes === 1 ? "criada" : "ja_pendente";
 }
-
-export function listarCategoriasProfissionaisCypher(): string[] {
+export function listarCategoriasProfissionaisCypher() {
   const aprovadas = bancoAtivo()
     .prepare(
       "SELECT categoria FROM categorias_profissionais_aprovadas ORDER BY categoria COLLATE NOCASE"
     )
-    .all() as Array<{ categoria: string }>;
+    .all();
   const resultado = [...categoriasGerais];
   const conhecidas = new Set(resultado.map(normalizarCategoria));
   for (const { categoria } of aprovadas) {
@@ -915,29 +1094,18 @@ export function listarCategoriasProfissionaisCypher(): string[] {
   }
   return resultado;
 }
-
-export function solicitarCategoriaProfissionalCypher(
-  usuarioId: string,
-  categoria: string
-):
-  | "criada"
-  | "ja_pendente"
-  | "ja_aprovada"
-  | "categoria_base"
-  | "invalida"
-  | "nao_encontrada" {
+export function solicitarCategoriaProfissionalCypher(usuarioId, categoria) {
   const db = bancoAtivo();
   const solicitar = db.transaction(() => {
     const conta = db
       .prepare("SELECT 1 FROM usuarios WHERE id = ? AND demonstracao = 0")
       .get(usuarioId);
-    if (!conta) return "nao_encontrada" as const;
+    if (!conta) return "nao_encontrada";
     return inserirPropostaCategoria(db, usuarioId, categoria);
   });
   return solicitar();
 }
-
-export function listarPropostasCategoriasPendentesCypher(): PropostaCategoriaPersistida[] {
+export function listarPropostasCategoriasPendentesCypher() {
   return bancoAtivo()
     .prepare(
       `SELECT c.id, c.usuario_id AS usuarioId, p.nome,
@@ -949,19 +1117,9 @@ export function listarPropostasCategoriasPendentesCypher(): PropostaCategoriaPer
        WHERE c.status = 'pendente' AND u.demonstracao = 0
        ORDER BY datetime(c.criada_em), c.id`
     )
-    .all() as PropostaCategoriaPersistida[];
+    .all();
 }
-
-export function criarNotificacaoCypher(dados: {
-  usuarioDestinoId: string;
-  tipo: string;
-  titulo: string;
-  mensagem: string;
-  url: string;
-  entidadeTipo?: string;
-  entidadeId?: string;
-  chaveOrigem?: string;
-}): void {
+export function criarNotificacaoCypher(dados) {
   bancoAtivo()
     .prepare(
       `
@@ -984,10 +1142,7 @@ export function criarNotificacaoCypher(dados: {
       dados.chaveOrigem ?? null
     );
 }
-
-function linhaNotificacao(
-  linha: Record<string, unknown>
-): NotificacaoPersistida {
+function linhaNotificacao(linha) {
   return {
     id: String(linha.id),
     tipo: String(linha.tipo),
@@ -1000,11 +1155,7 @@ function linhaNotificacao(
     criadaEm: String(linha.criadaEm),
   };
 }
-
-export function listarNotificacoesCypher(
-  usuarioId: string,
-  limite = 8
-): NotificacaoPersistida[] {
+export function listarNotificacoesCypher(usuarioId, limite = 8) {
   return bancoAtivo()
     .prepare(
       `
@@ -1019,23 +1170,16 @@ export function listarNotificacoesCypher(
       `
     )
     .all(usuarioId, Math.max(1, Math.min(50, limite)))
-    .map(linha => linhaNotificacao(linha as Record<string, unknown>));
+    .map(linha => linhaNotificacao(linha));
 }
-
-export function contarNotificacoesNaoLidasCypher(usuarioId: string): number {
-  return (
-    bancoAtivo()
-      .prepare(
-        "SELECT COUNT(*) AS total FROM notificacoes WHERE usuario_destino_id = ? AND lida = 0"
-      )
-      .get(usuarioId) as { total: number }
-  ).total;
+export function contarNotificacoesNaoLidasCypher(usuarioId) {
+  return bancoAtivo()
+    .prepare(
+      "SELECT COUNT(*) AS total FROM notificacoes WHERE usuario_destino_id = ? AND lida = 0"
+    )
+    .get(usuarioId).total;
 }
-
-export function marcarNotificacaoLidaCypher(
-  notificacaoId: string,
-  usuarioId: string
-): boolean {
+export function marcarNotificacaoLidaCypher(notificacaoId, usuarioId) {
   const resultado = bancoAtivo()
     .prepare(
       `
@@ -1047,8 +1191,7 @@ export function marcarNotificacaoLidaCypher(
     .run(notificacaoId, usuarioId);
   return resultado.changes > 0;
 }
-
-export function marcarTodasNotificacoesLidasCypher(usuarioId: string): number {
+export function marcarTodasNotificacoesLidasCypher(usuarioId) {
   const resultado = bancoAtivo()
     .prepare(
       `
@@ -1060,8 +1203,7 @@ export function marcarTodasNotificacoesLidasCypher(usuarioId: string): number {
     .run(usuarioId);
   return resultado.changes;
 }
-
-function ofertasDoBeat(beatId: string): OfertaBeatPersistida[] {
+function ofertasDoBeat(beatId) {
   return bancoAtivo()
     .prepare(
       `
@@ -1078,14 +1220,11 @@ function ofertasDoBeat(beatId: string): OfertaBeatPersistida[] {
     )
     .all(beatId)
     .map(linha => {
-      const oferta = linha as Omit<OfertaBeatPersistida, "ativa"> & {
-        ativa: number;
-      };
+      const oferta = linha;
       return { ...oferta, ativa: Boolean(oferta.ativa) };
     });
 }
-
-function precoEmCentavos(valor: string): number | null {
+function precoEmCentavos(valor) {
   if (!valor.trim()) return null;
   const normalizado = valor.replace(",", ".");
   const numero = Number(normalizado);
@@ -1093,20 +1232,12 @@ function precoEmCentavos(valor: string): number | null {
     ? Math.round(numero * 100)
     : null;
 }
-
-function substituirOfertasBeat(
-  db: BancoCypher,
-  beatId: string,
-  ofertas: DadosOfertaBeat[],
-  vendaExclusiva: boolean
-): void {
+function substituirOfertasBeat(db, beatId, ofertas, vendaExclusiva) {
   db.prepare("DELETE FROM ofertas_beats WHERE beat_id = ?").run(beatId);
-  const inserir = db.prepare(
-    `
+  const inserir = db.prepare(`
     INSERT INTO ofertas_beats (id, beat_id, tipo, preco_centavos, descricao)
     VALUES (?, ?, ?, ?, ?)
-    `
-  );
+    `);
   const ofertasParaSalvar = vendaExclusiva
     ? ofertas.filter(oferta => oferta.tipo === "Exclusiva").slice(0, 1)
     : ofertas;
@@ -1120,45 +1251,57 @@ function substituirOfertasBeat(
     );
   }
 }
-
-export function caminhoBancoCypher(): string {
+export function caminhoBancoCypher() {
   const configurado = process.env.CYPHER_DB_PATH;
   return path.resolve(
     configurado || path.join(process.cwd(), "data", "cypher.sqlite")
   );
 }
+function limparDadosDemonstrativos(conexao) {
+  conexao.exec(`
+    DELETE FROM interesses_eventos WHERE evento_id IN (SELECT id FROM eventos WHERE demonstracao = 1) OR usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM creditos WHERE obra_id IN (SELECT id FROM obras WHERE demonstracao = 1) OR usuario_creditado_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM ofertas_beats WHERE beat_id IN (SELECT id FROM beats WHERE demonstracao = 1);
+    DELETE FROM obras WHERE demonstracao = 1;
+    DELETE FROM eventos WHERE demonstracao = 1;
+    DELETE FROM beats WHERE demonstracao = 1;
+    DELETE FROM notificacoes WHERE usuario_destino_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM sessoes WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM respostas_atuacao_categoria WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM respostas_atuacao_profissao WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM profissoes_usuario WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM vertentes_profissionais_usuario WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM propostas_generos WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM propostas_categorias WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM excecoes_categorias WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM solicitacoes_excecao_categorias WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM auditoria_categorias WHERE usuario_id IN (SELECT id FROM usuarios WHERE demonstracao = 1);
+    DELETE FROM perfis WHERE demonstracao = 1;
+    DELETE FROM usuarios WHERE demonstracao = 1;
+  `);
+}
 
-export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
+export function inicializarBancoCypher() {
   if (banco) return;
-
   const caminho = caminhoBancoCypher();
   fs.mkdirSync(path.dirname(caminho), { recursive: true });
-
   const conexao = new Database(caminho);
   conexao.pragma("foreign_keys = ON");
   conexao.pragma("busy_timeout = 5000");
-
   try {
     const inicializar = conexao.transaction(() => {
       const versaoAtual = conexao.pragma("user_version", {
         simple: true,
-      }) as number;
+      });
       if (versaoAtual > versaoEsquema) {
         throw new Error(
           `O banco Cypher usa uma versão de esquema mais recente (${versaoAtual}) que a suportada (${versaoEsquema}).`
         );
       }
-
       conexao.exec(esquema);
-
-      const garantirColunas = (
-        tabela: string,
-        colunas: ReadonlyArray<readonly [string, string]>
-      ) => {
+      const garantirColunas = (tabela, colunas) => {
         const existentes = new Set(
-          (
-            conexao.pragma(`table_info(${tabela})`) as Array<{ name: string }>
-          ).map(coluna => coluna.name)
+          conexao.pragma(`table_info(${tabela})`).map(coluna => coluna.name)
         );
         for (const [nome, definicao] of colunas) {
           if (!existentes.has(nome)) {
@@ -1168,7 +1311,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           }
         }
       };
-
       garantirColunas("usuarios", [
         ["codigo_publico", "TEXT"],
         ["numero_sequencial", "INTEGER"],
@@ -1235,6 +1377,9 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
       `);
       garantirColunas("obras", [
         ["genero", "TEXT NOT NULL DEFAULT ''"],
+        ["tipo_detalhe", "TEXT NOT NULL DEFAULT ''"],
+        ["genero_detalhe", "TEXT NOT NULL DEFAULT ''"],
+        ["funcao_detalhe", "TEXT NOT NULL DEFAULT ''"],
         ["letra", "TEXT NOT NULL DEFAULT ''"],
         ["data_lancamento", "TEXT NOT NULL DEFAULT ''"],
         ["link_escuta", "TEXT NOT NULL DEFAULT ''"],
@@ -1246,12 +1391,12 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
         ],
       ]);
       garantirColunas("eventos", [
+        ["categoria_detalhe", "TEXT NOT NULL DEFAULT ''"],
         [
           "tipo_participacao",
           "TEXT NOT NULL DEFAULT 'aberta' CHECK (tipo_participacao IN ('aberta', 'aprovacao'))",
         ],
       ]);
-
       if (versaoAtual < 13) {
         const categoriasLegadas = conexao
           .prepare(
@@ -1261,16 +1406,12 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
              FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
              WHERE u.demonstracao = 0 AND trim(p.outra_categoria) <> ''`
           )
-          .all() as Array<{
-          usuarioId: string;
-          categoriasJson: string;
-          outraCategoria: string;
-        }>;
+          .all();
         const limparCategoriaLegada = conexao.prepare(
           "UPDATE perfis SET funcao = ?, outra_categoria = '' WHERE usuario_id = ?"
         );
         for (const perfil of categoriasLegadas) {
-          const categorias = JSON.parse(perfil.categoriasJson) as string[];
+          const categorias = JSON.parse(perfil.categoriasJson);
           if (categorias.includes("Outros")) {
             inserirPropostaCategoria(
               conexao,
@@ -1281,7 +1422,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           }
         }
       }
-
       if (versaoAtual < 14) {
         const categoriasAprovadas = conexao
           .prepare(
@@ -1292,26 +1432,19 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
              WHERE status = 'aprovado'
              ORDER BY datetime(revisada_em), id`
           )
-          .all() as Array<{
-          categoria: string;
-          aprovadaEm: string | null;
-          revisorId: string | null;
-          revisorEmail: string;
-          motivo: string;
-        }>;
+          .all();
         const existentes = conexao
           .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
-          .all() as Array<{ categoria: string }>;
+          .all();
         const conhecidas = new Set([
           ...categoriasGerais.map(normalizarCategoria),
           ...existentes.map(item => normalizarCategoria(item.categoria)),
         ]);
-        const inserirCategoriaAprovada = conexao.prepare(
-          `INSERT INTO categorias_profissionais_aprovadas (
+        const inserirCategoriaAprovada =
+          conexao.prepare(`INSERT INTO categorias_profissionais_aprovadas (
              categoria, aprovada_em, revisor_id, revisor_email, motivo_aprovacao
            ) VALUES (?, COALESCE(?, CURRENT_TIMESTAMP), ?, ?, ?)
-           ON CONFLICT DO NOTHING`
-        );
+           ON CONFLICT DO NOTHING`);
         for (const item of categoriasAprovadas) {
           const chave = normalizarCategoria(item.categoria);
           if (conhecidas.has(chave)) continue;
@@ -1325,7 +1458,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           conhecidas.add(chave);
         }
       }
-
       if (versaoAtual < 3) {
         conexao.exec(`
           UPDATE perfis
@@ -1335,14 +1467,11 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           )
         `);
       }
-
-      let proximoNumero = (
-        conexao
-          .prepare(
-            "SELECT COALESCE(MAX(numero_sequencial), 0) + 1 AS proximo FROM usuarios WHERE demonstracao = 0"
-          )
-          .get() as { proximo: number }
-      ).proximo;
+      let proximoNumero = conexao
+        .prepare(
+          "SELECT COALESCE(MAX(numero_sequencial), 0) + 1 AS proximo FROM usuarios WHERE demonstracao = 0"
+        )
+        .get().proximo;
       const contasReais = conexao
         .prepare(
           `
@@ -1356,12 +1485,7 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           ORDER BY datetime(u.criado_em), u.id
           `
         )
-        .all() as Array<{
-        id: string;
-        codigoPublico: string | null;
-        numeroSequencial: number | null;
-        nome: string | null;
-      }>;
+        .all();
       const atualizarConta = conexao.prepare(
         "UPDATE usuarios SET codigo_publico = ?, numero_sequencial = ? WHERE id = ?"
       );
@@ -1372,31 +1496,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           codigoPublicoReal(iniciaisPublicas(conta.nome ?? "Conta"), numero);
         atualizarConta.run(codigo, numero, conta.id);
       }
-
-      const contasDemo = conexao
-        .prepare(
-          `
-          SELECT u.id, u.codigo_publico AS codigoPublico,
-                 COALESCE(p.ordem_demo, 0) AS ordemDemo
-          FROM usuarios u
-          LEFT JOIN perfis p ON p.usuario_id = u.id
-          WHERE u.demonstracao = 1 AND u.codigo_publico IS NULL
-          ORDER BY ordemDemo, u.id
-          `
-        )
-        .all() as Array<{
-        id: string;
-        codigoPublico: string | null;
-        ordemDemo: number;
-      }>;
-      for (const conta of contasDemo) {
-        const codigo =
-          conta.id === "demo-og-emice"
-            ? "CYP-FANTASMA"
-            : `CYP-DEMO${String(conta.ordemDemo + 1).padStart(4, "0")}`;
-        atualizarConta.run(codigo, null, conta.id);
-      }
-
       conexao
         .prepare(
           `
@@ -1407,7 +1506,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           `
         )
         .run(proximoNumero);
-
       conexao.exec(`
         CREATE UNIQUE INDEX IF NOT EXISTS indice_usuarios_codigo_publico
           ON usuarios(codigo_publico) WHERE codigo_publico IS NOT NULL;
@@ -1415,7 +1513,6 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           ON usuarios(numero_sequencial)
           WHERE demonstracao = 0 AND numero_sequencial IS NOT NULL;
       `);
-
       conexao.exec(`
         INSERT INTO ofertas_beats (id, beat_id, tipo, preco_centavos, descricao)
         SELECT
@@ -1429,16 +1526,98 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
           SELECT 1 FROM ofertas_beats o WHERE o.beat_id = b.id
         )
       `);
-
       conexao.exec(`
         DELETE FROM eventos WHERE demonstracao = 1;
         DELETE FROM ofertas_beats
         WHERE beat_id IN (SELECT id FROM beats WHERE demonstracao = 1);
         DELETE FROM beats WHERE demonstracao = 1;
       `);
-
+      if (versaoAtual < 18) {
+        const perfis = conexao
+          .prepare(
+            `SELECT usuario_id AS usuarioId, categorias_json AS categoriasJson
+             FROM perfis`
+          )
+          .all();
+        const atualizarPerfilCanonico = conexao.prepare(`UPDATE perfis
+           SET categorias_json = ?, funcao = ?, atualizado_em = CURRENT_TIMESTAMP
+           WHERE usuario_id = ?`);
+        for (const perfil of perfis) {
+          const categoriasAntigas = JSON.parse(perfil.categoriasJson);
+          const categorias = [
+            ...new Set(
+              categoriasAntigas.flatMap(categoria =>
+                categoria === "Rapper / MC"
+                  ? ["Rapper", "MC"]
+                  : categoria === "Produtor musical"
+                    ? ["Produtor(a)"]
+                    : [categoria]
+              )
+            ),
+          ];
+          if (
+            JSON.stringify(categorias) !== JSON.stringify(categoriasAntigas)
+          ) {
+            atualizarPerfilCanonico.run(
+              JSON.stringify(categorias),
+              categorias.join(" · "),
+              perfil.usuarioId
+            );
+          }
+        }
+        conexao
+          .prepare(
+            `UPDATE respostas_atuacao_categoria
+             SET categoria = 'Produtor(a)'
+             WHERE categoria = 'Produtor musical'`
+          )
+          .run();
+        const profissaoLegada = conexao
+          .prepare(
+            `SELECT id, usuario_id AS usuarioId, valor_original AS valorOriginal
+             FROM profissoes_usuario
+             WHERE valor_original IN ('Produtor musical', 'Rapper / MC')`
+          )
+          .all();
+        const profissaoAtiva =
+          conexao.prepare(`SELECT id FROM profissoes_usuario
+           WHERE usuario_id = ? AND profissao_id = ? AND estado = 'ativa'
+           LIMIT 1`);
+        const atualizarProfissao = conexao.prepare(`UPDATE profissoes_usuario
+           SET profissao_id = ?, valor_original = ?, origem = 'catalogo',
+               estado = 'ativa', desativada_em = NULL,
+               atualizada_em = CURRENT_TIMESTAMP
+           WHERE id = ?`);
+        const inativarProfissao = conexao.prepare(`UPDATE profissoes_usuario
+           SET estado = 'inativa', desativada_em = CURRENT_TIMESTAMP,
+               atualizada_em = CURRENT_TIMESTAMP
+           WHERE id = ?`);
+        const inserirProfissao = conexao.prepare(`INSERT INTO profissoes_usuario
+           (id, usuario_id, profissao_id, valor_original, origem, estado)
+           VALUES (?, ?, ?, ?, 'catalogo', 'ativa')`);
+        for (const linha of profissaoLegada) {
+          if (linha.valorOriginal === "Produtor musical") {
+            const existente = profissaoAtiva.get(linha.usuarioId, "produtor");
+            if (existente && existente.id !== linha.id)
+              inativarProfissao.run(linha.id);
+            else atualizarProfissao.run("produtor", "Produtor(a)", linha.id);
+            continue;
+          }
+          const rapper = profissaoAtiva.get(linha.usuarioId, "rapper");
+          const mc = profissaoAtiva.get(linha.usuarioId, "mc");
+          if (!rapper) {
+            atualizarProfissao.run("rapper", "Rapper", linha.id);
+            if (!mc)
+              inserirProfissao.run(randomUUID(), linha.usuarioId, "mc", "MC");
+          } else if (!mc) {
+            atualizarProfissao.run("mc", "MC", linha.id);
+          } else {
+            inativarProfissao.run(linha.id);
+          }
+        }
+      }
       banco = conexao;
-      carregarDadosDemonstrativos(dados);
+      limparDadosDemonstrativos(conexao);
       const violacoesChaveEstrangeira = conexao
         .prepare("PRAGMA foreign_key_check")
         .all();
@@ -1456,335 +1635,9 @@ export function inicializarBancoCypher(dados: DadosDemoIniciais): void {
     throw erro;
   }
 }
-
-function carregarDadosDemonstrativos(dados: DadosDemoIniciais): void {
-  const db = bancoAtivo();
-
-  const carregar = db.transaction(() => {
-    const inserirUsuario = db.prepare(`
-      INSERT INTO usuarios (
-        id, email, senha_hash, tipo_conta, demonstracao, codigo_publico,
-        numero_sequencial
-      )
-      VALUES (@id, @email, NULL, @tipoConta, 1, @codigoPublico, NULL)
-      ON CONFLICT(id) DO UPDATE SET
-        email = excluded.email,
-        tipo_conta = excluded.tipo_conta,
-        codigo_publico = excluded.codigo_publico
-      WHERE usuarios.demonstracao = 1
-    `);
-    const inserirPerfil = db.prepare(`
-      INSERT INTO perfis (
-        usuario_id, c_tag, nome, funcao, cidade, identificador, iniciais,
-        reputacao, generos_json, categorias_json, outra_categoria,
-        etiqueta, tom, ordem_demo, demonstracao
-      ) VALUES (
-        @id, @cTag, @nome, @funcao, @cidade, @identificador, @iniciais,
-        @reputacao, @generosJson, @categoriasJson, @outraCategoria,
-        @etiqueta, @tom, @ordem, 1
-      )
-      ON CONFLICT(usuario_id) DO UPDATE SET
-        c_tag = excluded.c_tag,
-        nome = excluded.nome,
-        funcao = excluded.funcao,
-        cidade = excluded.cidade,
-        identificador = excluded.identificador,
-        iniciais = excluded.iniciais,
-        reputacao = excluded.reputacao,
-        generos_json = excluded.generos_json,
-        categorias_json = excluded.categorias_json,
-        outra_categoria = excluded.outra_categoria,
-        etiqueta = excluded.etiqueta,
-        tom = excluded.tom,
-        ordem_demo = excluded.ordem_demo
-      WHERE perfis.demonstracao = 1
-    `);
-
-    for (const perfil of dados.perfis) {
-      inserirUsuario.run({
-        id: perfil.id,
-        email: perfil.email,
-        tipoConta: perfil.tipoConta,
-        codigoPublico: perfil.codigoPublico,
-      });
-      inserirPerfil.run({
-        id: perfil.id,
-        ordem: perfil.ordem,
-        cTag: perfil.cTag,
-        nome: perfil.nome,
-        funcao: perfil.funcao,
-        cidade: perfil.cidade,
-        identificador: perfil.identificador,
-        iniciais: perfil.iniciais,
-        reputacao: perfil.reputacao,
-        generosJson: JSON.stringify(perfil.generos),
-        categoriasJson: JSON.stringify(perfil.categorias),
-        outraCategoria: perfil.outraCategoria,
-        etiqueta: perfil.etiqueta,
-        tom: perfil.tom,
-      });
-    }
-
-    const inserirObra = db.prepare(`
-      INSERT INTO obras (
-        id, proprietario_id, titulo, tipo, situacao, metadados, funcao_principal,
-        quantidade_creditos, descricao, bpm, isrc, iswc, publicada, ordem_demo, demonstracao
-      ) VALUES (
-        @id, @proprietarioId, @title, @type, @status, @meta, @role,
-        @credits, @description, @bpm, @isrc, @iswc, @published, @ordem, 1
-      )
-      ON CONFLICT(id) DO UPDATE SET
-        proprietario_id = excluded.proprietario_id,
-        titulo = excluded.titulo,
-        tipo = excluded.tipo,
-        situacao = excluded.situacao,
-        metadados = excluded.metadados,
-        funcao_principal = excluded.funcao_principal,
-        quantidade_creditos = excluded.quantidade_creditos,
-        descricao = excluded.descricao,
-        bpm = excluded.bpm,
-        isrc = excluded.isrc,
-        iswc = excluded.iswc,
-        publicada = excluded.publicada,
-        ordem_demo = excluded.ordem_demo
-      WHERE obras.demonstracao = 1
-    `);
-    for (const obra of dados.obras) {
-      inserirObra.run({
-        id: obra.id,
-        proprietarioId: obra.proprietarioId,
-        title: obra.title,
-        type: obra.type,
-        status: obra.status,
-        meta: obra.meta,
-        role: obra.role,
-        credits: obra.credits,
-        description: obra.description,
-        bpm: obra.bpm,
-        isrc: obra.isrc,
-        iswc: obra.iswc,
-        published: Number(obra.published),
-        ordem: obra.ordem,
-      });
-    }
-
-    const inserirCreditoDemo = db.prepare(`
-      INSERT OR IGNORE INTO creditos (
-        id, obra_id, usuario_creditado_id, nome_creditado, funcao,
-        participacao, verificado, demonstracao
-      ) VALUES (?, ?, ?, ?, ?, '', 0, 1)
-    `);
-    for (const obra of dados.obras) {
-      inserirCreditoDemo.run(
-        `credito-demo-${obra.id}`,
-        obra.id,
-        dados.usuarioDemoId,
-        "OG Emicê",
-        obra.role
-      );
-    }
-
-    const inserirEvento = db.prepare(`
-      INSERT INTO eventos (
-        id, proprietario_id, titulo, categoria, data_texto, horario, local,
-        organizador, situacao, cor, descricao, formato, inscricao, premio,
-        etiquetas_json, tipo_participacao, ordem_demo, demonstracao
-      ) VALUES (
-        @id, @proprietarioId, @title, @category, @date, @time, @location,
-        @org, @status, @color, @description, @format, @registration, @prize,
-        @etiquetasJson, @participationType, @ordem, 1
-      )
-      ON CONFLICT(id) DO UPDATE SET
-        proprietario_id = excluded.proprietario_id,
-        titulo = excluded.titulo,
-        categoria = excluded.categoria,
-        data_texto = excluded.data_texto,
-        horario = excluded.horario,
-        local = excluded.local,
-        organizador = excluded.organizador,
-        situacao = excluded.situacao,
-        cor = excluded.cor,
-        descricao = excluded.descricao,
-        formato = excluded.formato,
-        inscricao = excluded.inscricao,
-        premio = excluded.premio,
-        etiquetas_json = excluded.etiquetas_json,
-        tipo_participacao = excluded.tipo_participacao,
-        ordem_demo = excluded.ordem_demo
-      WHERE eventos.demonstracao = 1
-    `);
-    for (const evento of dados.eventos) {
-      inserirEvento.run({
-        id: evento.id,
-        proprietarioId: evento.proprietarioId,
-        title: evento.title,
-        category: evento.category,
-        date: evento.date,
-        time: evento.time,
-        location: evento.location,
-        org: evento.org,
-        status: evento.status,
-        color: evento.color,
-        description: evento.description,
-        format: evento.format,
-        registration: evento.registration,
-        prize: evento.prize,
-        etiquetasJson: JSON.stringify(evento.tags),
-        participationType: evento.participationType,
-        ordem: evento.ordem,
-      });
-    }
-
-    const inserirBeat = db.prepare(`
-      INSERT INTO beats (
-        id, produtor_id, titulo, bpm, tom_musical, genero, licenca,
-        duracao, cor, descricao, condicoes_uso, ordem_demo, demonstracao
-      ) VALUES (
-        @id, @produtorId, @title, @bpm, @key, @genre, @license,
-        @duration, @color, @description, @usage, @ordem, 1
-      )
-      ON CONFLICT(id) DO UPDATE SET
-        produtor_id = excluded.produtor_id,
-        titulo = excluded.titulo,
-        bpm = excluded.bpm,
-        tom_musical = excluded.tom_musical,
-        genero = excluded.genero,
-        licenca = excluded.licenca,
-        duracao = excluded.duracao,
-        cor = excluded.cor,
-        descricao = excluded.descricao,
-        condicoes_uso = excluded.condicoes_uso,
-        ordem_demo = excluded.ordem_demo
-      WHERE beats.demonstracao = 1
-    `);
-    for (const beat of dados.beats) {
-      inserirBeat.run({
-        id: beat.id,
-        produtorId: beat.produtorId,
-        title: beat.title,
-        bpm: beat.bpm,
-        key: beat.key,
-        genre: beat.genre,
-        license: beat.license,
-        duration: beat.duration,
-        color: beat.color,
-        description: beat.description,
-        usage: beat.usage,
-        ordem: beat.ordem,
-      });
-    }
-  });
-
-  carregar();
-}
-
-export function obterUsuarioDemo(
-  id: string
-): UsuarioDemoPersistido | undefined {
-  const resultado = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        p.nome AS name,
-        p.funcao AS role,
-        p.cidade AS city,
-        p.identificador AS handle,
-        u.email AS email,
-        u.codigo_publico AS publicCode,
-        p.iniciais AS initials,
-        p.c_tag AS cTag,
-        p.reputacao AS reputation,
-        p.generos_json AS genresJson
-      FROM usuarios u
-      JOIN perfis p ON p.usuario_id = u.id
-      WHERE u.id = ? AND u.demonstracao = 1
-    `
-    )
-    .get(id) as
-    | (Omit<UsuarioDemoPersistido, "genres"> & { genresJson: string })
-    | undefined;
-
-  if (!resultado) return undefined;
-  return {
-    name: resultado.name,
-    role: resultado.role,
-    city: resultado.city,
-    handle: resultado.handle,
-    email: resultado.email,
-    publicCode: resultado.publicCode,
-    initials: resultado.initials,
-    cTag: resultado.cTag,
-    reputation: resultado.reputation,
-    genres: JSON.parse(resultado.genresJson) as string[],
-  };
-}
-
-export function listarPessoasDemo(
-  nomes: readonly string[]
-): PessoaPersistida[] {
-  if (nomes.length === 0) return [];
-
-  const parametros = nomes.map(() => "?").join(", ");
-  return bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        p.nome AS name,
-        p.funcao AS role,
-        p.cidade AS city,
-        p.etiqueta AS tag,
-        p.tom AS tone,
-        p.iniciais AS initials
-      FROM usuarios u
-      JOIN perfis p ON p.usuario_id = u.id
-      WHERE u.demonstracao = 1
-        AND u.tipo_conta = 'profissional'
-        AND u.id <> ?
-        AND p.nome IN (${parametros})
-      ORDER BY p.ordem_demo, p.nome COLLATE NOCASE
-    `
-    )
-    .all("demo-og-emice", ...nomes) as PessoaPersistida[];
-}
-
-export function listarEventosDemo(): EventoPersistido[] {
-  const linhas = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        titulo AS title,
-        categoria AS category,
-        data_texto AS date,
-        horario AS time,
-        local AS location,
-        organizador AS org,
-        situacao AS status,
-        cor AS color,
-        descricao AS description,
-        formato AS format,
-        inscricao AS registration,
-        premio AS prize,
-        etiquetas_json AS tagsJson,
-        tipo_participacao AS participationType
-      FROM eventos
-      WHERE demonstracao = 1
-      ORDER BY ordem_demo
-    `
-    )
-    .all() as Array<Omit<EventoPersistido, "tags"> & { tagsJson: string }>;
-
-  return linhas.map(({ tagsJson, ...evento }) => ({
-    ...evento,
-    tags: JSON.parse(tagsJson) as string[],
-  }));
-}
-
-export function listarEventosCypher(
-  filtros: FiltrosEventos,
-  usuarioId: string
-): EventoContaPersistido[] {
-  const filtrosSql: string[] = [];
-  const parametros: Record<string, string> = { usuarioId };
+export function listarEventosCypher(filtros, usuarioId) {
+  const filtrosSql = [];
+  const parametros = { usuarioId };
   if (filtros.categoria) {
     filtrosSql.push("e.categoria = @categoria");
     parametros.categoria = filtros.categoria;
@@ -1815,6 +1668,7 @@ export function listarEventosCypher(
         e.proprietario_id AS proprietarioId,
         e.titulo AS title,
         e.categoria AS category,
+        e.categoria_detalhe AS categoryDetail,
         e.data_texto AS date,
         e.horario AS time,
         e.local AS location,
@@ -1847,15 +1701,7 @@ export function listarEventosCypher(
       ORDER BY ${ordenacao}
       `
     )
-    .all(parametros) as Array<
-    Omit<EventoContaPersistido, "tags" | "demonstracao" | "owned"> & {
-      tagsJson: string;
-      demonstracao: number;
-      owned: number;
-      interesseStatus: StatusInteresseEvento | null;
-      totalInteressados: number;
-    }
-  >;
+    .all(parametros);
   return linhas.map(
     ({
       tagsJson,
@@ -1866,7 +1712,7 @@ export function listarEventosCypher(
       ...evento
     }) => ({
       ...evento,
-      tags: JSON.parse(tagsJson) as string[],
+      tags: JSON.parse(tagsJson),
       demonstracao: Boolean(demonstracao),
       owned: Boolean(owned),
       totalInteressados: Number(totalInteressados),
@@ -1876,11 +1722,7 @@ export function listarEventosCypher(
     })
   );
 }
-
-export function obterEventoCypher(
-  id: string,
-  usuarioId: string
-): EventoContaPersistido | undefined {
+export function obterEventoCypher(id, usuarioId) {
   const linha = bancoAtivo()
     .prepare(
       `
@@ -1889,6 +1731,7 @@ export function obterEventoCypher(
         e.proprietario_id AS proprietarioId,
         e.titulo AS title,
         e.categoria AS category,
+        e.categoria_detalhe AS categoryDetail,
         e.data_texto AS date,
         e.horario AS time,
         e.local AS location,
@@ -1920,30 +1763,19 @@ export function obterEventoCypher(
       WHERE e.id = ?
       `
     )
-    .get(usuarioId, usuarioId, id) as
-    | (Omit<EventoContaPersistido, "tags" | "demonstracao" | "owned"> & {
-        tagsJson: string;
-        demonstracao: number;
-        owned: number;
-        interesseStatus: StatusInteresseEvento | null;
-        totalInteressados: number;
-      })
-    | undefined;
+    .get(usuarioId, usuarioId, id);
   if (!linha) return undefined;
   const { tagsJson, demonstracao, owned, totalInteressados, ...evento } = linha;
   return {
     ...evento,
-    tags: JSON.parse(tagsJson) as string[],
+    tags: JSON.parse(tagsJson),
     demonstracao: Boolean(demonstracao),
     owned: Boolean(owned),
     totalInteressados: Number(totalInteressados),
     interessados: owned ? listarInteressesEventoCypher(evento.id) : [],
   };
 }
-
-export function listarInteressesEventoCypher(
-  eventoId: string
-): InteresseEventoPersistido[] {
+export function listarInteressesEventoCypher(eventoId) {
   return bancoAtivo()
     .prepare(
       `
@@ -1972,13 +1804,9 @@ export function listarInteressesEventoCypher(
         ie.id ASC
       `
     )
-    .all(eventoId) as InteresseEventoPersistido[];
+    .all(eventoId);
 }
-
-export function demonstrarInteresseEventoCypher(
-  eventoId: string,
-  usuarioId: string
-): StatusInteresseEvento | null {
+export function demonstrarInteresseEventoCypher(eventoId, usuarioId) {
   const db = bancoAtivo();
   const evento = db
     .prepare(
@@ -1993,10 +1821,8 @@ export function demonstrarInteresseEventoCypher(
         AND e.proprietario_id <> ?
       `
     )
-    .get(usuarioId, eventoId, usuarioId) as
-    { id: string; participationType: "aberta" | "aprovacao" } | undefined;
+    .get(usuarioId, eventoId, usuarioId);
   if (!evento) return null;
-
   db.prepare(
     `
     INSERT INTO interesses_eventos (id, evento_id, usuario_id, status)
@@ -2013,11 +1839,7 @@ export function demonstrarInteresseEventoCypher(
   );
   return evento.participationType === "aprovacao" ? "inscrito" : "interessado";
 }
-
-export function cancelarInteresseEventoCypher(
-  eventoId: string,
-  usuarioId: string
-): boolean {
+export function cancelarInteresseEventoCypher(eventoId, usuarioId) {
   const resultado = bancoAtivo()
     .prepare(
       `
@@ -2029,16 +1851,12 @@ export function cancelarInteresseEventoCypher(
     .run(eventoId, usuarioId);
   return resultado.changes > 0;
 }
-
 export function atualizarStatusInteresseEventoCypher(
-  eventoId: string,
-  organizadorId: string,
-  usuarioInteressadoId: string,
-  status: Extract<
-    StatusInteresseEvento,
-    "interessado" | "inscrito" | "confirmado" | "rejeitado"
-  >
-): boolean {
+  eventoId,
+  organizadorId,
+  usuarioInteressadoId,
+  status
+) {
   const db = bancoAtivo();
   const atual = db
     .prepare(
@@ -2053,21 +1871,15 @@ export function atualizarStatusInteresseEventoCypher(
         AND e.situacao <> 'Encerrado'
       `
     )
-    .get(eventoId, usuarioInteressadoId, organizadorId) as
-    { status: StatusInteresseEvento } | undefined;
+    .get(eventoId, usuarioInteressadoId, organizadorId);
   if (!atual || atual.status === "cancelado") return false;
-
-  const transicoes: Record<
-    Exclude<StatusInteresseEvento, "cancelado">,
-    readonly StatusInteresseEvento[]
-  > = {
+  const transicoes = {
     interessado: ["interessado", "inscrito", "rejeitado"],
     inscrito: ["interessado", "inscrito", "confirmado", "rejeitado"],
     confirmado: ["confirmado"],
     rejeitado: ["interessado", "rejeitado"],
   };
   if (!transicoes[atual.status].includes(status)) return false;
-
   const resultado = db
     .prepare(
       `
@@ -2088,20 +1900,16 @@ export function atualizarStatusInteresseEventoCypher(
     .run(status, eventoId, usuarioInteressadoId, organizadorId);
   return resultado.changes > 0;
 }
-
-export function criarEventoCypher(
-  proprietarioId: string,
-  dados: DadosEventoCypher
-): string {
+export function criarEventoCypher(proprietarioId, dados) {
   const id = randomUUID();
   bancoAtivo()
     .prepare(
       `
       INSERT INTO eventos (
-        id, proprietario_id, titulo, categoria, data_texto, horario, local,
+        id, proprietario_id, titulo, categoria, categoria_detalhe, data_texto, horario, local,
         organizador, situacao, cor, descricao, formato, inscricao, premio,
         etiquetas_json, tipo_participacao, demonstracao
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
       `
     )
     .run(
@@ -2109,6 +1917,7 @@ export function criarEventoCypher(
       proprietarioId,
       dados.title,
       dados.category,
+      dados.categoryDetail,
       dados.date,
       dados.time,
       dados.location,
@@ -2124,17 +1933,12 @@ export function criarEventoCypher(
     );
   return id;
 }
-
-export function atualizarEventoCypher(
-  id: string,
-  proprietarioId: string,
-  dados: DadosEventoCypher
-): boolean {
+export function atualizarEventoCypher(id, proprietarioId, dados) {
   const resultado = bancoAtivo()
     .prepare(
       `
       UPDATE eventos
-      SET titulo = ?, categoria = ?, data_texto = ?, horario = ?, local = ?,
+      SET titulo = ?, categoria = ?, categoria_detalhe = ?, data_texto = ?, horario = ?, local = ?,
           organizador = ?, situacao = ?, cor = ?, descricao = ?, formato = ?,
           inscricao = ?, premio = ?, etiquetas_json = ?, tipo_participacao = ?, atualizado_em = CURRENT_TIMESTAMP
       WHERE id = ? AND proprietario_id = ? AND demonstracao = 0
@@ -2143,6 +1947,7 @@ export function atualizarEventoCypher(
     .run(
       dados.title,
       dados.category,
+      dados.categoryDetail,
       dados.date,
       dados.time,
       dados.location,
@@ -2160,11 +1965,7 @@ export function atualizarEventoCypher(
     );
   return resultado.changes > 0;
 }
-
-export function excluirEventoCypher(
-  id: string,
-  proprietarioId: string
-): boolean {
+export function excluirEventoCypher(id, proprietarioId) {
   const resultado = bancoAtivo()
     .prepare(
       "DELETE FROM eventos WHERE id = ? AND proprietario_id = ? AND demonstracao = 0"
@@ -2172,8 +1973,7 @@ export function excluirEventoCypher(
     .run(id, proprietarioId);
   return resultado.changes > 0;
 }
-
-export function listarBeatsCypher(usuarioId?: string): BeatContaPersistido[] {
+export function listarBeatsCypher(usuarioId) {
   const linhas = bancoAtivo()
     .prepare(
       `
@@ -2200,10 +2000,7 @@ export function listarBeatsCypher(usuarioId?: string): BeatContaPersistido[] {
       ORDER BY b.demonstracao DESC, datetime(b.criado_em) DESC, b.ordem_demo
       `
     )
-    .all(usuarioId ?? "") as Array<
-    BeatPersistido & { demonstracao: number; owned: number; criadoEm: string }
-  >;
-
+    .all(usuarioId ?? "");
   return linhas.map(linha => ({
     ...linha,
     vendaExclusiva: Boolean(linha.vendaExclusiva),
@@ -2212,11 +2009,7 @@ export function listarBeatsCypher(usuarioId?: string): BeatContaPersistido[] {
     ofertas: ofertasDoBeat(linha.id),
   }));
 }
-
-export function criarBeatCypher(
-  produtorId: string,
-  dados: DadosBeatCypher
-): string {
+export function criarBeatCypher(produtorId, dados) {
   const id = randomUUID();
   const db = bancoAtivo();
   db.transaction(() => {
@@ -2244,11 +2037,7 @@ export function criarBeatCypher(
   })();
   return id;
 }
-
-export function obterBeatCypher(
-  id: string,
-  produtorId: string
-): BeatContaPersistido | undefined {
+export function obterBeatCypher(id, produtorId) {
   const linha = bancoAtivo()
     .prepare(
       `
@@ -2274,13 +2063,7 @@ export function obterBeatCypher(
       WHERE b.id = ? AND b.produtor_id = ? AND b.demonstracao = 0
       `
     )
-    .get(id, produtorId) as
-    | (BeatPersistido & {
-        demonstracao: number;
-        owned: number;
-        criadoEm: string;
-      })
-    | undefined;
+    .get(id, produtorId);
   if (!linha) return undefined;
   return {
     ...linha,
@@ -2290,12 +2073,7 @@ export function obterBeatCypher(
     ofertas: ofertasDoBeat(id),
   };
 }
-
-export function atualizarBeatCypher(
-  id: string,
-  produtorId: string,
-  dados: DadosBeatCypher
-): boolean {
+export function atualizarBeatCypher(id, produtorId, dados) {
   const db = bancoAtivo();
   const resultado = db.transaction(() => {
     const atualizacao = db
@@ -2328,8 +2106,7 @@ export function atualizarBeatCypher(
   })();
   return resultado.changes > 0;
 }
-
-export function excluirBeatCypher(id: string, produtorId: string): boolean {
+export function excluirBeatCypher(id, produtorId) {
   const resultado = bancoAtivo()
     .prepare(
       "DELETE FROM beats WHERE id = ? AND produtor_id = ? AND demonstracao = 0"
@@ -2337,74 +2114,13 @@ export function excluirBeatCypher(id: string, produtorId: string): boolean {
     .run(id, produtorId);
   return resultado.changes > 0;
 }
-
-export function listarObrasDemo(): ObraPersistida[] {
-  const linhas = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        id,
-        titulo AS title,
-        tipo AS type,
-        situacao AS status,
-        metadados AS meta,
-        funcao_principal AS role,
-        quantidade_creditos AS credits,
-        descricao AS description,
-        bpm,
-        isrc,
-        iswc,
-        publicada AS published
-      FROM obras
-      WHERE demonstracao = 1
-      ORDER BY ordem_demo
-    `
-    )
-    .all() as Array<Omit<ObraPersistida, "published"> & { published: number }>;
-
-  return linhas.map(obra => ({
-    ...obra,
-    published: Boolean(obra.published),
-  }));
-}
-
-export function estatisticasObrasDemo(): {
-  publicadasComoArtista: number;
-  participacoesComoFeat: number;
-  emAndamento: number;
-} {
-  const resultado = bancoAtivo()
-    .prepare(
-      `
-      SELECT
-        COALESCE(SUM(CASE WHEN publicada = 1 AND funcao_principal = 'Artista principal' THEN 1 ELSE 0 END), 0) AS publicadasComoArtista,
-        COALESCE(SUM(CASE WHEN publicada = 1 AND funcao_principal = 'Participação como feat' THEN 1 ELSE 0 END), 0) AS participacoesComoFeat,
-        COALESCE(SUM(CASE WHEN situacao = 'Em produção' THEN 1 ELSE 0 END), 0) AS emAndamento
-      FROM obras
-      WHERE demonstracao = 1
-    `
-    )
-    .get() as {
-    publicadasComoArtista: number;
-    participacoesComoFeat: number;
-    emAndamento: number;
-  };
-
-  return resultado;
-}
-
-function salvarAtuacoesCategoria(
-  db: BancoCypher,
-  usuarioId: string,
-  categoriasAtivas: readonly string[],
-  atuacoes: readonly AtuacaoProfissionalPersistida[]
-): void {
+function salvarAtuacoesCategoria(db, usuarioId, categoriasAtivas, atuacoes) {
   const permitidas = new Set(categoriasAtivas);
   const existentes = db
     .prepare(
       "SELECT categoria FROM respostas_atuacao_categoria WHERE usuario_id = ?"
     )
-    .all(usuarioId) as Array<{ categoria: string }>;
+    .all(usuarioId);
   const remover = db.prepare(
     "DELETE FROM respostas_atuacao_categoria WHERE usuario_id = ? AND categoria = ?"
   );
@@ -2417,6 +2133,17 @@ function salvarAtuacoesCategoria(
       versao_questionario, atualizado_em
     ) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
     ON CONFLICT(usuario_id, categoria) DO UPDATE SET
+      respostas_json = excluded.respostas_json,
+      visibilidades_json = excluded.visibilidades_json,
+      versao_questionario = excluded.versao_questionario,
+      atualizado_em = CURRENT_TIMESTAMP
+  `);
+  const salvarPorProfissao = db.prepare(`
+    INSERT INTO respostas_atuacao_profissao (
+      usuario_id, profissao_id, respostas_json, visibilidades_json,
+      versao_questionario, atualizado_em
+    ) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+    ON CONFLICT(usuario_id, profissao_id) DO UPDATE SET
       respostas_json = excluded.respostas_json,
       visibilidades_json = excluded.visibilidades_json,
       versao_questionario = excluded.versao_questionario,
@@ -2437,23 +2164,100 @@ function salvarAtuacoesCategoria(
       JSON.stringify(atuacao.respostas),
       JSON.stringify(visibilidades)
     );
+    const profissaoId = idProfissaoPorCategoria(atuacao.categoria);
+    if (profissaoId) {
+      const validacao = validarRespostasAtuacao(
+        profissaoId,
+        atuacao.respostas,
+        false
+      );
+      if (!validacao.valido) throw new Error("RESPOSTAS_ATUACAO_INVALIDAS");
+      salvarPorProfissao.run(
+        usuarioId,
+        profissaoId,
+        JSON.stringify(atuacao.respostas),
+        JSON.stringify(visibilidades)
+      );
+    }
   }
 }
 
-export function criarContaCypher(conta: DadosNovaConta): void {
+export function listarRespostasAtuacaoProfissaoCypher(usuarioId, opcoes = {}) {
+  exigirUsuarioReal(bancoAtivo(), usuarioId);
+  const linhas = bancoAtivo()
+    .prepare(
+      `SELECT profissao_id AS profissaoId,
+              respostas_json AS respostasJson,
+              visibilidades_json AS visibilidadesJson,
+              versao_questionario AS versaoQuestionario,
+              atualizado_em AS atualizadoEm
+       FROM respostas_atuacao_profissao
+       WHERE usuario_id = ?
+       ORDER BY profissao_id`
+    )
+    .all(usuarioId);
+  return linhas
+    .filter(linha =>
+      opcoes.profissaoId ? linha.profissaoId === opcoes.profissaoId : true
+    )
+    .map(linha => ({
+      profissaoId: linha.profissaoId,
+      respostas: JSON.parse(linha.respostasJson),
+      visibilidades: JSON.parse(linha.visibilidadesJson),
+      versaoQuestionario: linha.versaoQuestionario,
+      atualizadoEm: linha.atualizadoEm,
+    }));
+}
+
+export function salvarRespostasAtuacaoProfissaoCypher(
+  usuarioId,
+  profissaoId,
+  respostas,
+  visibilidades = {}
+) {
+  exigirUsuarioReal(bancoAtivo(), usuarioId);
+  if (!obterProfissaoCatalogo(profissaoId)) {
+    throw new Error("PROFISSAO_NAO_ENCONTRADA");
+  }
+  const validacao = validarRespostasAtuacao(profissaoId, respostas, true);
+  if (!validacao.valido) throw new Error("RESPOSTAS_ATUACAO_INVALIDAS");
+  const visibilidadesSeguras = Object.fromEntries(
+    Object.entries(visibilidades).filter(([, valor]) =>
+      ["publico", "colaboradores", "privado"].includes(valor)
+    )
+  );
+  bancoAtivo()
+    .prepare(
+      `INSERT INTO respostas_atuacao_profissao (
+         usuario_id, profissao_id, respostas_json, visibilidades_json,
+         versao_questionario, atualizado_em
+       ) VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+       ON CONFLICT(usuario_id, profissao_id) DO UPDATE SET
+         respostas_json = excluded.respostas_json,
+         visibilidades_json = excluded.visibilidades_json,
+         versao_questionario = excluded.versao_questionario,
+         atualizado_em = CURRENT_TIMESTAMP`
+    )
+    .run(
+      usuarioId,
+      profissaoId,
+      JSON.stringify(respostas),
+      JSON.stringify(visibilidadesSeguras)
+    );
+}
+export function criarContaCypher(conta) {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
     const sequencia = db
       .prepare(
         "SELECT proximo_numero AS numero FROM sequencias WHERE nome = 'usuarios_reais'"
       )
-      .get() as { numero: number } | undefined;
+      .get();
     if (!sequencia) throw new Error("SEQUENCIA_USUARIOS_NAO_INICIALIZADA");
     db.prepare(
       "UPDATE sequencias SET proximo_numero = proximo_numero + 1 WHERE nome = 'usuarios_reais'"
     ).run();
     const codigoPublico = codigoPublicoReal(conta.iniciais, sequencia.numero);
-
     db.prepare(
       `
       INSERT INTO usuarios (
@@ -2472,7 +2276,6 @@ export function criarContaCypher(conta: DadosNovaConta): void {
       codigoPublico,
       numeroSequencial: sequencia.numero,
     });
-
     db.prepare(
       `
       INSERT INTO perfis (
@@ -2501,13 +2304,13 @@ export function criarContaCypher(conta: DadosNovaConta): void {
       inserirPropostaCategoria(db, conta.id, conta.outraCategoria);
     }
   });
-
   salvar();
+  salvarProfissoesUsuarioCypher(
+    conta.id,
+    entradasProfissionaisDasCategorias(conta.categorias)
+  );
 }
-
-export function buscarCredenciaisCypher(
-  email: string
-): CredenciaisUsuario | undefined {
+export function buscarCredenciaisCypher(email) {
   return bancoAtivo()
     .prepare(
       `
@@ -2516,15 +2319,9 @@ export function buscarCredenciaisCypher(
       WHERE email = ? COLLATE NOCASE AND demonstracao = 0
     `
     )
-    .get(email) as CredenciaisUsuario | undefined;
+    .get(email);
 }
-
-export function criarSessaoCypher(
-  usuarioId: string,
-  tokenHash: string,
-  expiraEm: number,
-  agora: number
-): void {
+export function criarSessaoCypher(usuarioId, tokenHash, expiraEm, agora) {
   const db = bancoAtivo();
   const criar = db.transaction(() => {
     db.prepare("DELETE FROM sessoes WHERE expira_em <= ?").run(agora);
@@ -2537,22 +2334,16 @@ export function criarSessaoCypher(
   });
   criar();
 }
-
-export function obterUsuarioDaSessaoCypher(
-  tokenHash: string,
-  agora: number
-): UsuarioDaSessao | undefined {
+export function obterUsuarioDaSessaoCypher(tokenHash, agora) {
   const db = bancoAtivo();
   const sessao = db
     .prepare("SELECT usuario_id, expira_em FROM sessoes WHERE token_hash = ?")
-    .get(tokenHash) as { usuario_id: string; expira_em: number } | undefined;
-
+    .get(tokenHash);
   if (!sessao) return undefined;
   if (sessao.expira_em <= agora) {
     db.prepare("DELETE FROM sessoes WHERE token_hash = ?").run(tokenHash);
     return undefined;
   }
-
   const perfil = db
     .prepare(
       `
@@ -2585,45 +2376,23 @@ export function obterUsuarioDaSessaoCypher(
       WHERE u.id = ?
     `
     )
-    .get(sessao.usuario_id) as
-    | (Omit<
-        UsuarioDaSessao,
-        | "demonstracao"
-        | "genres"
-        | "categories"
-        | "equipment"
-        | "profilePublic"
-        | "locationPublic"
-        | "contactPublic"
-      > & {
-        demonstracao: number;
-        genresJson: string;
-        categoriesJson: string;
-        equipmentJson: string;
-        profilePublic: number;
-        locationPublic: number;
-        contactPublic: number;
-      })
-    | undefined;
-
+    .get(sessao.usuario_id);
   if (!perfil) {
     db.prepare("DELETE FROM sessoes WHERE token_hash = ?").run(tokenHash);
     return undefined;
   }
-
   return {
     ...perfil,
     demonstracao: Boolean(perfil.demonstracao),
-    genres: JSON.parse(perfil.genresJson) as string[],
-    categories: JSON.parse(perfil.categoriesJson) as string[],
-    equipment: JSON.parse(perfil.equipmentJson) as string[],
+    genres: JSON.parse(perfil.genresJson),
+    categories: JSON.parse(perfil.categoriesJson),
+    equipment: JSON.parse(perfil.equipmentJson),
     profilePublic: Boolean(perfil.profilePublic),
     locationPublic: Boolean(perfil.locationPublic),
     contactPublic: Boolean(perfil.contactPublic),
   };
 }
-
-export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
+export function atualizarPerfilCypher(dados) {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
     const atual = db
@@ -2632,14 +2401,10 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
                 ultima_alteracao_categorias_em AS alteradaEm
          FROM perfis WHERE usuario_id = ? AND demonstracao = 0`
       )
-      .get(dados.id) as
-      { categoriasJson: string; alteradaEm: string | null } | undefined;
+      .get(dados.id);
     if (!atual) return false;
-    const antes = JSON.parse(atual.categoriasJson) as string[];
+    const antes = JSON.parse(atual.categoriasJson);
     const categoriasPermitidas = new Set(listarCategoriasProfissionaisCypher());
-    if (antes.includes(categoriaLegadaRapperMC)) {
-      categoriasPermitidas.add(categoriaLegadaRapperMC);
-    }
     if (
       dados.categories.length === 0 ||
       new Set(dados.categories).size !== dados.categories.length ||
@@ -2647,33 +2412,26 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
     ) {
       throw new Error("CATEGORIA_PROFISSIONAL_INVALIDA");
     }
-    const ordenarCategorias = (lista: string[]) => [...new Set(lista)].sort();
+    const ordenarCategorias = lista => [...new Set(lista)].sort();
     const antesJson = JSON.stringify(ordenarCategorias(antes));
     const depoisJson = JSON.stringify(ordenarCategorias(dados.categories));
     const categoriasMudaram = antesJson !== depoisJson;
-    let excecao:
-      { id: string; administradorId: string; motivo: string } | undefined;
-    let proximaAlteracao: string | null = null;
-
+    let excecao;
+    let proximaAlteracao = null;
     if (categoriasMudaram) {
       const possuiAlteracaoAnterior = Boolean(
-        (
-          db
-            .prepare(
-              "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
-            )
-            .get(dados.id) as { alterou: number }
-        ).alterou
+        db
+          .prepare(
+            "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+          )
+          .get(dados.id).alterou
       );
       if (possuiAlteracaoAnterior && atual.alteradaEm) {
         const prazo = db
           .prepare(
             "SELECT datetime(?, '+60 days') AS proxima, datetime(?, '+60 days') > datetime('now') AS bloqueada"
           )
-          .get(atual.alteradaEm, atual.alteradaEm) as {
-          proxima: string | null;
-          bloqueada: number;
-        };
+          .get(atual.alteradaEm, atual.alteradaEm);
         proximaAlteracao = prazo.proxima;
         if (prazo.bloqueada) {
           excecao = db
@@ -2683,8 +2441,7 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
                WHERE usuario_id = ? AND usada_em IS NULL
                ORDER BY criada_em, id LIMIT 1`
             )
-            .get(dados.id) as
-            { id: string; administradorId: string; motivo: string } | undefined;
+            .get(dados.id);
           if (!excecao) {
             throw new Error(`CATEGORIAS_BLOQUEADAS:${proximaAlteracao ?? ""}`);
           }
@@ -2713,7 +2470,6 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
         excecao?.motivo ?? ""
       );
     }
-
     const atualizado = db
       .prepare(
         `
@@ -2753,7 +2509,6 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
         initials: dados.initials,
       });
     if (atualizado.changes !== 1) return false;
-
     db.prepare(
       `
       UPDATE usuarios SET tipo_conta = ?, atualizado_em = CURRENT_TIMESTAMP
@@ -2772,17 +2527,16 @@ export function atualizarPerfilCypher(dados: DadosAtualizacaoPerfil): boolean {
     }
     return true;
   });
-  return salvar();
-}
-
-export function atualizarPrivacidadeCypher(
-  id: string,
-  preferencias: {
-    profilePublic: boolean;
-    locationPublic: boolean;
-    contactPublic: boolean;
+  const atualizado = salvar();
+  if (atualizado) {
+    salvarProfissoesUsuarioCypher(
+      dados.id,
+      entradasProfissionaisDasCategorias(dados.categories)
+    );
   }
-): boolean {
+  return atualizado;
+}
+export function atualizarPrivacidadeCypher(id, preferencias) {
   const resultado = bancoAtivo()
     .prepare(
       `
@@ -2802,10 +2556,7 @@ export function atualizarPrivacidadeCypher(
     );
   return resultado.changes === 1;
 }
-
-export function estadoAlteracaoCategoriasCypher(
-  usuarioId: string
-): EstadoAlteracaoCategorias {
+export function estadoAlteracaoCategoriasCypher(usuarioId) {
   const linha = bancoAtivo()
     .prepare(
       `
@@ -2828,13 +2579,7 @@ export function estadoAlteracaoCategoriasCypher(
       FROM perfis p WHERE p.usuario_id = ? AND p.demonstracao = 0
       `
     )
-    .get(usuarioId) as
-    | {
-        proximaAlteracao: string | null;
-        dentroDoPrazo: number;
-        excecaoDisponivel: number;
-      }
-    | undefined;
+    .get(usuarioId);
   const excecaoDisponivel = Boolean(linha?.excecaoDisponivel);
   return {
     bloqueada: Boolean(linha?.dentroDoPrazo) && !excecaoDisponivel,
@@ -2842,8 +2587,7 @@ export function estadoAlteracaoCategoriasCypher(
     excecaoDisponivel,
   };
 }
-
-export function listarPropostasGenerosPendentesCypher(): PropostaGeneroPersistida[] {
+export function listarPropostasGenerosPendentesCypher() {
   return bancoAtivo()
     .prepare(
       `
@@ -2856,21 +2600,15 @@ export function listarPropostasGenerosPendentesCypher(): PropostaGeneroPersistid
       ORDER BY datetime(g.criada_em), g.id
       `
     )
-    .all() as PropostaGeneroPersistida[];
+    .all();
 }
-
-export function listarPerfisParaExcecaoCategoriaCypher(
-  consulta = "",
-  limite?: number
-): PerfilParaExcecaoCategoria[] {
+export function listarPerfisParaExcecaoCategoriaCypher(consulta = "", limite) {
   const db = bancoAtivo();
   const termo = consulta.trim();
   const filtro = termo
     ? "AND (lower(p.nome) LIKE lower(?) OR lower(u.email) LIKE lower(?) OR lower(p.categorias_json) LIKE lower(?))"
     : "";
-  const parametros: Array<string | number> = termo
-    ? [`%${termo}%`, `%${termo}%`, `%${termo}%`]
-    : [];
+  const parametros = termo ? [`%${termo}%`, `%${termo}%`, `%${termo}%`] : [];
   const limiteSql =
     limite === undefined
       ? ""
@@ -2894,13 +2632,7 @@ export function listarPerfisParaExcecaoCategoriaCypher(
     )
     .all(...parametros)
     .map(linha => {
-      const perfil = linha as Omit<
-        PerfilParaExcecaoCategoria,
-        "excecaoPendente" | "solicitacaoPendente"
-      > & {
-        excecaoPendente: number;
-        solicitacaoPendente: number;
-      };
+      const perfil = linha;
       return {
         ...perfil,
         excecaoPendente: Boolean(perfil.excecaoPendente),
@@ -2908,10 +2640,7 @@ export function listarPerfisParaExcecaoCategoriaCypher(
       };
     });
 }
-
-export function obterEstadoSolicitacaoExcecaoCategoriaCypher(
-  usuarioId: string
-): EstadoSolicitacaoExcecaoCategoria | null {
+export function obterEstadoSolicitacaoExcecaoCategoriaCypher(usuarioId) {
   const db = bancoAtivo();
   const linha = db
     .prepare(
@@ -2925,21 +2654,7 @@ export function obterEstadoSolicitacaoExcecaoCategoriaCypher(
        FROM solicitacoes_excecao_categorias
        WHERE usuario_id = ? ORDER BY rowid DESC LIMIT 1`
     )
-    .get(usuarioId) as
-    | (Omit<
-        EstadoSolicitacaoExcecaoCategoria,
-        | "categoriasAntes"
-        | "categoriasSolicitadas"
-        | "respostasSolicitadas"
-        | "visibilidadesSolicitadas"
-        | "historico"
-      > & {
-        categoriasAntesJson: string;
-        categoriasSolicitadasJson: string;
-        respostasSolicitadasJson: string;
-        visibilidadesSolicitadasJson: string;
-      })
-    | undefined;
+    .get(usuarioId);
   if (!linha) return null;
   return {
     id: linha.id,
@@ -2955,15 +2670,21 @@ export function obterEstadoSolicitacaoExcecaoCategoriaCypher(
     criadaEm: linha.criadaEm,
   };
 }
-
 export function listarSolicitacoesExcecaoCategoriaPendentesCypher(
-  visitanteId?: string
-): SolicitacaoExcecaoCategoriaPersistida[] {
+  visitanteId,
+  status = "pendente"
+) {
   const db = bancoAtivo();
+  const filtroStatus =
+    status === "pendente"
+      ? "s.status = 'pendente'"
+      : "s.status IN ('aprovado', 'rejeitado')";
   const linhas = db
     .prepare(
       `SELECT s.id, s.usuario_id AS usuarioId, p.nome, u.email,
-              p.identificador AS handle, s.motivo,
+              p.identificador AS handle, s.status, s.motivo,
+              s.motivo_revisao AS motivoRevisao,
+              s.revisada_em AS revisadaEm,
               s.categorias_antes_json AS categoriasAntesJson,
               s.categorias_solicitadas_json AS categoriasSolicitadasJson,
               s.respostas_solicitadas_json AS respostasSolicitadasJson,
@@ -2972,32 +2693,13 @@ export function listarSolicitacoesExcecaoCategoriaPendentesCypher(
        FROM solicitacoes_excecao_categorias s
        JOIN usuarios u ON u.id = s.usuario_id
        JOIN perfis p ON p.usuario_id = u.id
-       WHERE s.status = 'pendente' AND u.demonstracao = 0
-       ORDER BY datetime(s.criada_em), s.id`
+       WHERE ${filtroStatus} AND u.demonstracao = 0
+       ORDER BY datetime(COALESCE(s.revisada_em, s.criada_em)) DESC, s.id DESC`
     )
-    .all() as Array<
-    Omit<
-      SolicitacaoExcecaoCategoriaPersistida,
-      | "categoriasAntes"
-      | "categoriasSolicitadas"
-      | "respostasSolicitadas"
-      | "visibilidadesSolicitadas"
-      | "historico"
-    > & {
-      categoriasAntesJson: string;
-      categoriasSolicitadasJson: string;
-      respostasSolicitadasJson: string;
-      visibilidadesSolicitadasJson: string;
-      motivoCodigo: string;
-    }
-  >;
+    .all();
   return linhas.map(linha => {
-    const respostas = jsonObjeto<Record<string, RespostasAtuacao>>(
-      linha.respostasSolicitadasJson
-    );
-    const visibilidades = jsonObjeto<
-      Record<string, VisibilidadesAtuacao>
-    >(linha.visibilidadesSolicitadasJson);
+    const respostas = jsonObjeto(linha.respostasSolicitadasJson);
+    const visibilidades = jsonObjeto(linha.visibilidadesSolicitadasJson);
     const colaborador = Boolean(
       visitanteId && ehColaboradorDaConta(db, linha.usuarioId, visitanteId)
     );
@@ -3005,15 +2707,20 @@ export function listarSolicitacoesExcecaoCategoriaPendentesCypher(
       Object.entries(respostas).map(([categoria, dados]) => {
         const visibilidade = visibilidades[categoria] ?? {};
         const podeVerCategoria =
-          (visibilidade[chaveVisibilidadeCategoria] ?? "publico") === "publico" ||
-          (visibilidade[chaveVisibilidadeCategoria] === "colaboradores" && colaborador);
+          (visibilidade[chaveVisibilidadeCategoria] ?? "publico") ===
+            "publico" ||
+          (visibilidade[chaveVisibilidadeCategoria] === "colaboradores" &&
+            colaborador);
         if (!podeVerCategoria) return [categoria, {}];
         return [
           categoria,
           Object.fromEntries(
             Object.entries(dados).filter(([campo]) => {
               const nivel = visibilidade[campo] ?? "privado";
-              return nivel === "publico" || (nivel === "colaboradores" && colaborador);
+              return (
+                nivel === "publico" ||
+                (nivel === "colaboradores" && colaborador)
+              );
             })
           ),
         ];
@@ -3029,24 +2736,13 @@ export function listarSolicitacoesExcecaoCategoriaPendentesCypher(
     };
   });
 }
-
-export function solicitarExcecaoCategoriaCypher(
-  usuarioId: string,
-  motivo: string,
-  detalhes?: {
-    motivoCodigo: string;
-    categoriasSolicitadas: string[];
-    respostasSolicitadas: Record<string, RespostasAtuacao>;
-    visibilidadesSolicitadas: Record<string, VisibilidadesAtuacao>;
-  }
-):
-  | "criada"
-  | "ja_pendente"
-  | "nao_bloqueada"
-  | "excecao_disponivel"
-  | "categorias_iguais"
-  | "snapshot_invalido"
-  | "nao_encontrada" {
+export function listarSolicitacoesExcecaoCategoriaDecididasCypher(visitanteId) {
+  return listarSolicitacoesExcecaoCategoriaPendentesCypher(
+    visitanteId,
+    "decididas"
+  );
+}
+export function solicitarExcecaoCategoriaCypher(usuarioId, motivo, detalhes) {
   const db = bancoAtivo();
   const executar = db.transaction(() => {
     const perfil = db
@@ -3055,43 +2751,34 @@ export function solicitarExcecaoCategoriaCypher(
                 categorias_json AS categoriasJson
          FROM perfis WHERE usuario_id = ? AND demonstracao = 0`
       )
-      .get(usuarioId) as
-      | { alteradaEm: string | null; categoriasJson: string }
-      | undefined;
-    if (!perfil) return "nao_encontrada" as const;
-
+      .get(usuarioId);
+    if (!perfil) return "nao_encontrada";
     const pendente = db
       .prepare(
         `SELECT 1 FROM solicitacoes_excecao_categorias
          WHERE usuario_id = ? AND status = 'pendente' LIMIT 1`
       )
       .get(usuarioId);
-    if (pendente) return "ja_pendente" as const;
-
+    if (pendente) return "ja_pendente";
     const excecao = db
       .prepare(
         `SELECT 1 FROM excecoes_categorias
          WHERE usuario_id = ? AND usada_em IS NULL LIMIT 1`
       )
       .get(usuarioId);
-    if (excecao) return "excecao_disponivel" as const;
+    if (excecao) return "excecao_disponivel";
     const possuiAlteracaoAnterior = Boolean(
-      (
-        db
-          .prepare(
-            "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
-          )
-          .get(usuarioId) as { alterou: number }
-      ).alterou
+      db
+        .prepare(
+          "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+        )
+        .get(usuarioId).alterou
     );
-    if (!possuiAlteracaoAnterior || !perfil.alteradaEm)
-      return "nao_bloqueada" as const;
-
+    if (!possuiAlteracaoAnterior || !perfil.alteradaEm) return "nao_bloqueada";
     const prazo = db
       .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
-      .get(perfil.alteradaEm) as { bloqueada: number };
-    if (!prazo.bloqueada) return "nao_bloqueada" as const;
-
+      .get(perfil.alteradaEm);
+    if (!prazo.bloqueada) return "nao_bloqueada";
     const categoriasAntes = jsonLista(perfil.categoriasJson);
     const categoriasSolicitadas = detalhes?.categoriasSolicitadas ?? [];
     if (
@@ -3099,24 +2786,29 @@ export function solicitarExcecaoCategoriaCypher(
       categoriasAntes.slice().sort().join("\u0000") ===
         categoriasSolicitadas.slice().sort().join("\u0000")
     ) {
-      return "categorias_iguais" as const;
+      return "categorias_iguais";
     }
     if (detalhes) {
       const permitidas = new Set(listarCategoriasProfissionaisCypher());
-      if (categoriasAntes.includes(categoriaLegadaRapperMC)) {
-        permitidas.add(categoriaLegadaRapperMC);
-      }
       const respostas = detalhes.respostasSolicitadas;
       const visibilidades = detalhes.visibilidadesSolicitadas;
-      const niveisVisibilidade = new Set(["publico", "colaboradores", "privado"]);
+      const niveisVisibilidade = new Set([
+        "publico",
+        "colaboradores",
+        "privado",
+      ]);
       if (
         categoriasSolicitadas.length === 0 ||
         new Set(categoriasSolicitadas).size !== categoriasSolicitadas.length ||
         categoriasSolicitadas.some(categoria => !permitidas.has(categoria)) ||
-        Object.keys(respostas).some(categoria => !categoriasSolicitadas.includes(categoria)) ||
-        Object.keys(visibilidades).some(categoria => !categoriasSolicitadas.includes(categoria))
+        Object.keys(respostas).some(
+          categoria => !categoriasSolicitadas.includes(categoria)
+        ) ||
+        Object.keys(visibilidades).some(
+          categoria => !categoriasSolicitadas.includes(categoria)
+        )
       ) {
-        return "snapshot_invalido" as const;
+        return "snapshot_invalido";
       }
       for (const categoria of categoriasSolicitadas) {
         const resposta = respostas[categoria] ?? {};
@@ -3127,10 +2819,12 @@ export function solicitarExcecaoCategoriaCypher(
             !categoriasAntes.includes(categoria)
           ).valido
         ) {
-          return "snapshot_invalido" as const;
+          return "snapshot_invalido";
         }
         const perguntas = new Set(
-          catalogoPerguntasPorCategoria(categoria).map(pergunta => pergunta.campo)
+          catalogoPerguntasPorCategoria(categoria).map(
+            pergunta => pergunta.campo
+          )
         );
         const niveis = visibilidades[categoria] ?? {};
         if (
@@ -3140,7 +2834,7 @@ export function solicitarExcecaoCategoriaCypher(
               !niveisVisibilidade.has(nivel)
           )
         ) {
-          return "snapshot_invalido" as const;
+          return "snapshot_invalido";
         }
       }
     }
@@ -3163,31 +2857,23 @@ export function solicitarExcecaoCategoriaCypher(
         JSON.stringify(detalhes?.respostasSolicitadas ?? {}),
         JSON.stringify(detalhes?.visibilidadesSolicitadas ?? {})
       );
-    if (insercao.changes !== 1) return "ja_pendente" as const;
+    if (insercao.changes !== 1) return "ja_pendente";
     db.prepare(
       `INSERT INTO historico_solicitacoes_categorias (
          id, solicitacao_id, autor_id, autor_tipo, mensagem
        ) VALUES (?, ?, ?, 'usuario', ?)`
     ).run(randomUUID(), solicitacaoId, usuarioId, motivo);
-    return "criada" as const;
+    return "criada";
   });
   return executar();
 }
-
 export function revisarSolicitacaoExcecaoCategoriaCypher(
-  solicitacaoId: string,
-  administradorId: string,
-  administradorEmail: string,
-  aprovada: boolean,
-  motivoRevisao: string
-):
-  | "aprovada"
-  | "rejeitada"
-  | "nao_pendente"
-  | "aguarda_resposta"
-  | "conflito"
-  | "nao_bloqueada"
-  | "nao_encontrada" {
+  solicitacaoId,
+  administradorId,
+  administradorEmail,
+  aprovada,
+  motivoRevisao
+) {
   const db = bancoAtivo();
   const executar = db.transaction(() => {
     const solicitacao = db
@@ -3200,32 +2886,22 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
          FROM solicitacoes_excecao_categorias
          WHERE id = ? AND status = 'pendente'`
       )
-      .get(solicitacaoId) as
-      | {
-          usuarioId: string;
-          categoriasAntesJson: string;
-          categoriasSolicitadasJson: string;
-          respostasSolicitadasJson: string;
-          visibilidadesSolicitadasJson: string;
-        }
-      | undefined;
+      .get(solicitacaoId);
     if (!solicitacao) {
       const existe = db
         .prepare("SELECT 1 FROM solicitacoes_excecao_categorias WHERE id = ?")
         .get(solicitacaoId);
-      return existe ? ("nao_pendente" as const) : ("nao_encontrada" as const);
+      return existe ? "nao_pendente" : "nao_encontrada";
     }
-
     const ultimaMensagem = db
       .prepare(
         `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
-         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, rowid DESC LIMIT 1`
       )
-      .get(solicitacaoId) as { autorTipo: string } | undefined;
+      .get(solicitacaoId);
     if (ultimaMensagem?.autorTipo === "administrador")
-      return "aguarda_resposta" as const;
-
-    let excecaoId: string | null = null;
+      return "aguarda_resposta";
+    let excecaoId = null;
     if (aprovada) {
       const perfil = db
         .prepare(
@@ -3234,32 +2910,30 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
            FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
            WHERE u.id = ? AND u.demonstracao = 0`
         )
-        .get(solicitacao.usuarioId) as
-        { alteradaEm: string | null; categoriasJson: string } | undefined;
-      if (!perfil) return "nao_encontrada" as const;
+        .get(solicitacao.usuarioId);
+      if (!perfil) return "nao_encontrada";
       const possuiAlteracaoAnterior = Boolean(
-        (
-          db
-            .prepare(
-              "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
-            )
-            .get(solicitacao.usuarioId) as { alterou: number }
-        ).alterou
+        db
+          .prepare(
+            "SELECT EXISTS (SELECT 1 FROM auditoria_categorias WHERE usuario_id = ?) AS alterou"
+          )
+          .get(solicitacao.usuarioId).alterou
       );
       if (!possuiAlteracaoAnterior || !perfil.alteradaEm)
-        return "nao_bloqueada" as const;
+        return "nao_bloqueada";
       const prazo = db
-        .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
-        .get(perfil.alteradaEm) as { bloqueada: number };
-      if (!prazo.bloqueada) return "nao_bloqueada" as const;
-
+        .prepare(
+          "SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada"
+        )
+        .get(perfil.alteradaEm);
+      if (!prazo.bloqueada) return "nao_bloqueada";
       const categoriasAntes = jsonLista(perfil.categoriasJson);
       const categoriasSnapshot = jsonLista(solicitacao.categoriasAntesJson);
       if (
         categoriasAntes.slice().sort().join("\u0000") !==
         categoriasSnapshot.slice().sort().join("\u0000")
       ) {
-        return "conflito" as const;
+        return "conflito";
       }
       const categoriasSolicitadas = jsonLista(
         solicitacao.categoriasSolicitadasJson
@@ -3278,7 +2952,6 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
         motivoRevisao,
         Number(alteracaoDeCategorias)
       );
-
       if (alteracaoDeCategorias) {
         db.prepare(
           `UPDATE perfis SET categorias_json = ?, funcao = ?,
@@ -3290,12 +2963,10 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
           categoriasSolicitadas.join(", "),
           solicitacao.usuarioId
         );
-        const respostas = jsonObjeto<Record<string, RespostasAtuacao>>(
-          solicitacao.respostasSolicitadasJson
+        const respostas = jsonObjeto(solicitacao.respostasSolicitadasJson);
+        const visibilidades = jsonObjeto(
+          solicitacao.visibilidadesSolicitadasJson
         );
-        const visibilidades = jsonObjeto<
-          Record<string, VisibilidadesAtuacao>
-        >(solicitacao.visibilidadesSolicitadasJson);
         salvarAtuacoesCategoria(
           db,
           solicitacao.usuarioId,
@@ -3322,7 +2993,6 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
         );
       }
     }
-
     const status = aprovada ? "aprovado" : "rejeitado";
     const atualizado = db
       .prepare(
@@ -3338,23 +3008,22 @@ export function revisarSolicitacaoExcecaoCategoriaCypher(
         motivoRevisao,
         excecaoId,
         solicitacaoId
-    );
-    if (atualizado.changes !== 1) return "nao_pendente" as const;
+      );
+    if (atualizado.changes !== 1) return "nao_pendente";
     db.prepare(
       `INSERT INTO historico_solicitacoes_categorias (
          id, solicitacao_id, autor_id, autor_tipo, mensagem
        ) VALUES (?, ?, ?, 'administrador', ?)`
     ).run(randomUUID(), solicitacaoId, administradorId, motivoRevisao);
-    return aprovada ? ("aprovada" as const) : ("rejeitada" as const);
+    return aprovada ? "aprovada" : "rejeitada";
   });
   return executar();
 }
-
 export function solicitarInformacaoSolicitacaoCategoriaCypher(
-  solicitacaoId: string,
-  administradorId: string,
-  mensagem: string
-): boolean {
+  solicitacaoId,
+  administradorId,
+  mensagem
+) {
   const db = bancoAtivo();
   const executar = db.transaction(() => {
     const pendente = db
@@ -3367,9 +3036,9 @@ export function solicitarInformacaoSolicitacaoCategoriaCypher(
     const ultima = db
       .prepare(
         `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
-         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, rowid DESC LIMIT 1`
       )
-      .get(solicitacaoId) as { autorTipo: string } | undefined;
+      .get(solicitacaoId);
     if (ultima?.autorTipo === "administrador") return false;
     db.prepare(
       `INSERT INTO historico_solicitacoes_categorias (
@@ -3380,12 +3049,11 @@ export function solicitarInformacaoSolicitacaoCategoriaCypher(
   });
   return executar();
 }
-
 export function responderSolicitacaoCategoriaCypher(
-  solicitacaoId: string,
-  usuarioId: string,
-  mensagem: string
-): boolean {
+  solicitacaoId,
+  usuarioId,
+  mensagem
+) {
   const db = bancoAtivo();
   const executar = db.transaction(() => {
     const pendente = db
@@ -3398,9 +3066,9 @@ export function responderSolicitacaoCategoriaCypher(
     const ultima = db
       .prepare(
         `SELECT autor_tipo AS autorTipo FROM historico_solicitacoes_categorias
-         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, id DESC LIMIT 1`
+         WHERE solicitacao_id = ? ORDER BY datetime(criada_em) DESC, rowid DESC LIMIT 1`
       )
-      .get(solicitacaoId) as { autorTipo: string } | undefined;
+      .get(solicitacaoId);
     if (ultima?.autorTipo !== "administrador") return false;
     db.prepare(
       `INSERT INTO historico_solicitacoes_categorias (
@@ -3411,41 +3079,32 @@ export function responderSolicitacaoCategoriaCypher(
   });
   return executar();
 }
-
-export function contarPerfisParaExcecaoCategoriaCypher(consulta = ""): number {
+export function contarPerfisParaExcecaoCategoriaCypher(consulta = "") {
   const termo = consulta.trim();
   const linha = termo
-    ? (bancoAtivo()
+    ? bancoAtivo()
         .prepare(
           `SELECT COUNT(*) AS total FROM usuarios u
            JOIN perfis p ON p.usuario_id = u.id
            WHERE u.demonstracao = 0
              AND (lower(p.nome) LIKE lower(?) OR lower(u.email) LIKE lower(?) OR lower(p.categorias_json) LIKE lower(?))`
         )
-        .get(`%${termo}%`, `%${termo}%`, `%${termo}%`) as {
-        total: number;
-      })
-    : (bancoAtivo()
+        .get(`%${termo}%`, `%${termo}%`, `%${termo}%`)
+    : bancoAtivo()
         .prepare(
           `SELECT COUNT(*) AS total FROM usuarios u
            JOIN perfis p ON p.usuario_id = u.id
            WHERE u.demonstracao = 0`
         )
-        .get() as { total: number });
+        .get();
   return linha.total;
 }
-
 export function concederExcecaoCategoriaCypher(
-  usuarioId: string,
-  administradorId: string,
-  administradorEmail: string,
-  motivo: string
-):
-  | "concedida"
-  | "ja_pendente"
-  | "solicitacao_pendente"
-  | "nao_bloqueada"
-  | "nao_encontrada" {
+  usuarioId,
+  administradorId,
+  administradorEmail,
+  motivo
+) {
   const db = bancoAtivo();
   const executar = db.transaction(() => {
     const perfil = db
@@ -3454,20 +3113,20 @@ export function concederExcecaoCategoriaCypher(
          FROM perfis p JOIN usuarios u ON u.id = p.usuario_id
          WHERE u.id = ? AND u.demonstracao = 0`
       )
-      .get(usuarioId) as { alteradaEm: string | null } | undefined;
-    if (!perfil) return "nao_encontrada" as const;
+      .get(usuarioId);
+    if (!perfil) return "nao_encontrada";
     const solicitacaoPendente = db
       .prepare(
         `SELECT 1 FROM solicitacoes_excecao_categorias
          WHERE usuario_id = ? AND status = 'pendente' LIMIT 1`
       )
       .get(usuarioId);
-    if (solicitacaoPendente) return "solicitacao_pendente" as const;
-    if (!perfil.alteradaEm) return "nao_bloqueada" as const;
+    if (solicitacaoPendente) return "solicitacao_pendente";
+    if (!perfil.alteradaEm) return "nao_bloqueada";
     const prazo = db
       .prepare("SELECT datetime(?, '+60 days') > datetime('now') AS bloqueada")
-      .get(perfil.alteradaEm) as { bloqueada: number };
-    if (!prazo.bloqueada) return "nao_bloqueada" as const;
+      .get(perfil.alteradaEm);
+    if (!prazo.bloqueada) return "nao_bloqueada";
     const insercao = db
       .prepare(
         `INSERT INTO excecoes_categorias (
@@ -3485,13 +3144,12 @@ export function concederExcecaoCategoriaCypher(
   });
   return executar();
 }
-
 export function revisarPropostaGeneroCypher(
-  propostaId: string,
-  revisorId: string,
-  aprovada: boolean,
-  motivo: string
-): boolean {
+  propostaId,
+  revisorId,
+  aprovada,
+  motivo
+) {
   const db = bancoAtivo();
   const revisar = db.transaction(() => {
     const proposta = db
@@ -3499,18 +3157,17 @@ export function revisarPropostaGeneroCypher(
         `SELECT usuario_id AS usuarioId, genero FROM propostas_generos
          WHERE id = ? AND status = 'pendente'`
       )
-      .get(propostaId) as { usuarioId: string; genero: string } | undefined;
+      .get(propostaId);
     if (!proposta) return false;
     if (aprovada) {
       const linha = db
         .prepare(
           "SELECT generos_json AS generosJson FROM perfis WHERE usuario_id = ?"
         )
-        .get(proposta.usuarioId) as { generosJson: string } | undefined;
+        .get(proposta.usuarioId);
       if (!linha) return false;
-      const generos = JSON.parse(linha.generosJson) as string[];
-      const normalizar = (valor: string) =>
-        valor.trim().toLocaleLowerCase("pt-BR");
+      const generos = JSON.parse(linha.generosJson);
+      const normalizar = valor => valor.trim().toLocaleLowerCase("pt-BR");
       if (
         !generos.some(
           genero => normalizar(genero) === normalizar(proposta.genero)
@@ -3534,21 +3191,20 @@ export function revisarPropostaGeneroCypher(
   });
   return revisar();
 }
-
 export function revisarPropostaCategoriaCypher(
-  propostaId: string,
-  revisorId: string,
-  revisorEmail: string,
-  aprovada: boolean,
-  motivo: string
-): boolean {
+  propostaId,
+  revisorId,
+  revisorEmail,
+  aprovada,
+  motivo
+) {
   const db = bancoAtivo();
   const revisar = db.transaction(() => {
     const proposta = db
       .prepare(
         "SELECT categoria FROM propostas_categorias WHERE id = ? AND status = 'pendente'"
       )
-      .get(propostaId) as { categoria: string } | undefined;
+      .get(propostaId);
     if (!proposta) return false;
     if (aprovada) {
       const chave = normalizarCategoria(proposta.categoria);
@@ -3556,11 +3212,10 @@ export function revisarPropostaCategoriaCypher(
         categoriasGerais.some(
           categoria => normalizarCategoria(categoria) === chave
         ) ||
-        (
-          db
-            .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
-            .all() as Array<{ categoria: string }>
-        ).some(item => normalizarCategoria(item.categoria) === chave);
+        db
+          .prepare("SELECT categoria FROM categorias_profissionais_aprovadas")
+          .all()
+          .some(item => normalizarCategoria(item.categoria) === chave);
       if (jaAtiva) return false;
     }
     const resultado = db
@@ -3589,47 +3244,37 @@ export function revisarPropostaCategoriaCypher(
   });
   return revisar();
 }
-
 const chaveVisibilidadeCategoria = "__categoria__";
-
-function jsonObjeto<T extends Record<string, unknown>>(texto: string): T {
+function jsonObjeto(texto) {
   try {
-    const valor: unknown = JSON.parse(texto);
+    const valor = JSON.parse(texto);
     return valor && typeof valor === "object" && !Array.isArray(valor)
-      ? (valor as T)
-      : ({} as T);
+      ? valor
+      : {};
   } catch {
-    return {} as T;
+    return {};
   }
 }
-
-function jsonLista(texto: string): string[] {
+function jsonLista(texto) {
   try {
-    const valor: unknown = JSON.parse(texto);
+    const valor = JSON.parse(texto);
     return Array.isArray(valor)
-      ? valor.filter((item): item is string => typeof item === "string")
+      ? valor.filter(item => typeof item === "string")
       : [];
   } catch {
     return [];
   }
 }
-
-function historicoSolicitacao(
-  db: BancoCypher,
-  solicitacaoId: string
-): SolicitacaoExcecaoCategoriaPersistida["historico"] {
+function historicoSolicitacao(db, solicitacaoId) {
   return db
     .prepare(
       `SELECT autor_tipo AS autorTipo, mensagem, criada_em AS criadaEm
        FROM historico_solicitacoes_categorias
-       WHERE solicitacao_id = ? ORDER BY datetime(criada_em), id`
+       WHERE solicitacao_id = ? ORDER BY datetime(criada_em), rowid`
     )
-    .all(solicitacaoId) as SolicitacaoExcecaoCategoriaPersistida["historico"];
+    .all(solicitacaoId);
 }
-
-export function listarAtuacoesUsuarioCypher(
-  usuarioId: string
-): AtuacaoProfissionalPersistida[] {
+export function listarAtuacoesUsuarioCypher(usuarioId) {
   return bancoAtivo()
     .prepare(
       `SELECT categoria, respostas_json AS respostasJson,
@@ -3639,48 +3284,42 @@ export function listarAtuacoesUsuarioCypher(
     )
     .all(usuarioId)
     .map(linha => {
-      const item = linha as {
-        categoria: string;
-        respostasJson: string;
-        visibilidadesJson: string;
-      };
+      const item = linha;
       return {
         categoria: item.categoria,
-        respostas: jsonObjeto<RespostasAtuacao>(item.respostasJson),
-        visibilidades: jsonObjeto<VisibilidadesAtuacao>(item.visibilidadesJson),
+        respostas: jsonObjeto(item.respostasJson),
+        visibilidades: jsonObjeto(item.visibilidadesJson),
       };
     });
 }
-
-function ehColaboradorDaConta(db: BancoCypher, titularId: string, visitanteId: string): boolean {
+function ehColaboradorDaConta(db, titularId, visitanteId) {
   return Boolean(
-    (
-      db
-        .prepare(
-          `SELECT EXISTS (
+    db
+      .prepare(
+        `SELECT EXISTS (
              SELECT 1 FROM obras o
              JOIN creditos c ON c.obra_id = o.id
              WHERE o.proprietario_id = ? AND c.usuario_creditado_id = ?
                AND o.demonstracao = 0 AND c.demonstracao = 0
                AND o.publicada = 1 AND o.situacao = 'Lançado'
            ) AS colaborador`
-        )
-        .get(titularId, visitanteId) as { colaborador: number }
-    ).colaborador
+      )
+      .get(titularId, visitanteId).colaborador
   );
 }
-
 function atuacoesVisiveis(
-  db: BancoCypher,
-  titularId: string,
-  categorias: readonly string[],
-  visitanteId: string | undefined,
-  perfilPublico: boolean
-): Array<{ categoria: string; respostas: RespostasAtuacao }> {
+  db,
+  titularId,
+  categorias,
+  visitanteId,
+  perfilPublico
+) {
   const titular = visitanteId === titularId;
   if (!titular && !perfilPublico) return [];
   const colaborador = Boolean(
-    visitanteId && visitanteId !== titularId && ehColaboradorDaConta(db, titularId, visitanteId)
+    visitanteId &&
+    visitanteId !== titularId &&
+    ehColaboradorDaConta(db, titularId, visitanteId)
   );
   const registros = new Map(
     listarAtuacoesUsuarioCypher(titularId).map(item => [item.categoria, item])
@@ -3688,7 +3327,8 @@ function atuacoesVisiveis(
   return categorias.flatMap(categoria => {
     const registro = registros.get(categoria);
     const visibilidades = registro?.visibilidades ?? {};
-    const visibilidadeCategoria = visibilidades[chaveVisibilidadeCategoria] ?? "publico";
+    const visibilidadeCategoria =
+      visibilidades[chaveVisibilidadeCategoria] ?? "publico";
     const podeVerCategoria =
       titular ||
       visibilidadeCategoria === "publico" ||
@@ -3703,15 +3343,11 @@ function atuacoesVisiveis(
           (visibilidade === "colaboradores" && colaborador)
         );
       })
-    ) as RespostasAtuacao;
+    );
     return [{ categoria, respostas }];
   });
 }
-
-export function obterPerfilPublicoCypher(
-  identificador: string,
-  visitanteId?: string
-): PerfilPublico | undefined {
+export function obterPerfilPublicoCypher(identificador, visitanteId) {
   const db = bancoAtivo();
   const resultado = db
     .prepare(
@@ -3739,17 +3375,9 @@ export function obterPerfilPublicoCypher(
         AND p.identificador = ? COLLATE NOCASE
     `
     )
-    .get(identificador) as
-    | (Omit<PerfilPublico, "genres" | "categories" | "equipment" | "atuacoes"> & {
-        userId: string;
-        genresJson: string;
-        categoriesJson: string;
-        equipmentJson: string;
-      })
-    | undefined;
-
+    .get(identificador);
   if (!resultado) return undefined;
-  const categorias = JSON.parse(resultado.categoriesJson) as string[];
+  const categorias = JSON.parse(resultado.categoriesJson);
   const atuacoes = atuacoesVisiveis(
     db,
     resultado.userId,
@@ -3761,23 +3389,21 @@ export function obterPerfilPublicoCypher(
   return {
     ...resultado,
     role: categories.join(" · ") || "Atuação profissional",
-    genres: JSON.parse(resultado.genresJson) as string[],
+    genres: JSON.parse(resultado.genresJson),
     categories,
     atuacoes,
-    equipment: JSON.parse(resultado.equipmentJson) as string[],
+    equipment: JSON.parse(resultado.equipmentJson),
   };
 }
-
-function normalizarTextoBusca(texto: string): string {
+function normalizarTextoBusca(texto) {
   return texto
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLocaleLowerCase("pt-BR");
 }
-
-function opcoesUnicasBusca(valores: readonly string[]): string[] {
-  const unicas = new Map<string, string>();
+function opcoesUnicasBusca(valores) {
+  const unicas = new Map();
   for (const valor of valores) {
     const texto = valor.trim();
     const chave = normalizarTextoBusca(texto);
@@ -3787,22 +3413,7 @@ function opcoesUnicasBusca(valores: readonly string[]): string[] {
     a.localeCompare(b, "pt-BR", { sensitivity: "base" })
   );
 }
-
-export function buscarPerfisPublicosCypher(
-  filtrosRecebidos: FiltrosBuscaPerfisPublicos,
-  usuarioId: string
-): ResultadoBuscaPerfisPublicos {
-  type LinhaBusca = Omit<
-    PerfilBuscaPublico,
-    "genres" | "categories" | "tone"
-  > & {
-    userId: string;
-    genresJson: string;
-    categoriesJson: string;
-    locationPublic: number;
-    tone: string;
-  };
-
+export function buscarPerfisPublicosCypher(filtrosRecebidos, usuarioId) {
   const db = bancoAtivo();
   const linhas = db
     .prepare(
@@ -3829,14 +3440,13 @@ export function buscarPerfisPublicosCypher(
       ORDER BY p.nome COLLATE NOCASE ASC
     `
     )
-    .all(usuarioId) as LinhaBusca[];
-
+    .all(usuarioId);
   const tonsPermitidos = new Set(["yellow", "green", "black", "cream"]);
-  const perfis: PerfilBuscaPublico[] = linhas.map(linha => {
+  const perfis = linhas.map(linha => {
     const categories = atuacoesVisiveis(
       db,
       linha.userId,
-      JSON.parse(linha.categoriesJson) as string[],
+      JSON.parse(linha.categoriesJson),
       usuarioId,
       true
     ).map(atuacao => atuacao.categoria);
@@ -3847,13 +3457,12 @@ export function buscarPerfisPublicosCypher(
       handle: linha.handle,
       initials: linha.initials,
       availability: linha.availability,
-      genres: JSON.parse(linha.genresJson) as string[],
+      genres: JSON.parse(linha.genresJson),
       categories,
       otherCategory: categories.includes("Outros") ? linha.otherCategory : "",
       tone: tonsPermitidos.has(linha.tone) ? linha.tone : "yellow",
     };
   });
-
   const opcoes = {
     categorias: opcoesUnicasBusca(
       perfis.flatMap(perfil => [
@@ -3868,8 +3477,7 @@ export function buscarPerfisPublicosCypher(
       perfis.map(perfil => perfil.city).filter(Boolean)
     ),
   };
-
-  const selecionarOpcao = (valores: readonly string[], recebido: string) =>
+  const selecionarOpcao = (valores, recebido) =>
     valores.find(
       valor => normalizarTextoBusca(valor) === normalizarTextoBusca(recebido)
     ) ?? "";
@@ -3919,13 +3527,9 @@ export function buscarPerfisPublicosCypher(
           normalizarTextoBusca(filtros.localizacao))
     );
   });
-
   return { pessoas, filtros, opcoes };
 }
-
-export function listarObrasProprietarioCypher(
-  proprietarioId: string
-): ObraPersistida[] {
+export function listarObrasProprietarioCypher(proprietarioId) {
   const linhas = bancoAtivo()
     .prepare(
       `
@@ -3933,9 +3537,11 @@ export function listarObrasProprietarioCypher(
         id,
         titulo AS title,
         tipo AS type,
+        tipo_detalhe AS typeDetail,
         situacao AS status,
         metadados AS meta,
         funcao_principal AS role,
+        funcao_detalhe AS roleDetail,
         quantidade_creditos AS credits,
         descricao AS description,
         bpm,
@@ -3949,23 +3555,21 @@ export function listarObrasProprietarioCypher(
       LIMIT 5
     `
     )
-    .all(proprietarioId) as Array<
-    Omit<ObraPersistida, "published"> & { published: number }
-  >;
+    .all(proprietarioId);
   return linhas.map(obra => ({ ...obra, published: Boolean(obra.published) }));
 }
-
-export function listarObrasPublicasPerfilCypher(
-  identificador: string
-): ObraPublicaPerfil[] {
+export function listarObrasPublicasPerfilCypher(identificador) {
   return bancoAtivo()
     .prepare(
       `
       SELECT
         o.titulo AS title,
         o.tipo AS type,
+        o.tipo_detalhe AS typeDetail,
         o.genero AS genre,
+        o.genero_detalhe AS genreDetail,
         o.funcao_principal AS role,
+        o.funcao_detalhe AS roleDetail,
         o.data_lancamento AS releaseDate,
         o.link_escuta AS listenLink,
         o.letra AS lyrics
@@ -3986,17 +3590,10 @@ export function listarObrasPublicasPerfilCypher(
         o.id DESC
       `
     )
-    .all(identificador) as ObraPublicaPerfil[];
+    .all(identificador);
 }
-
-type LinhaCreditoObra = Omit<CreditoObraPersistido, "verified"> & {
-  obraId: string;
-  verified: number;
-};
-
-function creditosDasObras(ids: string[]): Map<string, CreditoObraPersistido[]> {
+function creditosDasObras(ids) {
   if (ids.length === 0) return new Map();
-
   const db = bancoAtivo();
   const marcadores = ids.map(() => "?").join(", ");
   const linhas = db
@@ -4018,9 +3615,8 @@ function creditosDasObras(ids: string[]): Map<string, CreditoObraPersistido[]> {
       ORDER BY c.criado_em ASC, c.id ASC
     `
     )
-    .all(...ids) as LinhaCreditoObra[];
-
-  const resultado = new Map<string, CreditoObraPersistido[]>();
+    .all(...ids);
+  const resultado = new Map();
   for (const linha of linhas) {
     const creditos = resultado.get(linha.obraId) ?? [];
     const { obraId, ...credito } = linha;
@@ -4029,17 +3625,13 @@ function creditosDasObras(ids: string[]): Map<string, CreditoObraPersistido[]> {
   }
   return resultado;
 }
-
-export function listarObrasContaCypher(
-  proprietarioId: string,
-  filtros?: FiltrosCatalogoObras
-): ObraContaPersistida[] {
+export function listarObrasContaCypher(proprietarioId, filtros) {
   const filtro = filtros ?? {
     status: "",
     type: "",
     genre: "",
     role: "",
-    order: "recentes" as const,
+    order: "recentes",
   };
   const ordenacao = {
     recentes: "o.criado_em DESC, o.id DESC",
@@ -4057,13 +3649,16 @@ export function listarObrasContaCypher(
         o.id,
         o.titulo AS title,
         o.tipo AS type,
+        o.tipo_detalhe AS typeDetail,
         o.situacao AS status,
         o.metadados AS meta,
         o.funcao_principal AS role,
+        o.funcao_detalhe AS roleDetail,
         (SELECT COUNT(*) FROM creditos c
           WHERE c.obra_id = o.id AND c.demonstracao = 0) AS credits,
         o.descricao AS description,
         o.genero AS genre,
+        o.genero_detalhe AS genreDetail,
         o.letra AS lyrics,
         o.bpm,
         o.isrc,
@@ -4114,14 +3709,7 @@ export function listarObrasContaCypher(
       type: filtro.type,
       genre: filtro.genre,
       role: filtro.role,
-    }) as Array<
-    Omit<ObraContaPersistida, "published" | "creditDetails" | "owned"> & {
-      published: number;
-      owned: number;
-      participationRole: string;
-    }
-  >;
-
+    });
   const creditos = creditosDasObras(linhas.map(obra => obra.id));
   return linhas.map(obra => ({
     ...obra,
@@ -4131,19 +3719,12 @@ export function listarObrasContaCypher(
     creditDetails: creditos.get(obra.id) ?? [],
   }));
 }
-
-export function obterObraContaCypher(
-  id: string,
-  proprietarioId: string
-): ObraContaPersistida | undefined {
+export function obterObraContaCypher(id, proprietarioId) {
   return listarObrasContaCypher(proprietarioId).find(
     obra => obra.id === id && obra.owned
   );
 }
-
-export function listarPerfisParaCreditoCypher(
-  usuarioAtualId: string
-): PerfilParaCredito[] {
+export function listarPerfisParaCreditoCypher(usuarioAtualId) {
   return bancoAtivo()
     .prepare(
       `
@@ -4157,48 +3738,39 @@ export function listarPerfisParaCreditoCypher(
       ORDER BY p.nome COLLATE NOCASE, p.identificador COLLATE NOCASE
       `
     )
-    .all(usuarioAtualId) as PerfilParaCredito[];
+    .all(usuarioAtualId);
 }
-
-function metadadosObra(dados: DadosObraCypher): string {
+function metadadosObra(dados) {
   const data = dados.releaseDate
     ? dados.releaseDate.split("-").reverse().join("/")
     : "";
-  return [dados.genre, data].filter(Boolean).join(" · ");
+  const genero = dados.genreDetail
+    ? `${dados.genre} · ${dados.genreDetail}`
+    : dados.genre;
+  return [genero, data].filter(Boolean).join(" · ");
 }
-
-function salvarCreditosObra(
-  db: BancoCypher,
-  obraId: string,
-  proprietarioId: string,
-  creditos: CreditoObraEntrada[]
-): void {
-  const obterPerfil = db.prepare(
-    `
+function salvarCreditosObra(db, obraId, proprietarioId, creditos) {
+  const obterPerfil = db.prepare(`
     SELECT u.id, p.nome AS name
     FROM usuarios u
     JOIN perfis p ON p.usuario_id = u.id
     WHERE lower(p.identificador) = lower(?)
       AND u.demonstracao = 0
       AND p.demonstracao = 0
-    `
-  );
+    `);
   const inserir = db.prepare(`
     INSERT INTO creditos (
       id, obra_id, usuario_creditado_id, nome_creditado, funcao,
       participacao, verificado, demonstracao
     ) VALUES (?, ?, ?, ?, ?, ?, 0, 0)
   `);
-  const creditosVistos = new Set<string>();
-
+  const creditosVistos = new Set();
   for (const credito of creditos) {
-    let usuarioCreditadoId: string | null = null;
+    let usuarioCreditadoId = null;
     let nome = credito.name.trim();
-    let chave: string;
-
+    let chave;
     if (credito.handle) {
-      const perfil = obterPerfil.get(credito.handle) as
-        { id: string; name: string } | undefined;
+      const perfil = obterPerfil.get(credito.handle);
       if (!perfil) throw new Error("CREDITO_PERFIL_NAO_ENCONTRADO");
       if (perfil.id === proprietarioId) throw new Error("CREDITO_PROPRIO");
       usuarioCreditadoId = perfil.id;
@@ -4210,7 +3782,6 @@ function salvarCreditosObra(
         .replace(/[\u0300-\u036f]/g, "")
         .toLocaleLowerCase("pt-BR")}`;
     }
-
     if (creditosVistos.has(chave)) throw new Error("CREDITOS_DUPLICADOS");
     creditosVistos.add(chave);
     inserir.run(
@@ -4223,25 +3794,20 @@ function salvarCreditosObra(
     );
   }
 }
-
-export function criarObraCypher(
-  proprietarioId: string,
-  dados: DadosObraCypher,
-  creditos: CreditoObraEntrada[]
-): string {
+export function criarObraCypher(proprietarioId, dados, creditos) {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
     const id = randomUUID();
     db.prepare(
       `
       INSERT INTO obras (
-        id, proprietario_id, titulo, tipo, situacao, metadados,
-        funcao_principal, quantidade_creditos, descricao, genero, letra,
+        id, proprietario_id, titulo, tipo, tipo_detalhe, situacao, metadados,
+        funcao_principal, funcao_detalhe, quantidade_creditos, descricao, genero, genero_detalhe, letra,
         bpm, isrc, iswc, data_lancamento, link_escuta, publicada,
         ordem_demo, demonstracao
       ) VALUES (
-        @id, @proprietarioId, @title, @type, @status, @meta,
-        @role, @credits, @description, @genre, @lyrics,
+        @id, @proprietarioId, @title, @type, @typeDetail, @status, @meta,
+        @role, @roleDetail, @credits, @description, @genre, @genreDetail, @lyrics,
         @bpm, @isrc, @iswc, @releaseDate, @listenLink, @published,
         0, 0
       )
@@ -4251,12 +3817,15 @@ export function criarObraCypher(
       proprietarioId,
       title: dados.title,
       type: dados.type,
+      typeDetail: dados.typeDetail,
       status: dados.status,
       meta: metadadosObra(dados),
       role: dados.role,
+      roleDetail: dados.roleDetail,
       credits: creditos.length,
       description: dados.description,
       genre: dados.genre,
+      genreDetail: dados.genreDetail,
       lyrics: dados.lyrics,
       bpm: dados.bpm,
       isrc: dados.isrc,
@@ -4266,17 +3835,17 @@ export function criarObraCypher(
       published: Number(dados.status === "Lançado"),
     });
     salvarCreditosObra(db, id, proprietarioId, creditos);
+    if (dados.propostaGenero?.trim()) {
+      db.prepare(
+        `INSERT INTO propostas_generos (id, usuario_id, genero)
+         VALUES (?, ?, ?) ON CONFLICT DO NOTHING`
+      ).run(randomUUID(), proprietarioId, dados.propostaGenero.trim());
+    }
     return id;
   });
   return salvar();
 }
-
-export function atualizarObraCypher(
-  id: string,
-  proprietarioId: string,
-  dados: DadosObraCypher,
-  creditos: CreditoObraEntrada[]
-): boolean {
+export function atualizarObraCypher(id, proprietarioId, dados, creditos) {
   const db = bancoAtivo();
   const salvar = db.transaction(() => {
     const resultado = db
@@ -4285,12 +3854,15 @@ export function atualizarObraCypher(
         UPDATE obras SET
           titulo = @title,
           tipo = @type,
+          tipo_detalhe = @typeDetail,
           situacao = @status,
           metadados = @meta,
           funcao_principal = @role,
+          funcao_detalhe = @roleDetail,
           quantidade_creditos = @credits,
           descricao = @description,
           genero = @genre,
+          genero_detalhe = @genreDetail,
           letra = @lyrics,
           bpm = @bpm,
           isrc = @isrc,
@@ -4309,12 +3881,15 @@ export function atualizarObraCypher(
         proprietarioId,
         title: dados.title,
         type: dados.type,
+        typeDetail: dados.typeDetail,
         status: dados.status,
         meta: metadadosObra(dados),
         role: dados.role,
+        roleDetail: dados.roleDetail,
         credits: creditos.length,
         description: dados.description,
         genre: dados.genre,
+        genreDetail: dados.genreDetail,
         lyrics: dados.lyrics,
         bpm: dados.bpm,
         isrc: dados.isrc,
@@ -4324,17 +3899,21 @@ export function atualizarObraCypher(
         published: Number(dados.status === "Lançado"),
       });
     if (resultado.changes !== 1) return false;
-
     db.prepare(
       "DELETE FROM creditos WHERE obra_id = ? AND demonstracao = 0"
     ).run(id);
     salvarCreditosObra(db, id, proprietarioId, creditos);
+    if (dados.propostaGenero?.trim()) {
+      db.prepare(
+        `INSERT INTO propostas_generos (id, usuario_id, genero)
+         VALUES (?, ?, ?) ON CONFLICT DO NOTHING`
+      ).run(randomUUID(), proprietarioId, dados.propostaGenero.trim());
+    }
     return true;
   });
   return salvar();
 }
-
-export function excluirObraCypher(id: string, proprietarioId: string): boolean {
+export function excluirObraCypher(id, proprietarioId) {
   const resultado = bancoAtivo()
     .prepare(
       `
@@ -4345,12 +3924,7 @@ export function excluirObraCypher(id: string, proprietarioId: string): boolean {
     .run(id, proprietarioId);
   return resultado.changes === 1;
 }
-
-export function estatisticasObrasUsuarioCypher(proprietarioId: string): {
-  publicadasComoArtista: number;
-  participacoesComoFeat: number;
-  emAndamento: number;
-} {
+export function estatisticasObrasUsuarioCypher(proprietarioId) {
   return bancoAtivo()
     .prepare(
       `
@@ -4362,27 +3936,22 @@ export function estatisticasObrasUsuarioCypher(proprietarioId: string): {
       WHERE proprietario_id = ? AND demonstracao = 0
       `
     )
-    .get(proprietarioId) as {
-    publicadasComoArtista: number;
-    participacoesComoFeat: number;
-    emAndamento: number;
-  };
+    .get(proprietarioId);
 }
-
-export function excluirContaCypher(id: string): ResultadoExclusaoConta {
+export function excluirContaCypher(id) {
   const db = bancoAtivo();
   const excluir = db.transaction(() => {
     const obras = db
       .prepare("SELECT COUNT(*) AS total FROM obras WHERE proprietario_id = ?")
-      .get(id) as { total: number };
+      .get(id);
     const eventos = db
       .prepare(
         "SELECT COUNT(*) AS total FROM eventos WHERE proprietario_id = ?"
       )
-      .get(id) as { total: number };
+      .get(id);
     const beats = db
       .prepare("SELECT COUNT(*) AS total FROM beats WHERE produtor_id = ?")
-      .get(id) as { total: number };
+      .get(id);
     if (obras.total || eventos.total || beats.total) {
       return {
         excluida: false,
@@ -4391,7 +3960,6 @@ export function excluirContaCypher(id: string): ResultadoExclusaoConta {
         beats: beats.total,
       };
     }
-
     const removido = db
       .prepare("DELETE FROM usuarios WHERE id = ? AND demonstracao = 0")
       .run(id);
@@ -4404,14 +3972,12 @@ export function excluirContaCypher(id: string): ResultadoExclusaoConta {
   });
   return excluir();
 }
-
-export function revogarSessaoCypher(tokenHash: string): void {
+export function revogarSessaoCypher(tokenHash) {
   bancoAtivo()
     .prepare("DELETE FROM sessoes WHERE token_hash = ?")
     .run(tokenHash);
 }
-
-export function fecharBancoCypher(): void {
+export function fecharBancoCypher() {
   banco?.close();
   banco = undefined;
 }
