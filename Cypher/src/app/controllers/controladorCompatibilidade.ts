@@ -680,6 +680,15 @@ export async function register(req: Request, res: Response) {
       "categorias"
     );
   }
+  if (categorias.includes("Outros")) {
+    return renderizarCadastro(
+      res,
+      400,
+      "Escolha uma profissão disponível no catálogo. Para solicitar uma nova atuação, entre em contato com a equipe Cypher.",
+      dadosFormulario,
+      "categorias"
+    );
+  }
   if (
     categorias.includes("Outros") &&
     (outrasCategorias.length < 2 || outrasCategorias.length > 60)

@@ -129,8 +129,11 @@ try {
   );
   assert.match(cadastroInicialHtml, /data-question-previous/);
   assert.match(cadastroInicialHtml, /data-atuacao-questionario/);
-  assert.match(cadastroInicialHtml, /data-other-category-field/);
-  assert.match(cadastroInicialHtml, /name="outraCategoria"/);
+  assert.match(cadastroInicialHtml, /data-category-area-picker/);
+  assert.match(cadastroInicialHtml, /data-category-area="musica"/);
+  assert.match(cadastroInicialHtml, /data-category-back-to-areas/);
+  assert.doesNotMatch(cadastroInicialHtml, /data-category-other/);
+  assert.doesNotMatch(cadastroInicialHtml, /Compartilhe sua atuação profissional/);
   assert.match(cadastroInicialHtml, />Próximo /);
   const validacaoConta = await fetch(`${base}/register/validate`, {
     method: "POST",

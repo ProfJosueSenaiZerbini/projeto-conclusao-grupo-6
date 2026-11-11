@@ -113,7 +113,7 @@ app.use((_req, res) =>
   })
 );
 app.listen(port, "0.0.0.0", () =>
-  console.log(`Cypher MVC em http://localhost:${port}`)
+  console.log(`O Bagulho tá no ar. Clique --> http://localhost:${port}`)
 );
 
 export default app;

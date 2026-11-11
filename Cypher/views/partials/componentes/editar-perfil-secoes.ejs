@@ -62,9 +62,19 @@
           <fieldset class="profile-category-fieldset category-fieldset"<%= categoriasBloqueadas ? ' disabled' : '' %>>
             <legend>Categorias profissionais atuais</legend>
           <p class="category-selection-summary" data-category-summary>Nenhuma profissão selecionada</p>
-          <div class="professional-catalog-groups profile-category-grid">
+          <div class="professional-area-picker" data-category-area-picker aria-label="Áreas profissionais">
             <% gruposProfissionais.forEach(grupo => { %>
-              <section class="professional-catalog-group" data-professional-group="<%= grupo.id %>">
+              <button type="button" class="professional-area-choice" data-category-area="<%= grupo.id %>" aria-pressed="false">
+                <span><%= grupo.rotulo %></span>
+                <small data-category-area-count hidden>0</small>
+              </button>
+            <% }) %>
+          </div>
+          <div class="professional-category-browser" data-category-browser hidden>
+            <button type="button" class="professional-category-back" data-category-back-to-areas>← Escolher outra área</button>
+            <div class="professional-catalog-groups profile-category-grid">
+            <% gruposProfissionais.forEach(grupo => { %>
+              <section class="professional-catalog-group" data-professional-group="<%= grupo.id %>" data-category-area-panel="<%= grupo.id %>" hidden>
                 <h4><%= grupo.rotulo %> <span data-category-count hidden>0</span></h4>
                 <div class="professional-catalog-group__options">
                   <% grupo.profissoes.forEach(profissao => { %>
@@ -76,8 +86,10 @@
                 </div>
               </section>
             <% }) %>
+            </div>
           </div>
           <p class="category-validation" data-category-validation role="alert" hidden>Selecione pelo menos uma categoria.</p>
+          <p class="category-approval-note">Não encontrou sua atuação? Entre em contato com a equipe Cypher para solicitar uma nova profissão ou área.</p>
         </fieldset>
         <% if (categoriasBloqueadas) { usuario.categories.forEach(categoria => { %>
           <input type="hidden" name="categorias" value="<%= categoria %>">

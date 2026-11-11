@@ -20,9 +20,8 @@
   const finishButton = form?.querySelector("[data-register-submit]");
   const ctagNote = form?.querySelector("[data-register-ctag]");
   const categoryValidation = form?.querySelector("[data-category-validation]");
-  const otherCategory = form?.querySelector("[data-category-other]");
-  const otherField = form?.querySelector("[data-other-category-field]");
-  const otherInput = form?.querySelector("#categoria-personalizada");
+  const areaPicker = form?.querySelector("[data-category-area-picker]");
+  const categoryBrowser = form?.querySelector("[data-category-browser]");
   const questionCurrent = form?.querySelector("[data-question-current]");
   const questionAnswered = form?.querySelector("[data-question-answered]");
   const progress = form?.querySelector('[role="progressbar"]');
@@ -109,7 +108,7 @@
       stage === "conta"
         ? form.querySelector("#register-name")
         : stage === "categorias"
-          ? form.querySelector('[name="categorias"]')
+          ? form.querySelector("[data-category-area]")
           : form.querySelector("[data-resposta-atuacao]:not(:disabled)");
     window.setTimeout(() => focusTarget?.focus({ preventScroll: true }), 0);
   }
@@ -261,12 +260,63 @@
       counter.textContent = String(count);
       counter.hidden = count === 0;
     });
-    if (otherField && otherInput && otherCategory) {
-      otherField.hidden = !otherCategory.checked;
-      otherInput.disabled = !otherCategory.checked;
-      otherInput.required = otherCategory.checked;
-      if (!otherCategory.checked) otherInput.setCustomValidity("");
-    }
+    targetForm.querySelectorAll("[data-category-area]").forEach(button => {
+      const areaId = button.dataset.categoryArea;
+      const group = targetForm.querySelector(
+        `[data-category-area-panel="${CSS.escape(areaId)}"]`
+      );
+      const count = group
+        ? group.querySelectorAll('[name="categorias"]:checked').length
+        : 0;
+      const counter = button.querySelector("[data-category-area-count]");
+      button.classList.toggle("has-selection", count > 0);
+      button.setAttribute("aria-pressed", count > 0 ? "true" : "false");
+      if (counter) {
+        counter.textContent = String(count);
+        counter.hidden = count === 0;
+      }
+    });
+  }
+
+  function showCategoryArea(areaId, targetForm = form) {
+    if (!targetForm) return;
+    const picker = targetForm.querySelector("[data-category-area-picker]");
+    const browser = targetForm.querySelector("[data-category-browser]");
+    targetForm.querySelectorAll("[data-category-area-panel]").forEach(panel => {
+      panel.hidden = panel.dataset.categoryAreaPanel !== areaId;
+    });
+    if (picker) picker.hidden = true;
+    if (browser) browser.hidden = false;
+    targetForm
+      .querySelector(
+        `[data-category-area-panel="${CSS.escape(areaId)}"] [name="categorias"]`
+      )
+      ?.focus({ preventScroll: true });
+  }
+
+  function showCategoryAreas(targetForm = form) {
+    if (!targetForm) return;
+    const picker = targetForm.querySelector("[data-category-area-picker]");
+    const browser = targetForm.querySelector("[data-category-browser]");
+    targetForm.querySelectorAll("[data-category-area-panel]").forEach(panel => {
+      panel.hidden = true;
+    });
+    if (picker) picker.hidden = false;
+    if (browser) browser.hidden = true;
+    targetForm.querySelector("[data-category-area]")?.focus({ preventScroll: true });
+  }
+
+  function bindCategoryAreaNavigation(targetForm = form) {
+    if (!targetForm) return;
+    targetForm.querySelectorAll("[data-category-area]").forEach(button => {
+      button.addEventListener("click", () => {
+        showCategoryArea(button.dataset.categoryArea, targetForm);
+      });
+    });
+    targetForm
+      .querySelector("[data-category-back-to-areas]")
+      ?.addEventListener("click", () => showCategoryAreas(targetForm));
+    updateCategoryCards(targetForm);
   }
 
   function serialize(targetForm = form) {
@@ -441,7 +491,7 @@
           serialize(formulario);
           validarFormulario(evento);
         });
-        updateCategoryCards(formulario);
+        bindCategoryAreaNavigation(formulario);
         atualizarQuestionariosSelecionados();
       });
     return;
@@ -513,15 +563,10 @@
     const selected = selectedCategories();
     if (!selected.size) {
       categoryValidation.hidden = false;
-      form.querySelector('[name="categorias"]')?.focus();
+      form.querySelector("[data-category-area]")?.focus();
       return;
     }
     categoryValidation.hidden = true;
-    if (otherCategory?.checked && !otherInput.checkValidity()) {
-      otherInput.reportValidity();
-      otherInput.focus();
-      return;
-    }
     questionIndex = 0;
     showStage("questionarios");
   }
@@ -580,6 +625,8 @@
     }
     if (stage === "questionarios") refreshProgress();
   });
+
+  bindCategoryAreaNavigation(form);
 
   form.querySelectorAll("[data-register-back]").forEach(button => {
     button.addEventListener("click", () => {

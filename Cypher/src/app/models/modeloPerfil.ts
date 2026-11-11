@@ -45,23 +45,13 @@ export const catalogoProfissional: readonly GrupoProfissional[] = [
     profissoes: [
       { id: "grafiteiro", rotulo: "Grafiteiro(a)", grupoId: "artes-visuais" },
       { id: "ilustrador", rotulo: "Ilustrador(a)", grupoId: "artes-visuais" },
-      {
-        id: "designer-grafico",
-        rotulo: "Designer gráfico",
-        grupoId: "artes-visuais",
-      },
+      { id: "designer-grafico", rotulo: "Designer gráfico", grupoId: "artes-visuais" },
       { id: "muralista", rotulo: "Muralista", grupoId: "artes-visuais" },
-      {
-        id: "artista-digital",
-        rotulo: "Artista digital",
-        grupoId: "artes-visuais",
-      },
+      { id: "artista-digital", rotulo: "Artista digital", grupoId: "artes-visuais" }
     ],
   },
-  {
-    id: "audiovisual",
-    rotulo: "Audiovisual",
-    profissoes: [
+  { id: "audiovisual", rotulo: "Audiovisual", profissoes: 
+    [
       { id: "fotografo", rotulo: "Fotógrafo(a)", grupoId: "audiovisual" },
       { id: "videomaker", rotulo: "Videomaker", grupoId: "audiovisual" },
       {
