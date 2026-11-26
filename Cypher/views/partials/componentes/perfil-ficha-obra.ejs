@@ -5,6 +5,8 @@
   <%- include('creditos-ficha',{tipo:'obra',id:obra.id}) %>
   <% if (obra.faixas.length) { %><details><summary>Ver <%= obra.faixas.length %> faixas</summary><ol><% for (const faixa of obra.faixas) { %><li><a href="<%= faixa.url %>"><%= faixa.titulo %></a></li><% } %></ol></details><% } %>
   <% if (obra.musical) { %><%- include('dados-musicais', { musical: obra.musical, base: obra.baseMusical }) %><% } %>
-  <% if (obra.lyrics) { %><details><summary>Letra</summary><p class="pf-biography"><%= obra.lyrics %></p></details><% } %>
+  <% if (obra.type === 'Letra') { %>
+    <section class="pf-lyrics-sheet" aria-label="Texto da letra"><span class="pf-lyrics-label">LETRA / <%= obra.title %></span><div class="pf-lyrics-text"><%= obra.lyrics || 'Texto ainda não informado.' %></div></section>
+  <% } else if (obra.lyrics) { %><details><summary>Letra</summary><p class="pf-biography"><%= obra.lyrics %></p></details><% } %>
   <%- include('acoes-obra',{id:obra.id,titulo:obra.title,plataforma:obra.plataforma}) %>
 </article>

@@ -128,6 +128,117 @@
 .account-settings-shell .settings-page .floating-field:focus-within .field-caption { color: var(--dc-olive); }
 .account-settings-shell .settings-page .floating-field > :is(input,select,textarea):focus-visible { outline: 2px solid var(--dc-olive); outline-offset: 2px; }
 .account-settings-shell .cy-security-grid .button-lime:hover { filter: brightness(1.1); }
+
+/* Configurações: navegação clara, grupos compactos e contraste nos dois temas. */
+.account-settings-shell .cy-settings-layout {
+  grid-template-columns: minmax(190px, 224px) minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+.account-settings-shell .cy-settings-layout .settings-index {
+  position: sticky;
+  top: 24px;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 12px;
+}
+.account-settings-shell .settings-index-link {
+  min-height: 44px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--dc-ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.account-settings-shell .settings-index-link:hover { background: var(--dc-hover); color: var(--dc-ink); }
+.account-settings-shell .settings-index-link.active { background: var(--dc-button); color: var(--dc-button-ink); }
+.account-settings-shell .settings-section { scroll-margin-block-start: 24px; padding: clamp(20px, 2.6vw, 32px); }
+.account-settings-shell .settings-section > h2 { margin: 8px 0 20px; }
+.account-settings-shell .settings-section p,
+.account-settings-shell .settings-data span { color: var(--dc-muted); font-size: 14px; line-height: 1.6; }
+.account-settings-shell .settings-data { padding: 16px; background: var(--dc-field); border-radius: 10px; }
+.account-settings-shell .settings-data strong { font-size: 15px; white-space: normal; }
+.account-settings-shell .settings-page .profile-edit-form { margin-top: 20px; }
+.account-settings-shell #descoberta .category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.account-settings-shell #descoberta .category-option {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--dc-line);
+  border-radius: 8px;
+  background: var(--dc-field);
+  color: var(--dc-ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.account-settings-shell #descoberta .category-option span { color: inherit; font-weight: 600; }
+.account-settings-shell #descoberta .category-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--dc-olive);
+  cursor: pointer;
+}
+.account-settings-shell #descoberta .category-option:hover,
+.account-settings-shell #descoberta .category-option:has(input:checked) { border-color: var(--dc-olive); background: var(--dc-hover); }
+.account-settings-shell #descoberta .category-option:focus-within { outline: 2px solid var(--dc-olive); outline-offset: 2px; }
+.account-settings-shell .cy-security-grid .profile-edit-form { margin-top: 0; }
+.account-settings-shell .profile-edit-form :is(input,select):focus-visible,
+.account-settings-shell .settings-page :is(button,summary):focus-visible { outline: 3px solid var(--dc-olive); outline-offset: 3px; }
+.account-settings-shell .profile-edit-form :is(input,select)::placeholder { color: var(--dc-muted); opacity: 1; }
+.account-settings-shell .settings-page label.privacy-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--dc-line);
+  cursor: pointer;
+}
+.account-settings-shell .settings-page label.privacy-option > span { display: grid; gap: 5px; min-width: 0; }
+.account-settings-shell .settings-page label.privacy-option strong { color: var(--dc-ink); font-size: 14px; line-height: 1.4; }
+.account-settings-shell .settings-page label.privacy-option small { color: var(--dc-muted); font-size: 13px; line-height: 1.5; }
+.account-settings-shell .settings-page label.privacy-option input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+  margin: 0;
+  accent-color: var(--dc-olive);
+  cursor: pointer;
+}
+.account-settings-shell .settings-page label.privacy-option:focus-within { outline: 2px solid var(--dc-olive); outline-offset: 3px; }
+.account-settings-shell .settings-section-exit { border-color: var(--dc-line); }
+.account-settings-shell .settings-section-exit .cy-account-exit { margin-top: 12px; }
+.account-settings-shell .settings-section-exit .account-delete-panel { background: var(--dc-field); }
+.dark .account-settings-shell .settings-section .eyebrow { color: #c9eb70; }
+.dark .account-settings-shell .settings-index-link:not(.active) { color: #e5edde; }
+.dark .account-settings-shell .settings-index-link:not(.active):hover { color: #fff; }
+@media (max-width: 900px) {
+  .account-settings-shell .cy-settings-layout { grid-template-columns: minmax(0,1fr); }
+  .account-settings-shell .cy-settings-layout .settings-index { position: static; display: flex; flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity; }
+  .account-settings-shell .settings-index-link { width: auto; flex: 0 0 auto; white-space: nowrap; scroll-snap-align: start; }
+}
+@media (max-width: 540px) {
+  .account-settings-shell .settings-page { padding-inline: 16px; }
+  .account-settings-shell .settings-password-grid { grid-template-columns: minmax(0,1fr); }
+  .account-settings-shell .settings-section { padding: 20px 16px; }
+  .account-settings-shell .cy-security-grid .profile-edit-form .button { width: 100%; }
+}
 @media (max-width: 370px) {
   .cy-work-flow .et-formats { grid-template-columns: minmax(0, 1fr); }
 }

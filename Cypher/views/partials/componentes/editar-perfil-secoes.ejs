@@ -15,7 +15,7 @@
         <% const areasEdicao = [
           ['pessoal', 'Informações pessoais', 'Bio, localização e imagens', 'user'],
           ['identidade', 'Identidade pública', 'Nome, vulgo e selo', 'badgeCheck'],
-          ['profissional', 'Atuação profissional', 'Categorias e habilidades', 'briefcase'],
+          ['profissional', 'Atuação profissional', 'Categorias, experiência e representação', 'briefcase'],
           ['portfolio', 'Portfólio e experiência', 'Trabalhos e participações', 'disc'],
           ['privacidade', 'Privacidade e contato', 'Escolha o que compartilhar', 'eye'],
           ['conta', 'Conta e segurança', 'Acesso e configurações', 'shieldCheck']
@@ -71,6 +71,7 @@
         <h3>Atuação profissional</h3>
         <p>As respostas ficam agrupadas por categoria e cada detalhe mantém sua configuração de visibilidade.</p>
       </div>
+      <a class="button button-outline" href="/representacoes">Gerenciar representação profissional</a>
       <% if (categoriasBloqueadas) { %>
         <p class="profile-policy-notice" role="status">Categorias profissionais ficam bloqueadas até <strong><%= proximaAlteracaoCategorias %></strong>. Você pode atualizar suas respostas, gêneros, disponibilidade e equipamentos sem alterar as categorias. Se precisar mudar antes do prazo, solicite uma exceção abaixo.</p>
       <% } else if (excecaoCategoriaDisponivel) { %>
@@ -312,7 +313,6 @@
         <p>Escolha os trabalhos e participações que compõem sua apresentação.</p>
       </div>
       <div class="profile-portfolio-summary">
-        <a class="button button-lime" href="/portfolio/edit">Organizar portfólio</a>
         <a class="button button-outline" href="/espaco-de-trabalho">Gerenciar trabalhos e créditos</a>
       </div>
       <div class="profile-portfolio-links">

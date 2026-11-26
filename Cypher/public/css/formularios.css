@@ -83,16 +83,16 @@ form .button, .tag-panel .button {
 
 /* Caixas de seleção da Cypher. O seletor de tema tem seu próprio controle. */
 :root {
-  --checkbox-paper: #f4f1df;
-  --checkbox-edge: #52643e;
-  --checkbox-fill: #638133;
-  --checkbox-mark: #fffdf2;
+  --checkbox-paper: #f0f1e8;
+  --checkbox-edge: #536345;
+  --checkbox-fill: #25331d;
+  --checkbox-mark: #c7ed79;
 }
 
 :root.dark {
-  --checkbox-paper: #202b1d;
-  --checkbox-edge: #9eaf7b;
-  --checkbox-fill: #b0c978;
+  --checkbox-paper: #151b14;
+  --checkbox-edge: #82946b;
+  --checkbox-fill: #b4d77a;
   --checkbox-mark: #17210e;
 }
 
@@ -108,17 +108,17 @@ form .button, .tag-panel .button {
   padding: 0;
   vertical-align: middle;
   background: var(--checkbox-paper);
-  border: 2px solid var(--checkbox-edge);
-  border-radius: 18% 64% 22% 48% / 55% 20% 60% 22%;
-  box-shadow: 2px 2px 0 var(--checkbox-edge);
+  border: 1px solid var(--checkbox-edge);
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px var(--checkbox-paper), 0 0 0 1px color-mix(in srgb, var(--checkbox-edge) 35%, transparent);
   cursor: pointer;
-  transition: transform .2s ease, border-radius .2s ease, box-shadow .2s ease;
+  transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 :root body input[type="checkbox"]:not([role="switch"]):checked {
   background: var(--checkbox-fill);
-  border-radius: 58% 24% 56% 24% / 22% 55% 24% 56%;
-  transform: rotate(-4deg);
+  border-color: var(--checkbox-fill);
+  box-shadow: inset 0 0 0 2px var(--checkbox-fill), 0 0 0 1px var(--checkbox-edge);
 }
 
 :root body input[type="checkbox"]:not([role="switch"]):checked::after {
@@ -128,24 +128,17 @@ form .button, .tag-panel .button {
   border: solid var(--checkbox-mark);
   border-width: 0 2px 2px 0;
   transform: translateY(-1px) rotate(42deg);
-  animation: cypher-checkbox-mark .24s ease-out;
-}
-
-@keyframes cypher-checkbox-mark {
-  from { scale: 0; opacity: 0; }
-  70% { scale: 1.2; }
-  to { scale: 1; opacity: 1; }
 }
 
 @media (hover: hover) {
   :root body label:hover input[type="checkbox"]:not([role="switch"], :disabled) {
-    transform: scale(1.07) rotate(3deg);
+    border-color: var(--checkbox-mark);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--checkbox-mark) 24%, transparent);
   }
 }
 
 :root body label:active input[type="checkbox"]:not([role="switch"], :disabled) {
-  transform: translate(2px, 2px) scale(.94);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 2px var(--checkbox-paper);
 }
 
 :root body input[type="checkbox"]:not([role="switch"]):focus-visible {
@@ -165,10 +158,6 @@ form .button, .tag-panel .button {
 @media (prefers-reduced-motion: reduce) {
   :root body input[type="checkbox"]:not([role="switch"]) {
     transition: none;
-  }
-
-  :root body input[type="checkbox"]:not([role="switch"]):checked::after {
-    animation: none;
   }
 }
 

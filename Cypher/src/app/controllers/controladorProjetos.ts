@@ -12,14 +12,12 @@ export const seguro =
       return fn(req, res);
     } catch (e) {
       if (e instanceof m.ErroTrabalho)
-        return res
-          .status(e.status)
-          .render("pages/erro-trabalho", {
-            title: "Trabalho indisponível",
-            stylesheet: "projetos",
-            path: "/espaco-de-trabalho",
-            erro: e.message,
-          });
+        return res.status(e.status).render("pages/erro-trabalho", {
+          title: "Trabalho indisponível",
+          stylesheet: "projetos",
+          path: "/espaco-de-trabalho",
+          erro: e.message,
+        });
       next(e);
     }
   };
@@ -37,23 +35,48 @@ export const lista: Acao = (req, res) => {
   conta(id);
   const q = typeof req.query.q === "string" ? req.query.q.slice(0, 120) : "";
   const modalidade = String(req.query.modalidade ?? "");
+  const visibilidade = ["publicos", "privados"].includes(
+    String(req.query.visibilidade)
+  )
+    ? String(req.query.visibilidade)
+    : "";
+  const ordem = ["recentes", "antigos", "titulo"].includes(
+    String(req.query.ordem)
+  )
+    ? String(req.query.ordem)
+    : "recentes";
+  const meus = req.query.meus === "sim";
   const normalize = (s: string) =>
     s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
   const itens = m
-    .listarProjetos(id, req.query.meus === "sim")
+    .listarProjetos(id, meus)
     .filter(
       p =>
         (!modalidade || p.modalidade === modalidade) &&
+        (!visibilidade ||
+          (visibilidade === "publicos" ? Boolean(p.publico) : !p.publico)) &&
         normalize(p.titulo + " " + p.descricao + " " + p.autor).includes(
           normalize(q)
         )
-    );
+    )
+    .sort((a, b) => {
+      if (ordem === "titulo")
+        return (
+          a.titulo.localeCompare(b.titulo, "pt-BR") || a.id.localeCompare(b.id)
+        );
+      const porData = String(b.criado_em).localeCompare(String(a.criado_em));
+      return (
+        (ordem === "antigos" ? -porData : porData) || a.id.localeCompare(b.id)
+      );
+    });
   return render(res, {
     tela: "lista",
     itens,
     q,
     modalidade,
-    meus: req.query.meus === "sim",
+    visibilidade,
+    ordem,
+    meus,
     podeCriar:
       res.locals.usuario.tipoConta === "profissional" &&
       m.formatosPermitidos(id).length > 0,
@@ -75,7 +98,11 @@ function formulario(
     throw new m.ErroTrabalho("Trabalho indisponível.", 404);
   const atuais = profissoesAtivas(id);
   const disponiveis = m.formatosPermitidos(id);
-  if (!projeto && !disponiveis.length) throw new m.ErroTrabalho("Selecione uma profissão ativa antes de criar um trabalho.",403);
+  if (!projeto && !disponiveis.length)
+    throw new m.ErroTrabalho(
+      "Selecione uma profissão ativa antes de criar um trabalho.",
+      403
+    );
   if (projeto && !disponiveis.some(f => f.id === projeto.modalidade))
     disponiveis.push(
       m.formatosTrabalho.find(f => f.id === projeto.modalidade)!

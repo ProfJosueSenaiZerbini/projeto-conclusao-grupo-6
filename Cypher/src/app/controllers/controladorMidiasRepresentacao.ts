@@ -62,8 +62,15 @@ export function midias(req: Request, res: Response) {
   });
 }
 export function salvarSelo(req: Request, res: Response) {
-  salvarSeloPerfil(ator(res), req.body);
-  return res.redirect(303, "/profile?salvo=1");
+  try {
+    salvarSeloPerfil(ator(res), req.body);
+    const resultado = req.body.acao === "retirar" ? "retirado" : "salvo";
+    return res.redirect(303, `/profile?editar=1&secao=identidade&selo=${resultado}#profile-editor-selo`);
+  } catch (erro) {
+    if (erro instanceof ErroInteracao && erro.status !== 403)
+      return res.redirect(303, "/profile?editar=1&secao=identidade&erro=selo_invalido#profile-editor-selo");
+    throw erro;
+  }
 }
 export function upload(req: Request, res: Response) {
   if (req.get("X-Midia-Autorizada") !== "sim")

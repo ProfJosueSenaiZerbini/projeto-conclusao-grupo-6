@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { conexaoInternaCypher } from "../models/bancoDados.js";
 import { montarApresentacao, type NavegacaoPerfil } from "../models/apresentacaoPerfil.js";
-import { coresSelo, formasSelo, seloPerfil } from "../models/seloPerfil.js";
+import { coresSelo, formasSelo, simbolosSelo, seloPerfil } from "../models/seloPerfil.js";
 import { situacaoContaModeracao, objetoDisponivel } from "../models/politicasModeracao.js";
 import { rotuloProfissional } from "../models/tratamentoProfissional.js";
 import { resolverPerfilPublico, obterPreferenciasUsuario } from "../models/identidadeUsuario.js";
@@ -739,7 +739,7 @@ function validarFormularioObra(
   if (valores.titulo.length < 2 || valores.titulo.length > 120)
     return "Informe um título entre 2 e 120 caracteres.";
   if (!tiposObra.includes(valores.tipo))
-    return "Selecione um tipo de lançamento válido.";
+    return "Selecione um tipo de obra válido.";
   if (
     valores.tipo === "Outro" &&
     (valores.tipoOutro.length > 80 ||
@@ -747,7 +747,9 @@ function validarFormularioObra(
       (!opcoes.tipoOutroLegadoVazio && valores.tipoOutro.length < 2))
   )
     return "Especifique o tipo de projeto em 2 a 80 caracteres.";
-  if (valores.tipo !== "Outro" && !generosObra.includes(valores.genero))
+  if (valores.tipo !== "Outro" && valores.tipo !== "Letra" && !generosObra.includes(valores.genero))
+    return "Selecione um gênero válido.";
+  if (valores.tipo === "Letra" && valores.genero && !generosObra.includes(valores.genero))
     return "Selecione um gênero válido.";
   if (
     valores.tipo === "Outro" &&
@@ -777,6 +779,8 @@ function validarFormularioObra(
     return "A descrição deve ter até 500 caracteres.";
   if (valores.letra.length > 5000)
     return "As letras e observações devem ter até 5.000 caracteres.";
+  if (valores.tipo === "Letra" && !valores.letra)
+    return "Escreva a letra para cadastrar este tipo de obra.";
   const erroBpm = validarBpm(valores.bpm);
   if (erroBpm) return erroBpm;
   if (valores.isrc.length > 20 || valores.iswc.length > 20)
@@ -1181,6 +1185,7 @@ function renderizarPerfil(
     editando?: boolean;
     erro?: string | null;
     salvo?: boolean;
+    seloResultado?: string;
     generoPendente?: boolean;
     categoriaPropostaResultado?: string;
     valores?: ReturnType<typeof valoresPerfil>;
@@ -1232,7 +1237,8 @@ function renderizarPerfil(
     apresentacao: opcoes.editando && !usuario.demonstracao ? null : montarApresentacao({
       id: usuario.id, handle: usuario.handle, categorias: usuario.categories, demo: usuario.demonstracao,
     }, usuario, true, opcoes.navegacao ?? {}),
-    selo: opcoes.editando ? seloPerfil(usuario.id) : null, coresSelo, formasSelo,
+    selo: opcoes.editando ? seloPerfil(usuario.id) : null, coresSelo, formasSelo, simbolosSelo,
+    seloResultado: opcoes.seloResultado ?? "",
     categoriasDisponiveis,
     gruposProfissionais: listarGruposProfissionais(),
     questionariosAtuacao,
@@ -1306,6 +1312,8 @@ export const perfil = (req: Request, res: Response) => {
       "Selecione uma alteração real nas categorias profissionais.",
     resposta_esclarecimento:
       "Sua resposta precisa ter entre 5 e 1.000 caracteres.",
+    selo_invalido:
+      "Não foi possível salvar o selo. Use até 3 letras ou números e escolha composição, símbolo e cor.",
   };
   return renderizarPerfil(res, usuario, {
     editando: req.query.editar === "1",
@@ -1315,6 +1323,7 @@ export const perfil = (req: Request, res: Response) => {
         ? "profissional"
         : "pessoal",
     salvo: req.query.salvo === "1",
+    seloResultado: ["salvo", "retirado"].includes(parametroTexto(req, "selo")) ? parametroTexto(req, "selo") : "",
     privacidadeSalva: parametroTexto(req, "privacidade") === "salva",
     generoPendente: req.query.genero === "analise",
     categoriaPropostaResultado: parametroTexto(req, "categoria"),

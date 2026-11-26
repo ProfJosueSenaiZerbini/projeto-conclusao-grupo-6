@@ -96,7 +96,7 @@
         </details>
 
         <% if (podeGerenciar) { %>
-          <a class="dc-primary" href="/events/new"><span aria-hidden="true"><%- icones.plus %></span> Cadastrar evento</a>
+          <a class="dc-primary event-create-icon" href="/events/new" aria-label="Cadastrar evento" title="Cadastrar evento"><span aria-hidden="true"><%- icones.plus %></span></a>
         <% } %>
         <a class="events-map-link" href="/events/map"><span aria-hidden="true"><%- icones.mapPin %></span> Ver mapa</a>
       </div>
@@ -129,7 +129,7 @@
         <% } %>
       </section>
     </main>
-    <%- include('../partials/navegacao-mobile', { rotaAtual: '/events' }) %>
+    <%- include('../partials/navegacao-mobile', { rotaAtual: path }) %>
   </div>
 
   <%- include('../partials/componentes/ficha-evento') %>

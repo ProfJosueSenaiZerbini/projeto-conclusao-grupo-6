@@ -9,7 +9,12 @@
     { href: '/events', nome: 'Eventos', icone: 'calendarDays' },
     { href: '/profile', nome: 'Perfil', icone: 'user' },
   ];
-  const ativo = destinos.findIndex(destino => destino.href === rotaAtual);
+  const rotaNavegacao = (typeof rotaAtual === 'string' ? rotaAtual : '').split('?')[0];
+  const ativo = destinos.findIndex(destino =>
+    rotaNavegacao === destino.href ||
+    rotaNavegacao.startsWith(destino.href + '/') ||
+    (destino.href === '/dashboard' && rotaNavegacao === '/')
+  );
 %>
 <nav class="dc-bottom" aria-label="Navegação rápida" style="--dc-nav-current: <%= ativo %>">
   <% destinos.forEach((destino, indice) => { %>

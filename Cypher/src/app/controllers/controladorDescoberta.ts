@@ -19,6 +19,8 @@ import {
 } from "../models/catalogoDemonstrativo.js";
 import { dataAtualCadastro } from "../validators/validarIdentidade.js";
 import { resolverTemaEvento } from "../models/temasEvento.js";
+import { listar as listarOportunidades } from "../models/oportunidades.js";
+import { listarProjetos, formatosTrabalho } from "../models/projetosTrabalho.js";
 import {
   formatoLancamentoCena,
   lancamentoCena,
@@ -260,10 +262,7 @@ export function descoberta(req: Request, res: Response) {
       vitrine.push(item);
       if (vitrine.length === 4) break;
     }
-    if (vitrine.length < 4)
-      vitrine.push(
-        ...musica.filter(item => !vitrine.includes(item)).slice(0, 4 - vitrine.length)
-      );
+    vitrine.push(...musica.filter(item => !vitrine.includes(item)));
   }
   const hoje = dataAtualCadastro();
   const agenda = publicacoes
@@ -284,6 +283,20 @@ export function descoberta(req: Request, res: Response) {
       )
         .pessoas.slice(0, 3)
         .map(cartaoPerfil);
+  const oportunidades = filtrado ? [] : listarOportunidades(usuario.id, {}, "explorar")
+    .itens.slice(0, 3)
+    .map((item: Record<string, any>) => ({
+      id: item.id as string,
+      titulo: item.titulo as string,
+      descricao: item.descricao as string,
+      local: item.localizacao as string,
+      modalidade: item.modalidade as string,
+      autor: item.autor_nome as string,
+      funcoes: (item.funcoes as { nome: string }[]).map(funcao => funcao.nome).slice(0, 2),
+    }));
+  const novosTalentos = filtrado ? [] : pessoas
+    .filter(item => !seguidos.has(item.userId) && !populares.some(popular => popular.userId === item.userId) && !pessoas.slice(0, 6).some(destaque => destaque.userId === item.userId))
+    .slice(0, 6);
   const candidatos = [...publicacoes, ...pessoas].filter(
     item =>
       categoria === "tudo" ||
@@ -306,9 +319,27 @@ export function descoberta(req: Request, res: Response) {
               : "Eventos passados"
             : "",
         ].filter(Boolean);
-  const opcoes = [...new Set(candidatos.flatMap(facetas))].sort((a, b) =>
-    a.localeCompare(b, "pt-BR")
+  const valores = (itens: string[]) => [...new Set(itens.filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const publicacoesFiltraveis = candidatos.filter(
+    (item): item is (typeof publicacoes)[number] => "id" in item
   );
+  const pessoasFiltraveis = candidatos.filter(
+    (item): item is (typeof pessoas)[number] => "categorias" in item
+  );
+  const gruposOpcoes = categoria === "tudo" ? [] : [
+    ...(pessoasFiltraveis.length ? [
+      { nome: "Profissão", valores: valores(pessoasFiltraveis.flatMap(item => item.categorias)) },
+      { nome: "Gênero musical", valores: valores(pessoasFiltraveis.flatMap(item => item.estilos)) },
+      { nome: "Localização", valores: valores(pessoasFiltraveis.map(item => item.local)) },
+    ] : []),
+    ...(publicacoesFiltraveis.length ? [
+      { nome: categoria === "eventos" ? "Tipo de evento" : "Formato", valores: valores(publicacoesFiltraveis.map(item => item.grupo === "eventos" ? item.tipo : formatoLancamentoCena(item).rotulo)) },
+      { nome: "Gênero musical", valores: valores(publicacoesFiltraveis.filter(item => item.grupo !== "eventos").map(item => item.genero)) },
+      { nome: "Localização", valores: valores(publicacoesFiltraveis.map(item => item.local)) },
+      ...(categoria === "eventos" ? [{ nome: "Período", valores: valores(publicacoesFiltraveis.filter(item => item.dataCurta).map(item => item.data >= hoje ? "Próximos eventos" : "Eventos passados")) }] : []),
+    ] : []),
+  ].filter(grupo => grupo.valores.length > 1);
   const resultados = candidatos.filter(
     item =>
       !detalhe ||
@@ -324,6 +355,18 @@ export function descoberta(req: Request, res: Response) {
     "id" in item && item.grupo !== "eventos"
       ? { ...item, lancamento: lancamentoCena(item, usuario.id) }
       : item;
+  const beats = filtrado ? [] : publicacoes.filter(item => item.grupo === "beats").slice(0, 6).map(comLancamento);
+  const projetosCena = filtrado ? [] : listarProjetos(usuario.id)
+    .filter(item => item.publico === 1)
+    .slice(0, 6)
+    .map(item => ({
+      id: item.id as string,
+      titulo: item.titulo as string,
+      descricao: item.descricao as string,
+      autor: item.autor as string,
+      formato: formatosTrabalho.find(formato => formato.id === item.modalidade)?.nome ?? "Projeto",
+    }));
+  const producoes = filtrado || projetosCena.length ? [] : publicacoes.filter(item => item.grupo === "obras" && !vitrine.some(destaque => destaque.id === item.id)).slice(0, 6).map(comLancamento);
   const cards = db.transaction(() => filtrado
     ? { resultados: resultados.slice((pagina - 1) * 24, pagina * 24).map(comLancamento), musica: [] }
     : { resultados: [], musica: vitrine.map(comLancamento) }
@@ -339,7 +382,7 @@ export function descoberta(req: Request, res: Response) {
     categoria,
     q,
     detalhe,
-    opcoes,
+    gruposOpcoes,
     filtrado,
     destaques,
     resultados: cards.resultados,
@@ -347,9 +390,14 @@ export function descoberta(req: Request, res: Response) {
     paginas,
     pagina,
     musica: cards.musica,
-    pessoas: pessoas.slice(0, 6),
+    pessoas: pessoas.slice(0, 18),
     populares,
-    agenda: agenda.slice(0, 4),
+    oportunidades,
+    beats,
+    projetosCena,
+    producoes,
+    novosTalentos,
+    agenda: agenda.slice(0, 12),
     eventosDestacados: publicacoes
       .filter(item => item.fotoDestaque)
       .sort((a, b) => a.data.localeCompare(b.data)),

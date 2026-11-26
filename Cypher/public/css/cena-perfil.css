@@ -562,6 +562,17 @@
   cursor: pointer;
   font-weight: 600;
 }
+.pf-lyrics-sheet {
+  width: min(100%, 720px);
+  margin: 10px auto;
+  padding: 25px clamp(22px, 6vw, 65px) 35px clamp(45px, 8vw, 84px);
+  color: #28382d;
+  background: linear-gradient(90deg, transparent 47px, #d8a9a1 48px, transparent 49px), repeating-linear-gradient(#f7f3df 0 31px, #bfcdbd 32px 33px);
+  border: 1px solid #d3d0ad;
+  box-shadow: 7px 8px 0 #a9ac8d, 12px 14px 24px #0003;
+}
+.pf-lyrics-label { display: block; margin-bottom: 22px; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.pf-lyrics-text { min-height: 160px; white-space: pre-wrap; overflow-wrap: anywhere; font: 500 16px/33px "Space Grotesk", sans-serif; }
 .pf-work-detail li a {
   color: var(--dc-accent);
 }
@@ -595,15 +606,6 @@
 }
 .pf-seal-editor {
   margin-block: 20px;
-}
-.pf-seal-editor-grid {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-.pf-seal-editor-grid label {
-  flex: 1 1 120px;
 }
 @media (max-width: 980px) {
   .pf-grid {
@@ -660,8 +662,7 @@
     font-size: 0.88rem;
   }
   .pf-signature .pf-seal {
-    width: 2.35rem;
-    font-size: 0.9rem;
+    --seal-size: 2.35rem;
   }
   .pf-identity-foot {
     flex-direction: column;
@@ -751,4 +752,30 @@
 .profile-progress-optional > p {
   margin-bottom: 8px;
   color: var(--dc-muted);
+}
+
+/* Identidade e trajetórias do artista. */
+.pf-cover { min-height: clamp(230px, 21vw, 330px); }
+.pf-cover-art { width: 100%; object-position: center; }
+.pf-cover.has-art::after { background: linear-gradient(90deg, #101410ed 0%, #101410bb 42%, #10141035 100%); }
+.pf-signature { align-items: flex-end; }
+.pf-portrait { width: clamp(112px, 11vw, 176px); }
+.pf-names h2 { margin-bottom: 4px; }
+.pf-roles { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; }
+.pf-names .pf-roles { margin: 12px 0 0; }
+.pf-roles li { padding: 4px 9px; border: 1px solid #d4e2ad70; border-radius: 3px; background: #111810b8; color: #f3f1df; font: 600 .82rem/1.3 "Space Grotesk", sans-serif; }
+.pf-experience { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; }
+.pf-experience .pf-role-card { min-width: 0; padding: 0 16px; border: 1px solid var(--dc-line); border-radius: 3px 10px 3px 3px; background: var(--dc-field); }
+.pf-experience .pf-role-card:first-child { border: 1px solid var(--dc-line); }
+.pf-role-card summary { min-height: 90px; }
+.pf-role-art { display: grid; place-items: center; flex: 0 0 68px; height: 68px; border: 1px solid #c7e67a55; border-radius: 3px 8px 3px 3px; background: radial-gradient(circle at 25% 18%, #405a2b, #243322 72%); color: #d3f290; }
+.pf-role-art svg { width: 34px; height: 34px; stroke-width: 1.65; }
+.pf-role-copy { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.pf-role-copy small { color: var(--dc-muted); font-weight: 500; }
+.pf-role-card > .pf-facts { border-top: 1px solid var(--dc-line); padding-top: 14px; }
+@media (max-width: 700px) {
+  .pf-cover { min-height: 210px; }
+  .pf-portrait { width: clamp(78px, 22vw, 108px); }
+  .pf-names h2 { font-size: clamp(1.9rem, 7.7vw, 3.1rem); }
+  .pf-roles li { font-size: .72rem; }
 }

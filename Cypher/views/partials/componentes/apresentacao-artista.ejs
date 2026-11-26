@@ -13,11 +13,10 @@
     <% if (capa) { %><img class="pf-cover-art" src="<%= capa %>" alt="" fetchpriority="high"><% } %>
     <div class="pf-signature">
       <div class="pf-portrait" aria-hidden="true"><% if (retrato) { %><img src="<%= retrato %>" alt="" fetchpriority="high"><% } else { %><span><%= pessoa.initials %></span><% } %></div>
-      <div class="pf-names"><% if (pessoa.handle !== nome) { %><p class="pf-handle"><%= pessoa.handle %></p><% } %>
-        <h2 id="artista-nome"><%= nome %></h2>
+      <div class="pf-names"><h2 id="artista-nome"><%= nome %></h2>
+        <% if (pessoa.handle !== nome) { %><p class="pf-handle"><%= pessoa.handle %></p><% } %>
         <% if (segundoNome) { %><p class="pf-fullname"><%= segundoNome %></p><% } %>
-        <% if (a.proprio && pessoa.namePublic === false) { %><span class="pf-handle">Nome completo privado</span><% } %>
-        <% if (pessoa.categories.length) { %><p class="pf-roles"><%= pessoa.categories.map(c => pessoa.rotulosCategorias[c] || c).join(' · ') %></p><% } %>
+        <% if (pessoa.categories.length) { %><ul class="pf-roles" aria-label="Atuações profissionais"><% for (const c of pessoa.categories) { %><li><%= pessoa.rotulosCategorias[c] || c %></li><% } %></ul><% } %>
       </div>
       <%- include('selo-assinatura',{selo:a.selo,nome}) %>
     </div>
@@ -30,7 +29,7 @@
         <% if (pessoa.biography.length > 165) { %><a class="pf-inline" href="<%= a.url('sobre') %>">Ler biografia</a><% } %></p>
       <% } %>
       <div class="pf-meta">
-        <% if (pessoa.city) { %><span><%- icones.mapPin %><%= pessoa.city %><%= a.proprio && !pessoa.locationPublic ? ' · Só você' : '' %></span><% } %>
+        <% if (pessoa.city) { %><span><%- icones.mapPin %><%= pessoa.city %></span><% } %>
         <% if (pessoa.availability) { %><span><%- icones.briefcase %><%= pessoa.availabilityLabel %></span><% } %>
         <% if (a.rep) { %><a href="<%= a.url('avaliacoes') %>"><span aria-hidden="true">☆</span><%= a.rep.media === null ? a.rep.estado : a.rep.media.toFixed(1).replace('.',',') + ' / 5 · ' + a.rep.avaliacoes + ' avaliações' %></a><% } %>
       </div>
@@ -44,13 +43,14 @@
       <% if (a.editavel || a.outraPessoa || temPublico) { %>
         <details class="pf-menu"><summary class="pf-button" aria-label="Mais ações do perfil"><%- icones.more %></summary>
           <div class="pf-menu-list">
-            <% if (a.editavel) { %><a href="/publicacoes/perfil/<%= encodeURIComponent(pessoa.id) %>/midias">Alterar foto e capa</a><a href="/portfolio/edit">Organizar portfólio</a><a href="/representacoes">Representação profissional</a>
+            <% if (a.editavel) { %>
               <% if (temPublico) { %><a href="<%= publica %>">Ver perfil público</a><% } %>
             <% } %>
             <% if (!a.proprio && !a.outraPessoa && typeof usuario !== 'undefined' && usuario.id === pessoa.id) { %><a href="/profile">Voltar ao meu perfil</a><% } %>
             <% if (a.propor) { %><a href="/colaboracoes/new?destinatario=<%= encodeURIComponent(pessoa.handle) %>">Propor colaboração</a><% } %>
             <% if (a.representar) { %><a href="/representacoes?destinatario=<%= encodeURIComponent(pessoa.handle) %>">Propor representação</a><% } %>
             <% if (temPublico) { %><a href="<%= publica %>" data-share-profile>Compartilhar perfil</a><% } %>
+            <% if (temPublico) { %><a href="<%= publica %>" data-copy-profile>Copiar link do perfil</a><% } %>
             <% if (a.outraPessoa) { %><a href="/suporte/new?objeto_tipo=perfil&amp;objeto_id=<%= encodeURIComponent(pessoa.id) %>">Denunciar perfil</a>
               <% if (a.selo) { %><a href="/suporte/new?objeto_tipo=selo&amp;objeto_id=<%= encodeURIComponent(a.selo.id) %>">Denunciar selo</a><% } %>
             <% } %>

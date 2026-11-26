@@ -3,18 +3,18 @@ const categorias = a.contexto ? [a.contexto] : pessoa.categories;
 const trajetoria = categorias.map(categoria => {
   const registro = pessoa.atuacoes.find(i => i.categoria === categoria);
   const perguntas = questionariosAtuacao.find(q => q.categoria === categoria)?.perguntas || [];
-  return {nome: pessoa.rotulosCategorias[categoria] || categoria, respostas: perguntas.map(p => ({
+  return {nome: pessoa.rotulosCategorias[categoria] || categoria, icone: iconeCategoriaProfissional(categoria), respostas: perguntas.map(p => ({
     pergunta:p.pergunta, campo:p.campo, valor:formatarRespostaAtuacao(registro?.respostas[p.campo])
   })).filter(r => r.valor)};
 });
-const titulos = {catalogo:'Catálogo autoral', creditos:'Participações e créditos', galeria:'Galeria e portfólio', sobre:'Sobre', atuacao:'Atuação profissional', avaliacoes:'Avaliações recebidas'};
+const titulos = {catalogo:'Catálogo', galeria:'Galeria e portfólio', sobre:'Sobre', atuacao:'Atuação', avaliacoes:'Avaliações'};
 %>
 <section class="pf-collection" id="conteudo-perfil" aria-label="Conteúdo do perfil">
   <div class="pf-controls">
     <nav class="pf-nav" aria-label="Seções do perfil">
       <% for (const aba of a.abas) { %><a href="<%= a.url(aba.id) %>" <%= a.aba === aba.id ? 'aria-current=page' : '' %>><%= aba.nome %></a><% } %>
     </nav>
-    <% if (pessoa.categories.length > 1) { %>
+    <% if (pessoa.categories.length > 1 && ['catalogo','galeria','avaliacoes'].includes(a.aba)) { %>
       <form method="get" action="<%= a.base %>#conteudo-perfil" class="pf-context" data-profile-context>
         <label><%- icones.sliders %><span class="pf-sr">Filtrar por atuação profissional</span><select name="atuacao"><option value="">Todas as atuações</option>
         <% for (const c of pessoa.categories) { %><option value="<%= c %>" <%= a.contexto === c ? 'selected' : '' %>><%= pessoa.rotulosCategorias[c] || c %></option><% } %></select><%- icones.chevronDown %></label>
@@ -29,7 +29,7 @@ const titulos = {catalogo:'Catálogo autoral', creditos:'Participações e créd
       <% } else if (a.editavel && a.aba === 'galeria') { %><a class="pf-link" href="/portfolio/edit">Organizar portfólio</a><% } %>
     </header>
     <% if (a.obra) { %><%- include('perfil-ficha-obra',{obra:a.obra}) %><% } %>
-    <% if (['catalogo','creditos','galeria'].includes(a.aba)) { %>
+    <% if (['catalogo','galeria'].includes(a.aba)) { %>
       <% if (a.itens.length) { %>
         <div class="pf-grid">
           <% for (const item of a.itens) { %>
@@ -50,24 +50,19 @@ const titulos = {catalogo:'Catálogo autoral', creditos:'Participações e créd
       <% } %>
     <% } else if (a.aba === 'sobre') { %>
       <div class="pf-about">
-        <% if (pessoa.biography.length > 165) { %><p class="pf-biography"><%= pessoa.biography %></p><% } %>
+        <% if (pessoa.biography) { %><p class="pf-biography"><%= pessoa.biography %></p><% } %>
         <dl class="pf-facts">
           <% if (pessoa.contact) { %><div id="contato"><dt>Contato profissional<%= a.proprio && !pessoa.contactPublic ? ' · Só você' : '' %></dt><dd><%= pessoa.contact %></dd></div><% } %>
-          <% if (pessoa.skills?.length) { %><div><dt>Competências e especializações<%= a.proprio && !pessoa.skillsPublic ? ' · Só você' : '' %></dt><dd><%= pessoa.skills.join(' · ') %></dd></div><% } %>
-          <% if (pessoa.genres?.length) { %><div><dt>Estilos e influências</dt><dd><%= pessoa.genres.join(' · ') %></dd></div><% } %>
-          <% if (pessoa.equipment.length) { %><div><dt>Equipamentos</dt><dd><%= pessoa.equipment.join(' · ') %></dd></div><% } %>
-          <% for (const g of trajetoria.filter(g => g.respostas.some(r => r.campo === 'tempoAtuacao')).slice(0,3)) { %>
-            <div><dt>Experiência · <%= g.nome %></dt><dd><%= g.respostas.find(r => r.campo === 'tempoAtuacao').valor %></dd></div>
-          <% } %>
+          <% if (pessoa.vulgo && pessoa.vulgo !== pessoa.name) { %><div><dt>Nome artístico</dt><dd><%= pessoa.vulgo %></dd></div><% } %>
+          <% if (pessoa.city) { %><div><dt>De onde vem</dt><dd><%= pessoa.city %></dd></div><% } %>
           <div><dt>Na Cypher desde</dt><dd><%= new Date(pessoa.createdAt).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) %></dd></div>
         </dl>
         <% if (a.editavel && !pessoa.biography) { %><a class="pf-link" href="<%= edit %>pessoal#editar-perfil">Adicionar biografia</a><% } %>
-        <% if (a.contexto && trajetoria[0]?.respostas.length) { %><a class="pf-link" href="<%= a.url('atuacao') %>">Ver experiência em <%= trajetoria[0].nome %></a><% } %>
       </div>
     <% } else if (a.aba === 'atuacao') { %>
       <div class="pf-experience">
         <% for (const grupo of trajetoria) { %>
-          <details <%= trajetoria.length === 1 ? 'open' : '' %>><summary><%= grupo.nome %><%- icones.chevronDown %></summary>
+          <details class="pf-role-card" <%= trajetoria.length === 1 ? 'open' : '' %>><summary><span class="pf-role-art" aria-hidden="true"><%- icones[grupo.icone] %></span><span class="pf-role-copy"><strong><%= grupo.nome %></strong><small><%= grupo.respostas.find(r => r.campo === 'tempoAtuacao')?.valor || 'Conheça esta atuação' %></small></span><%- icones.chevronDown %></summary>
           <% if (grupo.respostas.length) { %><dl class="pf-facts"><% for (const r of grupo.respostas) { %><div><dt><%= r.pergunta %></dt><dd><%= r.valor %></dd></div><% } %></dl>
           <% } else { %><p><%= a.proprio ? 'Você ainda pode acrescentar sua experiência nesta atuação.' : 'A trajetória desta atuação ainda não foi compartilhada.' %></p><% } %></details>
         <% } %>

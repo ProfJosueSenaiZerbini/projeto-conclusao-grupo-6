@@ -422,7 +422,7 @@ export type ObraContaPersistida = ObraPersistida & {
 };
 
 let banco;
-export const versaoEsquema = 39;
+export const versaoEsquema = 40;
 function iniciaisPublicas(nome) {
   const partes = nome
     .normalize("NFD")
@@ -1507,6 +1507,8 @@ export function inicializarBancoCypher() {
       conexao.exec(esquemaCena);
       conexao.exec(esquemaInteracoes);
       conexao.exec(esquemaMidiasRepresentacao);
+      if (!conexao.pragma("table_info(selos_perfil)").some(c => c.name === "simbolo"))
+        conexao.exec("ALTER TABLE selos_perfil ADD COLUMN simbolo TEXT NOT NULL DEFAULT 'pulso'");
       if (versao < 39) conexao.exec(`
         DELETE FROM profissionais_seguidos AS s WHERE EXISTS (
           SELECT 1 FROM bloqueios_usuarios b

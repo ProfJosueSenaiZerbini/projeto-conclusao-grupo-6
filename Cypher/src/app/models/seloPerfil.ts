@@ -9,21 +9,27 @@ type Selo = {
   letras: string;
   forma: string;
   cor: string;
+  simbolo: string;
   imagem: string | null;
 };
-export const formasSelo = { disco: "Disco", placa: "Placa", quadro: "Quadro" };
+export const formasSelo = {
+  disco: "Disco", placa: "Placa", quadro: "Quadro",
+  orbita: "Órbita", onda: "Frequência", prisma: "Prisma",
+};
 export const coresSelo = {
-  oliva: "Oliva",
-  areia: "Areia",
-  lilas: "Lilás",
-  cobre: "Cobre",
+  oliva: "Ácido", areia: "Areia", lilas: "Ultravioleta",
+  cobre: "Cobre", ciano: "Ciano", rosa: "Magenta",
+};
+export const simbolosSelo = {
+  pulso: "Pulso", estrela: "Estrela", raio: "Raio",
+  alvo: "Alvo", onda: "Onda", flor: "Flor",
 };
 
 export function seloPerfil(titular: string) {
   const db = conexaoInternaCypher();
   const selo = db
     .prepare(
-      `SELECT s.id,s.letras,s.forma,s.cor,
+      `SELECT s.id,s.letras,s.forma,s.cor,s.simbolo,
         CASE WHEN p.id IS NOT NULL THEN '/selos/imagem/' || p.id END imagem
         FROM selos_perfil s LEFT JOIN pedidos_selo_externo p ON p.selo_id=s.id
         WHERE s.autor_id=? AND s.retirado_em IS NULL`
@@ -48,16 +54,18 @@ export function salvarSeloPerfil(ator: string, dados: Record<string, unknown>) {
     .trim()
     .toLocaleUpperCase("pt-BR")
     .normalize("NFC");
-  const forma = String(dados.forma),
-    cor = String(dados.cor);
+  const forma = String(dados.forma ?? "orbita"),
+    cor = String(dados.cor ?? "oliva"),
+    simbolo = String(dados.simbolo ?? "pulso");
   if (
     !retirar &&
     (!/^[\p{L}0-9]{1,3}$/u.test(letras) ||
       !Object.hasOwn(formasSelo, forma) ||
-      !Object.hasOwn(coresSelo, cor))
+      !Object.hasOwn(coresSelo, cor) ||
+      !Object.hasOwn(simbolosSelo, simbolo))
   )
     throw new ErroInteracao(
-      "Escolha uma forma, uma cor e até três letras ou números para sua assinatura."
+      "Escolha uma composição, uma cor, um símbolo e até três letras ou números para sua assinatura."
     );
   db.transaction(() => {
     const ativo = seloPerfil(ator);
@@ -65,7 +73,8 @@ export function salvarSeloPerfil(ator: string, dados: Record<string, unknown>) {
       !retirar &&
       ativo?.letras === letras &&
       ativo.forma === forma &&
-      ativo.cor === cor
+      ativo.cor === cor &&
+      ativo.simbolo === simbolo
     )
       return;
     const agora = Date.now();
@@ -74,8 +83,8 @@ export function salvarSeloPerfil(ator: string, dados: Record<string, unknown>) {
     ).run(agora, ator);
     if (!retirar)
       db.prepare(
-        "INSERT INTO selos_perfil(id,autor_id,letras,forma,cor,criado_em) VALUES(?,?,?,?,?,?)"
-      ).run(randomUUID(), ator, letras, forma, cor, agora);
+        "INSERT INTO selos_perfil(id,autor_id,letras,forma,cor,simbolo,criado_em) VALUES(?,?,?,?,?,?,?)"
+      ).run(randomUUID(), ator, letras, forma, cor, simbolo, agora);
   }).immediate();
 }
 

@@ -6,7 +6,7 @@
  <%- include('../partials/barra-superior',{breadcrumb:'Pedidos de serviço'}) %>
  <div class="page-content admin-page admin-op">
 <% } else { %>
-<div class="dc-shell op-shell<%= tela==='mensagens' ? ' msg-page' : '' %>">
+<div class="dc-shell op-shell<%= tela==='mensagens' ? ' msg-page' : tela==='lista' && contexto==='explorar' ? ' op-explore' : '' %>">
  <a class="dc-skip" href="#op-conteudo">Pular para o conteúdo</a>
  <%- include('../partials/barra-lateral',{path}) %>
  <div class="dc-page">

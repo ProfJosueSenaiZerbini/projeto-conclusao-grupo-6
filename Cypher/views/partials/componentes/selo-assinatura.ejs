@@ -1,4 +1,4 @@
 <% if(selo){ const rotulo = 'Selo profissional de ' + nome; %>
   <% if(selo.imagem){ %><img class="cy-selo-marca" src="<%= selo.imagem %>" width="48" height="48" alt="<%= rotulo %>">
-  <% } else { %><span class="pf-seal cy-selo-monograma" data-forma="<%= selo.forma %>" data-cor="<%= selo.cor %>" role="img" aria-label="<%= rotulo %>" title="<%= rotulo %>"><%= selo.letras %></span><% } %>
+  <% } else { const glifosSelo = {pulso:'⌁', estrela:'✦', raio:'ϟ', alvo:'◎', onda:'≈', flor:'✳'}; %><span class="pf-seal cy-selo-monograma" data-forma="<%= selo.forma %>" data-cor="<%= selo.cor %>" data-simbolo="<%= selo.simbolo || 'pulso' %>" role="img" aria-label="<%= rotulo %>" title="<%= rotulo %>"><span class="pf-seal-symbol" aria-hidden="true"><%= glifosSelo[selo.simbolo] || glifosSelo.pulso %></span><span class="pf-seal-letters" aria-hidden="true"><%= selo.letras %></span><span class="pf-seal-rule" aria-hidden="true"></span></span><% } %>
 <% } %>

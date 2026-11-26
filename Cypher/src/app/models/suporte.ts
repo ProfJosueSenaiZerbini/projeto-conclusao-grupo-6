@@ -198,7 +198,7 @@ function objeto(ator: string, tipo: string, id: string) {
           : tipo === "comentario" ? "Comentário denunciado" : (r.titulo ?? r.nome ?? "Registro"),
     autor_id: dono,
     ...(["mensagem", "comentario"].includes(tipo) ? { texto: r.texto } : {}),
-    ...(tipo === "selo" ? { letras: r.letras, forma: r.forma, cor: r.cor } : {}),
+    ...(tipo === "selo" ? { letras: r.letras, forma: r.forma, cor: r.cor, simbolo: r.simbolo } : {}),
   };
   return { tipo, id, dono, snapshot };
 }

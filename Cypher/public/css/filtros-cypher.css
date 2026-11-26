@@ -1,0 +1,31 @@
+/* Padrão de filtros da Descoberta, Busca e Banco de Beats. */
+.cy-filter-bar { display:flex; align-items:center; gap:10px; min-width:0; padding:6px; border:1px solid var(--dc-line); border-radius:3px 9px 2px 7px; background:var(--dc-panel); box-shadow:var(--dc-shadow); }
+.cy-filter-bar .dc-tabs { flex:1; min-width:0; margin:0; border:0; background:transparent; box-shadow:none; }
+.cy-filter-bar .cy-filter-panel { margin-left:auto; flex:none; }
+.cy-filter-bar .cy-filter-panel > summary { gap:7px; white-space:nowrap; }
+.cy-filter-bar .cy-filter-panel > summary svg { width:18px; height:18px; }
+.cy-filter-bar .cy-filter-panel > summary span { font:600 13px "Space Grotesk",sans-serif; }
+.cy-filter-bar .cy-filter-panel[open] > summary { color:var(--dc-ink); }
+.search-controls { margin-bottom:18px; }
+.search-filter-panel .search-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:min(440px,calc(100vw - 32px)); gap:12px; margin:0; padding:16px; }
+.search-filter-panel .search-filters label { min-width:0; }
+.search-filter-panel .search-filters button { grid-column:1/-1; justify-content:center; }
+.banco-beats .beats-controls { align-items:center; flex-wrap:wrap; margin-bottom:20px; }
+.banco-beats .beats-genres { flex:1 1 260px; }
+.banco-beats .beats-search-filters { display:flex; align-items:center; flex:1 1 440px; flex-wrap:wrap; gap:8px; min-width:0; margin:0; padding:0; border:0; background:transparent; }
+.banco-beats .beats-search-row { display:flex; align-items:center; flex:1 1 180px; min-width:0; }
+.banco-beats .beats-search-row input { min-width:0; }
+.banco-beats .beats-search-row button { flex:none; min-width:44px; min-height:44px; padding:8px; }
+.banco-beats .beats-search-row button svg { width:18px; height:18px; }
+.banco-beats .beats-sort { flex:0 1 185px; min-width:145px; padding-left:10px; border-left:1px solid var(--dc-line); font-size:11px; }
+.banco-beats .beats-sort select { min-height:44px; }
+.banco-beats .beats-advanced { position:relative; flex:none; margin-left:auto; padding-left:10px; border-left:1px solid var(--dc-line); }
+.banco-beats .beats-advanced > summary { display:inline-flex; align-items:center; gap:7px; min-height:44px; margin:0; padding:8px 10px; border:1px solid var(--dc-line); border-radius:var(--dc-tab-corners); list-style:none; background:var(--dc-surface); font:600 13px "Space Grotesk",sans-serif; }
+.banco-beats .beats-advanced > summary::-webkit-details-marker { display:none; }
+.banco-beats .beats-advanced > summary svg { width:18px; height:18px; }
+.banco-beats .beats-advanced[open] > summary { border-color:var(--dc-olive); }
+.banco-beats .beats-advanced-panel { position:absolute; z-index:15; right:0; top:calc(100% + 10px); width:min(540px,calc(100vw - 32px)); max-height:min(70dvh,600px); overflow-y:auto; padding:16px; border:1px solid var(--dc-line); border-radius:3px 9px 2px 7px; background:var(--dc-surface); box-shadow:var(--dc-shadow); }
+.banco-beats .beats-advanced .beats-filter-grid { position:static; width:auto; max-height:none; overflow:visible; margin:0 0 12px; padding:0; border:0; background:transparent; box-shadow:none; }
+.banco-beats .beats-advanced-panel > button { width:100%; }
+.banco-beats .beats-collection-link { display:inline-flex; align-items:center; min-height:44px; padding-left:10px; border-left:1px solid var(--dc-line); white-space:nowrap; }
+@media(max-width:700px) { .cy-filter-bar { flex-wrap:wrap; } .cy-filter-bar .dc-tabs { flex:1 1 100%; overflow-x:auto; flex-wrap:nowrap; } .search-filter-panel .search-filters { grid-template-columns:1fr; } .banco-beats .beats-search-filters { flex-basis:100%; } .banco-beats .beats-sort { padding-left:0; border-left:0; } .banco-beats .beats-advanced { flex:1 1 100%; padding-left:0; border-left:0; } .banco-beats .beats-advanced-panel { left:0; right:auto; width:100%; } }

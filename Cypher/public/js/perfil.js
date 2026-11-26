@@ -16,12 +16,31 @@
   }
   const editor = document.querySelector("[data-seal-editor]");
   if (editor) {
-    const previa = editor.querySelector("[data-seal-preview]");
-    editor.addEventListener("input", () => {
-      previa.textContent =
-        editor.elements.letras.value.toLocaleUpperCase("pt-BR");
-      previa.dataset.forma = editor.elements.forma.value;
-      previa.dataset.cor = editor.elements.cor.value;
+    const glifos = { pulso: "⌁", estrela: "✦", raio: "ϟ", alvo: "◎", onda: "≈", flor: "✳" };
+    const formas = { disco: "Disco", placa: "Placa", quadro: "Quadro", orbita: "Órbita", onda: "Frequência", prisma: "Prisma" };
+    const atualizarSelo = () => {
+      const letras = editor.elements.letras.value.trim().toLocaleUpperCase("pt-BR").slice(0, 3);
+      const forma = editor.querySelector('[name="forma"]:checked')?.value || "disco";
+      const cor = editor.querySelector('[name="cor"]:checked')?.value || "oliva";
+      const simbolo = editor.querySelector('[name="simbolo"]:checked')?.value || "pulso";
+      editor.querySelectorAll("[data-seal-preview]").forEach(previa => {
+        previa.dataset.forma = forma;
+        previa.dataset.cor = cor;
+        previa.dataset.simbolo = simbolo;
+        previa.querySelector(".pf-seal-letters").textContent = letras || "·";
+        previa.querySelector(".pf-seal-symbol").textContent = glifos[simbolo];
+      });
+      editor.querySelector("[data-seal-forma-label]").textContent = formas[forma];
+    };
+    editor.addEventListener("input", atualizarSelo);
+    editor.addEventListener("change", atualizarSelo);
+    editor.querySelector("[data-seal-surprise]")?.addEventListener("click", () => {
+      for (const nome of ["forma", "simbolo", "cor"]) {
+        const opcoes = [...editor.querySelectorAll(`input[name="${nome}"]`)];
+        const atuais = opcoes.filter(opcao => !opcao.checked);
+        (atuais[Math.floor(Math.random() * atuais.length)] || opcoes[0]).checked = true;
+      }
+      atualizarSelo();
     });
   }
   const menu = document.querySelector(".pf-menu");
@@ -53,6 +72,17 @@
     } catch (erro) {
       if (erro.name !== "AbortError")
         window.prompt("Copie o endereço deste perfil", url);
+    }
+  });
+  document.querySelector("[data-copy-profile]")?.addEventListener("click", async event => {
+    event.preventDefault();
+    const status = document.querySelector(".pf-share-status");
+    try {
+      await navigator.clipboard.writeText(event.currentTarget.href);
+      status.textContent = "Link copiado.";
+      if (menu) menu.open = false;
+    } catch {
+      window.prompt("Copie o endereço deste perfil", event.currentTarget.href);
     }
   });
 

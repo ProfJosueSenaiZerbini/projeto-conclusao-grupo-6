@@ -1,8 +1,8 @@
 <% const audioEnviado=typeof midiasUsuario==='function'?midiasUsuario('obra',o.id).find(m=>m.finalidade==='audio'):null; const previaObra=audioEnviado?'/publication-media/'+audioEnviado.id:o.previa; %>
-<article class="ob-card<%= o.colecao ? ' ob-card-record' : '' %><%= o.tipo === 'Single' ? ' ob-card-single' : '' %>" data-ob-card data-ob-id="<%= o.id %>" data-ob-liked="<%= o.curtida %>" data-ob-likes="<%= o.curtidas %>" data-ob-title="<%= o.titulo %>" aria-labelledby="acervo-titulo-<%= o.id %>">
+<article class="ob-card<%= o.colecao ? ' ob-card-record' : '' %><%= o.tipo === 'Single' ? ' ob-card-single' : '' %><%= o.tipo === 'Letra' ? ' ob-card-lyrics' : '' %>" data-ob-card data-ob-id="<%= o.id %>" data-ob-liked="<%= o.curtida %>" data-ob-likes="<%= o.curtidas %>" data-ob-title="<%= o.titulo %>" aria-labelledby="acervo-titulo-<%= o.id %>">
   <div class="ob-artwork">
     <a class="ob-cover" href="<%= o.url %>" aria-label="Abrir <%= o.titulo %>">
-      <% const capaEnviada=typeof capaUsuario==='function'?capaUsuario('obra',o.id):''; %><% if(capaEnviada){ %><img src="<%= capaEnviada %>" alt=""><% }else if (o.capa) { %><img src="/img/<%= o.capa %>" alt="" loading="lazy" decoding="async"><% } else { %><span class="ob-cover-fallback"><span class="lucide-icon" aria-hidden="true"><%- icones.music2 %></span><strong><%= o.titulo %></strong></span><% } %>
+      <% const capaEnviada=typeof capaUsuario==='function'?capaUsuario('obra',o.id):''; %><% if(capaEnviada){ %><img src="<%= capaEnviada %>" alt=""><% }else if (o.capa) { %><img src="/img/<%= o.capa %>" alt="" loading="lazy" decoding="async"><% } else if (o.tipo === 'Letra') { %><span class="ob-lyrics-paper"><span>LETRA / CYPHER</span><strong><%= o.titulo %></strong><span><%= o.autor %></span></span><% } else { %><span class="ob-cover-fallback"><span class="lucide-icon" aria-hidden="true"><%- icones.music2 %></span><strong><%= o.titulo %></strong></span><% } %>
       <span class="ob-cover-gloss" aria-hidden="true"></span>
     </a>
     <span class="ob-format"><%= o.tipo %></span>
@@ -20,13 +20,14 @@
         <% }) %></ol>
       </div>
     <% } else if (o.colecao) { %><p class="ob-record-caption">As faixas deste projeto ainda não foram informadas.</p><% } %>
-    <% if (!o.colecao || previaObra) { %>
+    <% if (o.tipo !== 'Letra' && (!o.colecao || previaObra)) { %>
       <div class="ob-preview" data-ob-preview<% if (previaObra) { %> data-ob-src="<%= previaObra %>"<% } %>>
         <button class="ob-play" type="button" data-ob-play aria-pressed="false" aria-label="<%= previaObra ? 'Ouvir prévia de ' + o.titulo : 'Prévia de ' + o.titulo + ' ainda não disponível' %>"<%= previaObra ? '' : ' disabled' %>><span class="ob-play-icon"><%- include('icone-beat', { tipo: 'play' }) %></span><span class="ob-pause-icon"><%- include('icone-beat', { tipo: 'pause' }) %></span></button>
         <div class="ob-preview-copy"><span data-ob-preview-label><%= previaObra ? 'Ouvir prévia' : 'Prévia indisponível' %></span><span class="ob-preview-line" aria-hidden="true"><i data-ob-progress></i></span></div>
         <% if (!o.colecao && o.duracao) { %><span class="ob-duration" aria-label="Duração: <%= o.duracao %>"><%- icones.clock %><%= o.duracao %></span><% } %>
       </div>
     <% } %>
+    <% if (o.tipo === 'Letra') { %><a class="ob-lyrics-read" href="<%= o.url %>">Ler letra <span aria-hidden="true">↗</span></a><% } %>
     <% if (typeof usuario !== 'undefined' && o.handle === usuario?.handle) { %><a class="ob-media-manage" href="/publicacoes/obra/<%= o.id %>/midias">Gerenciar mídias</a><% } %>
     <%- include('acoes-obra', { id: o.id, titulo: o.titulo, plataforma: o.plataforma, ocultarCurtida: true }) %>
   </div>

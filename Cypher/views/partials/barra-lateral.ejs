@@ -2,7 +2,6 @@
   <%- include('navegacao-administrativa', { path, usuario }) %>
 <% } else {
   const profissionalSidebar = usuario.tipoConta === 'profissional' && !usuario.demonstracao;
-  const criacoesSidebar = profissionalSidebar ? acoesCriacaoSidebar(usuario) : [];
   const principal = [
     { href: '/dashboard', label: 'Descoberta', icon: 'house' },
     { href: '/search', label: 'Busca', icon: 'search' },
@@ -32,7 +31,7 @@
   const rotaSidebar = (typeof caminhoNavegacao === 'string' ? caminhoNavegacao : path).split('?')[0];
   const linkAtivoSidebar = href => rotaSidebar === href ||
     (href === '/dashboard' && rotaSidebar === '/') ||
-    (rotaSidebar.startsWith(href + '/') && !criacoesSidebar.some(acao => rotaSidebar === acao.base + '/new')) ||
+    rotaSidebar.startsWith(href + '/') ||
     (href === '/opportunities' && ['/my-opportunities', '/my-applications'].includes(rotaSidebar));
   const maisAtivo = gruposMais.some(grupo => grupo.links.some(link => linkAtivoSidebar(link.href)));
 %>
@@ -71,26 +70,12 @@
           ].forEach(link => { %>
             <%- include('componentes/link-sidebar', { link, ativo: linkAtivoSidebar(link.href) }) %>
           <% }) %>
-          <% if (criacoesSidebar.length) { %>
-            <details class="sidebar-create" <%= criacoesSidebar.some(acao => rotaSidebar === acao.base + '/new') ? 'open' : '' %>>
-              <summary class="side-link" aria-label="Criar novo">
-                <span class="side-icon lucide-icon" aria-hidden="true"><%- icones.plus %></span>
-                <span class="side-link-label">Criar novo</span>
-                <span class="sidebar-chevron lucide-icon" aria-hidden="true"><%- icones.chevronDown %></span>
-              </summary>
-              <div class="sidebar-create-links">
-                <% criacoesSidebar.forEach(acao => { %>
-                  <%- include('componentes/link-sidebar', { link: { href: acao.base + '/new', label: acao.nome, icon: acao.icone }, ativo: rotaSidebar === acao.base + '/new' }) %>
-                <% }) %>
-              </div>
-            </details>
-          <% } %>
         </div>
       <% } %>
     </nav>
     <div class="sidebar-bottom">
       <button class="side-link sidebar-more<%= maisAtivo ? ' active' : '' %>" type="button" data-sidebar-more aria-label="Mais opções" aria-controls="recursos-menu" aria-expanded="false">
-        <span class="side-icon lucide-icon" aria-hidden="true"><%- icones.menu %></span>
+        <span class="side-icon sidebar-menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
         <span class="side-link-label">Mais</span>
       </button>
       <div class="resource-links" id="recursos-menu" popover="manual" aria-label="Mais opções da Cypher" hidden>
@@ -107,7 +92,7 @@
         <% }) %>
         <form class="sidebar-logout" method="post" action="/logout">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-          <button class="side-link" type="submit"><span class="side-icon lucide-icon" aria-hidden="true"><%- icones.arrowLeft %></span><span class="side-link-label">Sair da conta</span></button>
+          <button class="sidebar-exit" type="submit" aria-label="Sair da conta" title="Sair da conta"><span class="exit-sign" aria-hidden="true"><svg viewBox="0 0 512 512" focusable="false"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path></svg></span><span class="exit-text" aria-hidden="true">Sair da conta</span></button>
         </form>
       </div>
     </div>

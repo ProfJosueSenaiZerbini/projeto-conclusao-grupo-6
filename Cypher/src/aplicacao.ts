@@ -6,7 +6,8 @@ import { limparCredenciaisExpiradas } from "./app/models/retencaoCredenciais.js"
 import { processarPrazos, resumoReputacao, reputacaoPublica } from "./app/models/colaboracoes.js";
 import { rotuloProfissional } from "./app/models/tratamentoProfissional.js";
 import { completudePerfil } from "./app/models/identidadeUsuario.js";
-import { acoesCriacao } from "./app/models/espacoTrabalho.js";
+import { acoesCriacao, iconeDaProfissao } from "./app/models/espacoTrabalho.js";
+import { idProfissaoPorCategoria } from "./app/models/questionarioAtuacao.js";
 import { discoDemo, idFaixaDemo, imagemPerfilDemo, imagemPublicacaoDemo } from "./app/models/catalogoDemonstrativo.js";
 import { protegerEscrita } from "./app/middlewares/seguranca.js";
 import { prepararSuperAdminLocal } from "./app/models/administracao.js";
@@ -15,6 +16,7 @@ import ejs from "ejs";
 import path from "node:path";
 import routes from "./app/routes/rotasCypher.js";
 import { inicializarAplicacaoCypher } from "./app/models/modeloCypher.js";
+import { prepararCatalogoInicialCypher } from "./app/models/catalogoInicial.js";
 import {
   BriefcaseBusiness, Clapperboard, PenLine, Camera, Paintbrush, Footprints, Newspaper, PencilRuler, Scissors, Podcast, Drum, PenTool, SprayCan, Video,
   ArrowLeft,
@@ -70,6 +72,11 @@ import {
 } from "lucide-static";
 
 inicializarAplicacaoCypher();
+// O catálogo acompanha o código em uma instalação nova. Testes e instalações
+// com banco próprio podem optar pela carga com CYPHER_SEED_CATALOG=1.
+if (!process.env.CYPHER_DB_PATH || process.env.CYPHER_SEED_CATALOG === "1") {
+  prepararCatalogoInicialCypher();
+}
 limparCredenciaisExpiradas();
 const cicloRetencao = setInterval(() => {
   try { limparCredenciaisExpiradas(); } catch { console.error("Falha na limpeza das credenciais expiradas."); }
@@ -165,6 +172,8 @@ if (process.env.CYPHER_VIEW_CACHE === "1") app.enable("view cache");
 app.set("views", path.resolve(process.cwd(), "views"));
 app.locals.icones = icones;
 app.locals.acoesCriacaoSidebar = acoesCriacao;
+app.locals.iconeCategoriaProfissional = (categoria: string) =>
+  iconeDaProfissao(idProfissaoPorCategoria(categoria) || "");
 app.locals.resumoReputacao = resumoReputacao;
 app.locals.reputacaoParaPerfil = (id: string, visitante: string) => {try {return reputacaoPublica(id,visitante);} catch{return null;}};
 app.locals.rotuloProfissional = rotuloProfissional;

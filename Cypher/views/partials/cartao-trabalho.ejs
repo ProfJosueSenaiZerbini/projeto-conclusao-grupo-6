@@ -1,4 +1,4 @@
-<article class="et-card et-card--<%= item.modalidade %>">
+<article class="et-card et-card--<%= item.modalidade %><%= item.tipo === 'Letra' ? ' et-card--letra' : '' %>">
   <a href="<%= href %>" class="et-card-link">
     <span class="et-art" aria-hidden="true"><span><%- icones[item.icone] %></span></span>
     <div class="et-card-copy">

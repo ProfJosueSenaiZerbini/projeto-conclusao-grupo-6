@@ -10,6 +10,7 @@ CREATE INDEX IF NOT EXISTS midias_publicacoes_autor ON midias_publicacoes(autor_
 CREATE TABLE IF NOT EXISTS selos_perfil (
  id TEXT PRIMARY KEY, autor_id TEXT NOT NULL REFERENCES usuarios(id),
  letras TEXT NOT NULL, forma TEXT NOT NULL, cor TEXT NOT NULL,
+ simbolo TEXT NOT NULL DEFAULT 'pulso',
  criado_em INTEGER NOT NULL, retirado_em INTEGER
 );
 CREATE UNIQUE INDEX IF NOT EXISTS selo_perfil_ativo ON selos_perfil(autor_id) WHERE retirado_em IS NULL;

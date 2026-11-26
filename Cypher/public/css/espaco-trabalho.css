@@ -181,6 +181,20 @@
     repeating-linear-gradient(132deg, transparent 0 16px, #c29b4a1f 17px 19px),
     linear-gradient(145deg, #484130, #21231b);
 }
+.et-card--letra .et-art {
+  background: #303528;
+}
+.et-card--letra .et-art > span {
+  width: 76px;
+  height: 96px;
+  border: 0;
+  border-left: 7px dotted #aaa77e;
+  border-radius: 1px;
+  color: #344036;
+  background: linear-gradient(90deg, transparent 15px, #d9a8a0 16px, transparent 17px), repeating-linear-gradient(#f3efd8 0 15px, #b7c5b2 16px 17px);
+  box-shadow: 5px 6px 0 #777e61;
+  transform: rotate(-5deg);
+}
 .et-card-copy {
   min-width: 0;
   padding: 15px 30px 16px 14px;
@@ -309,6 +323,16 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.et-lyrics-sheet {
+  margin-top: 24px;
+  padding: 25px clamp(20px, 6vw, 62px) 35px clamp(42px, 8vw, 80px);
+  color: #28382d;
+  background: linear-gradient(90deg, transparent 47px, #d8a9a1 48px, transparent 49px), repeating-linear-gradient(#f7f3df 0 31px, #bfcdbd 32px 33px);
+  border: 1px solid #d3d0ad;
+  box-shadow: 6px 7px 0 #a9ac8d;
+}
+.et-lyrics-sheet > span { display: block; margin-bottom: 22px; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.et-lyrics-sheet > div { min-height: 160px; white-space: pre-wrap; overflow-wrap: anywhere; font: 500 16px/33px "Space Grotesk", sans-serif; }
 .et-sheet ul {
   padding-left: 20px;
   line-height: 1.7;

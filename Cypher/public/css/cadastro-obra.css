@@ -276,10 +276,21 @@
   resize: vertical;
   line-height: 1.55;
 }
+.work-form label .work-lyrics-editor {
+  min-height: 330px;
+  padding: 18px 18px 18px 48px;
+  border-color: #d4cdaa;
+  color: #263329;
+  background: linear-gradient(90deg, transparent 36px, #d9a9a0 37px, transparent 38px), repeating-linear-gradient(#faf7e9 0 29px, #c9d2c3 30px 31px);
+  font-size: 14px;
+  line-height: 31px;
+  white-space: pre-wrap;
+}
 .work-form label input::placeholder,
 .work-form label textarea::placeholder {
   color: #a0a89e;
 }
+.work-form label .work-lyrics-editor::placeholder { color: #596a5d; }
 .work-form .field-full {
   grid-column: 1 / -1;
 }

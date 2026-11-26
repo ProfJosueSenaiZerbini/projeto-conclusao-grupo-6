@@ -2,10 +2,10 @@
   <header class="op-section-heading"><h2><%= conversa ? conversa.interlocutor : 'Mensagens' %></h2></header>
   <% if (conversa) { %><%- include('conversa') %><% } %>
 <% } else { %>
+  <h2 class="msg-conversations-heading">Conversas</h2>
   <section class="msg-layout<%= conversa ? ' has-conversation' : '' %>" aria-label="Mensagens privadas">
     <aside class="msg-sidebar" aria-label="Pessoas e conversas">
       <div class="msg-sidebar-head">
-        <h2>Conversas</h2>
         <form class="msg-search" role="search" action="/messages" method="get" data-message-search>
           <label class="sr-only" for="msg-person-search">Buscar pessoas</label>
           <div class="msg-search-field"><input id="msg-person-search" name="q" type="search" value="<%= busca %>" maxlength="100" placeholder="Nome ou @" autocomplete="off"><button type="submit" aria-label="Buscar pessoas"><%- icones.search %></button></div>

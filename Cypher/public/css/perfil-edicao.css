@@ -1,44 +1,23 @@
-/* Editor do perfil: superfícies opacas e paleta própria nos dois temas. */
+/* Editor do perfil integrado à identidade visual compartilhada da Cypher. */
 .dc-shell.pf-edit-shell {
-  --pe-bg: #edf2ec;
-  --pe-surface: #ffffff;
-  --pe-soft: #f2f6f1;
-  --pe-field: #fafcf9;
-  --pe-ink: #172c22;
-  --pe-muted: #4e6557;
-  --pe-line: #cad7cb;
-  --pe-control: #849c89;
-  --pe-green: #245b3b;
-  --pe-on-green: #ffffff;
-  --pe-selected: #e1eedf;
-  --pe-yellow: #765b00;
-  --pe-yellow-soft: #fff4c4;
+  --pe-bg: var(--dc-bg);
+  --pe-surface: var(--dc-card);
+  --pe-soft: var(--dc-surface);
+  --pe-field: var(--dc-field);
+  --pe-ink: var(--dc-ink);
+  --pe-muted: var(--dc-muted);
+  --pe-line: var(--dc-line);
+  --pe-control: var(--dc-line);
+  --pe-green: var(--dc-accent);
+  --pe-on-green: var(--dc-button-ink);
+  --pe-selected: var(--dc-selected);
+  --pe-yellow: var(--dc-yellow);
+  --pe-yellow-soft: var(--dc-hover);
   --pe-error: #9c2929;
-  --dc-ink: var(--pe-ink);
-  --dc-muted: var(--pe-muted);
-  --dc-line: var(--pe-line);
-  --dc-panel: var(--pe-surface);
-  --dc-surface: var(--pe-surface);
-  --dc-field: var(--pe-field);
-  background: var(--pe-bg);
+  background: transparent;
   color: var(--pe-ink);
 }
-.dark .dc-shell.pf-edit-shell {
-  --pe-bg: #07110d;
-  --pe-surface: #0e1c15;
-  --pe-soft: #14251c;
-  --pe-field: #0a1710;
-  --pe-ink: #eff6ed;
-  --pe-muted: #afc2b2;
-  --pe-line: #2c4535;
-  --pe-control: #67866d;
-  --pe-green: #b4d68b;
-  --pe-on-green: #12200e;
-  --pe-selected: #233c29;
-  --pe-yellow: #efd36a;
-  --pe-yellow-soft: #302c17;
-  --pe-error: #ffb8ad;
-}
+.dark .dc-shell.pf-edit-shell { --pe-error: #ffb8ad; }
 .pf-edit-shell .pf-page { max-width: 1500px; padding-top: 32px; }
 .pf-edit-shell .profile-edit-workspace {
   /* Aliases also recolor the shared questionnaire and seal components. */
@@ -204,9 +183,76 @@
 .pf-edit-shell .profile-edit-workspace .privacy-form { gap: 8px; margin-top: 12px; }
 .pf-edit-shell .privacy-form .button { margin-top: 16px; }
 .pf-edit-shell .profile-edit-workspace :is(.profile-privacy-card, .pf-seal-editor) { margin-top: 28px; }
-.pf-edit-shell .pf-seal-editor > .pf-inline { float: none; display: inline-block; margin-bottom: 14px; }
-.pf-edit-shell .pf-seal-editor-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
-.pf-edit-shell .pf-seal-editor-grid > .pf-seal { grid-column: 1 / -1; }
+.pf-edit-shell .profile-edit-workspace .pf-seal-studio { padding: 0; overflow: hidden; background: var(--pe-surface); border-radius: 6px 24px 6px 6px; }
+.pf-seal-reveal { display: flex; align-items: center; gap: 18px; padding: 20px clamp(22px, 3vw, 38px); border-bottom: 1px solid var(--pe-green); background: var(--pe-selected); }
+.pf-seal-reveal-icon { display: grid; place-items: center; flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--pe-green); color: var(--pe-on-green); font-size: 1.4rem; }
+.pf-seal-reveal > div { display: grid; gap: 3px; min-width: 0; }
+.pf-seal-reveal strong { font: 700 1.15rem "Space Grotesk", sans-serif; }
+.pf-seal-reveal div span { color: var(--pe-muted); font-size: .84rem; }
+.pf-seal-reveal a { margin-left: auto; flex: none; color: var(--pe-green); font-weight: 700; font-size: .84rem; text-underline-offset: 4px; }
+.pf-seal-studio-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; padding: clamp(22px, 3vw, 38px); border-bottom: 1px solid var(--pe-line); }
+.pf-edit-shell .pf-seal-eyebrow { display: block; margin-bottom: 10px; color: var(--pe-green); font: 700 .72rem "Space Grotesk", sans-serif; letter-spacing: .16em; }
+.pf-edit-shell .pf-seal-studio-heading h4 { margin: 0; font: 600 clamp(2rem, 3.5vw, 3.3rem)/1.05 "Oswald", sans-serif; letter-spacing: -.025em; }
+.pf-edit-shell .pf-seal-studio-heading p { max-width: 48ch; margin: 10px 0 0; }
+.pf-edit-shell .pf-seal-studio-heading .pf-inline { flex: none; margin: 0; }
+.pf-edit-shell .profile-edit-form.pf-seal-studio-layout { display: grid; grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr); gap: 0; margin: 0; }
+.pf-seal-stage { display: flex; flex-direction: column; min-width: 0; min-height: 600px; padding: 22px; background: radial-gradient(circle at 50% 37%, #263522 0, #141f18 48%, #0c1510 100%); color: #e6efdd; border-right: 1px solid var(--pe-line); }
+.pf-seal-stage-top, .pf-seal-stage-caption, .pf-seal-context > span { display: flex; justify-content: space-between; gap: 12px; font: 700 .67rem "Space Grotesk", sans-serif; letter-spacing: .14em; }
+.pf-seal-stage-top { color: #b9cda8; }
+.pf-seal-stage-live { display: inline-flex; align-items: center; gap: 6px; color: #c9e48f; }
+.pf-seal-stage-live i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 9px currentColor; }
+.pf-seal-stage-art { display: grid; place-items: center; flex: 1; min-height: 320px; background: repeating-linear-gradient(0deg, transparent 0 47px, #ffffff08 48px), repeating-linear-gradient(90deg, transparent 0 47px, #ffffff08 48px); }
+.pf-seal-stage .pf-seal-hero { --seal-size: clamp(10rem, 18vw, 14rem); filter: drop-shadow(0 22px 30px #0008); transition: border-radius .25s, background .25s, transform .25s; }
+.pf-seal-stage-caption { align-items: center; padding-bottom: 20px; color: #b9cda8; }
+.pf-seal-stage-caption strong { color: #edf5e5; font: 600 1.1rem "Oswald", sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+.pf-seal-context { padding: 18px; border: 1px solid #53664b; border-radius: 4px 14px 4px 4px; background: #101b14; }
+.pf-seal-context > span { color: #a7bb96; }
+.pf-seal-context > div { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+.pf-seal-context .pf-seal-context-mark { --seal-size: 3.2rem; }
+.pf-seal-context div > span:last-child { display: grid; gap: 3px; }
+.pf-seal-context strong { font: 600 1.05rem "Space Grotesk", sans-serif; }
+.pf-seal-context small { color: #adbea8; font-size: .76rem; }
+.pf-edit-shell .profile-edit-workspace .pf-seal-context small { color: #adbea8; font-size: .76rem; }
+.pf-seal-controls { min-width: 0; padding: clamp(20px, 2.6vw, 34px); }
+.pf-seal-step { padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--pe-line); }
+.pf-seal-step-title { display: flex; align-items: start; gap: 12px; margin-bottom: 16px; }
+.pf-seal-step-title > span { color: var(--pe-green); font: 700 .8rem "Space Grotesk", sans-serif; }
+.pf-seal-step-title > div { display: grid; gap: 3px; }
+.pf-seal-step-title strong { font: 700 1rem "Space Grotesk", sans-serif; }
+.pf-seal-step-title small { color: var(--pe-muted); font-size: .77rem; }
+.pf-seal-formas, .pf-seal-simbolos, .pf-seal-cores { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pf-edit-shell .profile-edit-workspace :is(.pf-seal-forma-option, .pf-seal-symbol-option, .pf-seal-color-option) { position: relative; display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 72px; gap: 6px; padding: 9px; border: 1px solid var(--pe-line); border-radius: 4px 10px 4px 4px; background: var(--pe-field); text-align: center; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
+.pf-edit-shell .profile-edit-workspace :is(.pf-seal-forma-option, .pf-seal-symbol-option, .pf-seal-color-option):hover { border-color: var(--pe-green); transform: translateY(-2px); }
+.pf-edit-shell .profile-edit-workspace :is(.pf-seal-forma-option, .pf-seal-symbol-option, .pf-seal-color-option):has(input:checked) { border-color: var(--pe-green); background: var(--pe-selected); box-shadow: inset 0 0 0 1px var(--pe-green); }
+.pf-seal-studio input[type="radio"] { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; }
+.pf-seal-studio label:has(input:focus-visible) { outline: 2px solid var(--pe-green); outline-offset: 2px; }
+.pf-seal-forma-option { flex-direction: column; font-size: .76rem !important; font-weight: 600; }
+.pf-seal-forma-sample { display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--pe-green); border-radius: 50%; transform: rotate(-12deg); }
+.pf-seal-forma-sample i { width: 11px; height: 11px; border: 1px solid var(--pe-green); border-radius: inherit; }
+.pf-seal-forma-sample[data-forma="placa"] { border-radius: 3px 10px; }
+.pf-seal-forma-sample[data-forma="quadro"] { border-radius: 3px; }
+.pf-seal-forma-sample[data-forma="orbita"] { box-shadow: 0 0 0 2px var(--pe-field), 0 0 0 3px var(--pe-green); }
+.pf-seal-forma-sample[data-forma="onda"] { border-radius: 10px 3px; }
+.pf-seal-forma-sample[data-forma="prisma"] { border-radius: 5px 1px; transform: rotate(45deg) scale(.8); }
+.pf-seal-monogram { display: grid; gap: 6px; max-width: 300px; font-weight: 700; }
+.pf-edit-shell .pf-seal-monogram input { max-width: 220px; font: 700 1.5rem "Space Grotesk", sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.pf-seal-monogram small { color: var(--pe-muted); font-size: .75rem; font-weight: 400; }
+.pf-seal-symbol-option { flex-direction: column; }
+.pf-seal-symbol-option > span { font-size: 1.6rem; line-height: 1; }
+.pf-seal-symbol-option small { font-size: .7rem; }
+.pf-edit-shell .profile-edit-workspace .pf-seal-symbol-option small { color: var(--pe-ink); font-size: .7rem; }
+.pf-seal-color-option { flex-direction: row; font-size: .75rem !important; font-weight: 600; }
+.pf-seal-color-sample { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #293821; background: #d0df99; }
+.pf-seal-color-option[data-cor="areia"] .pf-seal-color-sample { background: #f0d5a0; }
+.pf-seal-color-option[data-cor="lilas"] .pf-seal-color-sample { background: #ae9af4; }
+.pf-seal-color-option[data-cor="cobre"] .pf-seal-color-sample { background: #dc815d; }
+.pf-seal-color-option[data-cor="ciano"] .pf-seal-color-sample { background: #6bd9db; }
+.pf-seal-color-option[data-cor="rosa"] .pf-seal-color-sample { background: #ee78a8; }
+.pf-edit-shell .pf-seal-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 0; margin: 0; border: 0; }
+.pf-seal-actions .button:first-child { flex: 1 1 180px; }
+.pf-seal-actions .pf-seal-remove { width: 100%; border: 0 !important; padding: 6px !important; color: var(--pe-muted) !important; text-decoration: underline; }
+@media (max-width: 1050px) { .pf-edit-shell .profile-edit-form.pf-seal-studio-layout { grid-template-columns: minmax(0, 1fr); } .pf-seal-stage { min-height: 480px; border-right: 0; } }
+@media (max-width: 600px) { .pf-seal-reveal { align-items: start; flex-wrap: wrap; padding: 18px; } .pf-seal-reveal a { margin-left: 64px; } .pf-seal-studio-heading { flex-direction: column; align-items: start; padding: 20px; } .pf-seal-stage { min-height: 420px; padding: 16px; } .pf-seal-stage-art { min-height: 230px; } .pf-seal-stage .pf-seal-hero { --seal-size: 10rem; } .pf-seal-controls { padding: 20px 16px; } }
 .profile-portfolio-summary { display: flex; flex-wrap: wrap; gap: 12px; }
 .profile-portfolio-links { display: grid; gap: 12px; margin-top: 24px; }
 .pf-edit-shell .profile-portfolio-links .settings-link-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; border: 1px solid var(--pe-line); border-radius: 5px; background: var(--pe-soft); color: var(--pe-ink); }
@@ -245,7 +291,7 @@
   .profile-edit-field-foot { flex-wrap: wrap; gap: 6px; }
   .pf-edit-shell .profile-edit-workspace .rapper-branches .category-grid { grid-template-columns: minmax(0, 1fr); }
   .pf-edit-shell .profile-edit-workspace :is(.profile-category-fieldset, .professional-questionnaire, .professional-questionnaire__field, .profile-privacy-card, .pf-seal-editor, .profile-category-request) { padding: 14px; }
-  .pf-edit-shell .profile-edit-workspace :is(.professional-area-picker, .professional-catalog-group__options, .profile-category-grid, .pf-seal-editor-grid) { grid-template-columns: minmax(0, 1fr); }
+  .pf-edit-shell .profile-edit-workspace :is(.professional-area-picker, .professional-catalog-group__options, .profile-category-grid) { grid-template-columns: minmax(0, 1fr); }
   .profile-account-summary > div { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 16px; }
   .pf-edit-shell .profile-edit-workspace form > .button, .pf-edit-shell .profile-edit-actions .button, .profile-portfolio-summary .button { width: 100%; }
 }

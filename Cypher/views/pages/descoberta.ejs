@@ -19,7 +19,7 @@
     }) %>
     <main class="dc-content" id="conteudo-descoberta" tabindex="-1">
       <%- include('../partials/componentes/completar-identidade', { usuario }) %>
-      <div class="dc-controls">
+      <div class="dc-controls cy-filter-bar">
         <nav class="dc-tabs" aria-label="Tipo de conteúdo">
           <% categorias.forEach(cat => { %>
             <a href="<%= urlFiltro(cat.id, q) %>"<% if (cat.id === categoria) { %> aria-current="page"<% } %>>
@@ -28,12 +28,12 @@
             </a>
           <% }) %>
         </nav>
-        <% if (opcoes.length || detalhe) { %>
-          <details class="dc-filter"><summary aria-label="Refinar resultados" title="Refinar resultados"><%- icones.sliders %></summary>
+        <% if (gruposOpcoes.length || detalhe) { %>
+          <details class="dc-filter cy-filter-panel" <%= detalhe ? 'open' : '' %>><summary aria-label="Refinar resultados" title="Refinar resultados"><%- icones.sliders %><span>Filtros<%= detalhe ? ' · 1' : '' %></span></summary>
             <form action="/dashboard">
               <input type="hidden" name="tipo" value="<%= categoria %>"><input type="hidden" name="q" value="<%= q %>">
-              <label>Refinar resultados<select name="detalhe"><option value="">Todos</option>
-                <% opcoes.forEach(op => { %><option <%= op === detalhe ? 'selected' : '' %>><%= op %></option><% }) %>
+              <label>Refinar resultados<select name="detalhe"><option value="">Todos os resultados</option>
+                <% gruposOpcoes.forEach(grupo => { %><optgroup label="<%= grupo.nome %>"><% grupo.valores.forEach(op => { %><option value="<%= op %>" <%= op === detalhe ? 'selected' : '' %>><%= op %></option><% }) %></optgroup><% }) %>
               </select></label><button type="submit">Aplicar filtro</button>
             </form>
           </details>
@@ -87,7 +87,7 @@
             </section>
             <% } %>
             <section><% cabecao(musica.length ? 'Lançamentos na cena' : 'Explore por categoria', musica.length ? urlFiltro('musica') : ''); %>
-              <div class="dc-tiles<%= musica.length ? ' dc-release-tiles' : '' %>" role="region" aria-label="<%= musica.length ? 'Lançamentos na cena' : 'Explore por categoria' %> — rolagem horizontal" tabindex="0">
+              <div class="dc-rail"><div id="trilho-lancamentos" class="dc-tiles<%= musica.length ? ' dc-release-tiles' : '' %>" role="region" aria-label="<%= musica.length ? 'Lançamentos na cena' : 'Explore por categoria' %> — rolagem horizontal" tabindex="0">
                 <% if (musica.length) { musica.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }); } else { categorias.slice(1).forEach(cat => { %>
                   <a class="dc-category dc-cat-<%= cat.id %>" href="<%= urlFiltro(cat.id) %>">
                     <span class="dc-category-art"><img src="/img/<%= cat.foto %>" alt="" loading="lazy" decoding="async"><i aria-hidden="true"><%- icones[cat.icone] %></i></span>
@@ -95,19 +95,53 @@
                   </a>
                 <% }); } %>
               </div>
+              <%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-lancamentos', titulo: musica.length ? 'lançamentos na cena' : 'categorias', rotulo: 'Navegar pelos lançamentos ou categorias' }) %>
+              </div>
+            </section>
+            <section class="dc-discovery-section" aria-labelledby="oportunidades-titulo">
+              <div class="dc-heading"><h2 id="oportunidades-titulo">Oportunidades para criar junto</h2><a href="/opportunities">Ver todas <%- icones.arrowRight %></a></div>
+              <% if (oportunidades.length) { %><div class="dc-opportunities">
+                <% oportunidades.forEach(oportunidade => { %><article class="dc-opportunity">
+                  <span class="dc-stamp">CHAMADA ABERTA</span>
+                  <h3><a href="/opportunities/<%= encodeURIComponent(oportunidade.id) %>"><%= oportunidade.titulo %></a></h3>
+                  <p><%= oportunidade.descricao %></p>
+                  <div class="dc-opportunity-tags"><% oportunidade.funcoes.forEach(funcao => { %><span><%= funcao %></span><% }) %></div>
+                  <footer><span><%= oportunidade.autor %><%= oportunidade.local ? ' · ' + oportunidade.local : '' %></span><a href="/opportunities/<%= encodeURIComponent(oportunidade.id) %>" aria-label="Ver oportunidade: <%= oportunidade.titulo %>">Ver chamada <%- icones.arrowUpRight %></a></footer>
+                </article><% }) %>
+              </div><% } else { %><div class="dc-empty"><%- icones.briefcase %><div><strong>Novas chamadas aparecerão aqui.</strong><p>Explore as oportunidades publicadas pela comunidade.</p></div></div><% } %>
+            </section>
+            <section class="dc-discovery-section"><% cabecao('Beats para ouvir', '/beats'); %>
+              <% if (beats.length) { %><div class="dc-rail"><div id="trilho-beats-descoberta" class="dc-tiles" role="region" aria-label="Beats para ouvir — rolagem horizontal" tabindex="0"><% beats.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-beats-descoberta', titulo: 'beats', rotulo: 'Navegar pelos beats' }) %></div><% } else { %><div class="dc-empty"><%- icones.headphones %><div><strong>Os próximos beats da cena aparecerão aqui.</strong></div></div><% } %>
+            </section>
+            <section class="dc-discovery-section"><% cabecao('Produções da cena', projetosCena.length ? '/work-projects' : '/works'); %>
+              <% if (projetosCena.length) { %>
+                <div class="dc-rail"><div id="trilho-producoes-descoberta" class="dc-tiles" role="region" aria-label="Produções da cena: rolagem horizontal" tabindex="0">
+                  <% projetosCena.forEach(projeto => { const url = "/work-projects/" + encodeURIComponent(projeto.id); %>
+                    <article class="dc-opportunity">
+                      <span class="dc-stamp"><%= projeto.formato %></span>
+                      <h3><a href="<%= url %>"><%= projeto.titulo %></a></h3>
+                      <p><%= projeto.descricao %></p>
+                      <footer><span><%= projeto.autor %></span><a href="<%= url %>" aria-label="Ver produção: <%= projeto.titulo %>">Ver produção <%- icones.arrowUpRight %></a></footer>
+                    </article>
+                  <% }) %>
+                </div><%- include("../partials/componentes/navegacao-horizontal", { faixa: "trilho-producoes-descoberta", titulo: "produções", rotulo: "Navegar pelas produções da cena" }) %></div>
+              <% } else if (producoes.length) { %><div class="dc-rail"><div id="trilho-producoes-descoberta" class="dc-tiles" role="region" aria-label="Produções da cena — rolagem horizontal" tabindex="0"><% producoes.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-producoes-descoberta', titulo: 'produções', rotulo: 'Navegar pelas produções da cena' }) %></div><% } else { %><div class="dc-empty"><%- icones.music %><div><strong>As obras da comunidade aparecerão aqui.</strong></div></div><% } %>
+            </section>
+            <section class="dc-discovery-section"><% cabecao('Novos talentos', '/search?tipo=pessoas'); %>
+              <% if (novosTalentos.length) { %><div class="dc-rail"><div id="trilho-talentos-descoberta" class="dc-people" role="region" aria-label="Novos talentos — rolagem horizontal" tabindex="0"><% novosTalentos.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-talentos-descoberta', titulo: 'novos talentos', rotulo: 'Navegar pelos novos talentos' }) %></div><% } else { %><div class="dc-empty"><%- icones.users %><div><strong>Novos perfis aparecerão aqui.</strong></div></div><% } %>
             </section>
             <section><% cabecao('Profissionais para colaborar', '/search?tipo=pessoas'); %>
-              <% if (pessoas.length) { %><div class="dc-people"><% pessoas.slice(0,3).forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div>
+              <% if (pessoas.length) { %><div class="dc-rail"><div id="trilho-profissionais" class="dc-people" role="region" aria-label="Profissionais para colaborar — rolagem horizontal" tabindex="0"><% pessoas.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-profissionais', titulo: 'profissionais', rotulo: 'Navegar pelos profissionais' }) %></div>
               <% } else { %><div class="dc-empty"><%- icones.users %><div><strong>Novos nomes por aqui em breve</strong><p>Os perfis públicos de outros profissionais aparecem aqui.</p></div></div><% } %>
             </section>
             <section><% cabecao('Eventos em destaque', '/events?localizacao='); %>
               <% if (eventosDestacados.length) { %>
-                <div class="dc-event-carousel">
+                <div class="dc-rail">
                   <div id="eventos-destaque-conteudo" class="dc-tiles dc-event-tiles" role="region" aria-label="Eventos em destaque — rolagem horizontal" tabindex="0">
                     <% eventosDestacados.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %>
                   </div>
                   <% if (eventosDestacados.length > 1) { %>
-                    <%- include('../partials/componentes/navegacao-eventos', { faixa: 'eventos-destaque-conteudo', rotulo: 'Navegar pelos eventos em destaque' }) %>
+                    <%- include('../partials/componentes/navegacao-horizontal', { faixa: 'eventos-destaque-conteudo', titulo: 'eventos em destaque', rotulo: 'Navegar pelos eventos em destaque' }) %>
                   <% } %>
                 </div>
               <% } else { %><div class="dc-empty"><%- icones.calendarDays %><div><strong>Sem eventos em destaque</strong></div></div><% } %>
@@ -121,14 +155,14 @@
             </section>
             <section class="dc-panel"><% cabecao('Próximos eventos', '/events?periodo=proximos&ordem=recentes&localizacao='); %>
               <% if (agenda.length) { %>
-                <div class="dc-event-carousel">
+                <div class="dc-rail">
                   <div class="dc-agenda-pages" id="agenda-proximos" role="region" aria-label="Próximos eventos por data" tabindex="0">
                     <% for (let i = 0; i < agenda.length; i += 2) { %>
                       <div class="dc-event-stack"><% agenda.slice(i, i + 2).forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }); %></div>
                     <% } %>
                   </div>
                   <% if (agenda.length > 2) { %>
-                    <%- include('../partials/componentes/navegacao-eventos', { faixa: 'agenda-proximos', rotulo: 'Navegar pelos próximos eventos' }) %>
+                    <%- include('../partials/componentes/navegacao-horizontal', { faixa: 'agenda-proximos', titulo: 'próximos eventos', rotulo: 'Navegar pelos próximos eventos' }) %>
                   <% } %>
                 </div>
               <% } else { %>
@@ -138,9 +172,14 @@
             <section class="dc-panel dc-guide">
               <div class="dc-heading"><h2>Cypher Central</h2><a class="dc-central-info" href="/central" aria-label="Abrir Cypher Central" title="Abrir Cypher Central"><span aria-hidden="true">&#128712;</span></a></div>
               <% if(!guias.length){ %><p class="dc-empty">Os guias publicados pela equipe aparecerão aqui.</p><% } %>
-              <% guias.forEach(guia => { %>
+              <div class="dc-central-guides" id="guias-central" role="region" aria-label="Guias da Cypher Central">
+              <% guias.forEach((guia, indice) => { %>
+                <div class="dc-central-guide"<% if (indice) { %> hidden<% } %>>
                 <%- include('../partials/componentes/cartao-central', { rotulo: 'Guia da cena', titulo: guia.q, descricao: guia.a, href: guia.href }) %>
+                </div>
               <% }); %>
+              <% if (guias.length > 1) { %><div class="dc-central-nav" role="group" aria-label="Navegar pelos guias da Cypher Central"><button type="button" class="dc-central-prev" aria-label="Guia anterior" aria-controls="guias-central" hidden><%- icones.arrowLeft %></button><button type="button" class="dc-central-next" aria-label="Próximo guia" aria-controls="guias-central"><%- icones.arrowRight %></button></div><% } %>
+              </div>
             </section>
           </aside>
         </div>

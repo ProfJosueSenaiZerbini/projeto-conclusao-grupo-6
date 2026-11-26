@@ -17,12 +17,14 @@
         </div>
         <span class="search-index" aria-hidden="true">CYPHER<br>MAPA DA CENA <span>↗</span></span>
       </header>
+      <div class="dc-controls cy-filter-bar search-controls">
       <nav class="dc-tabs search-tabs" aria-label="Categorias da pesquisa">
         <% categorias.forEach(cat => { %>
           <a href="<%= urlBusca({ q, tipo: cat.id }) %>" data-search-navigation<% if (tipo === cat.id) { %> aria-current="page"<% } %>><span aria-hidden="true"><%- icones[cat.icone] %></span><%= cat.nome %><small><%= contagens[cat.id] %></small></a>
         <% }) %>
       </nav>
       <% if (tipo !== 'tudo') { %>
+        <details class="dc-filter cy-filter-panel search-filter-panel" <%= filtrosAtivos ? 'open' : '' %>><summary aria-label="Refinar resultados"><%- icones.sliders %><span>Filtros<%= filtrosAtivos ? ' ativos' : '' %></span></summary>
         <form class="search-filters" action="/search" method="get" aria-label="Filtrar <%= categorias.find(c => c.id === tipo).nome %>">
           <input type="hidden" name="q" value="<%= q %>"><input type="hidden" name="tipo" value="<%= tipo %>">
           <% const campos = [
@@ -39,8 +41,9 @@
             </select></label>
           <% }) %>
           <% if (campos.length) { %><button class="dc-primary" type="submit"><span aria-hidden="true"><%- icones.sliders %></span> Aplicar filtros</button><% } %>
-        </form>
+        </form></details>
       <% } %>
+      </div>
       <% if (filtrosAtivos) { %><div class="search-active-filters"><span><%= Object.values(filtros).filter(Boolean).map(v => ({ populares: 'Populares', proximos: 'Próximos eventos', passados: 'Eventos passados' })[v] || v).join(' / ') %></span><a href="<%= limpar %>" data-search-navigation>Limpar filtros <span aria-hidden="true">×</span></a></div><% } %>
       <div class="search-results">
         <div class="search-meta"><span><strong><%= total %></strong> <%= total === 1 ? 'resultado' : 'resultados' %><%= q ? ' para “' + q + '”' : ' na cena' %></span><span><%= tipo === 'pessoas' ? filtros.ordem === 'populares' ? 'Popularidade' : 'Nome A–Z' : 'Conteúdo público' %></span></div>

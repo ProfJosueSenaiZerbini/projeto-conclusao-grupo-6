@@ -1,4 +1,20 @@
 const movimentoReduzido = window.matchMedia("(prefers-reduced-motion: reduce)");
+document.querySelectorAll(".dc-guide").forEach(panel => {
+  const guides = [...panel.querySelectorAll(".dc-central-guide")];
+  const previous = panel.querySelector(".dc-central-prev");
+  const next = panel.querySelector(".dc-central-next");
+  if (!previous || !next) return;
+  let current = 0;
+  function show(index) {
+    guides[current].hidden = true;
+    current = index;
+    guides[current].hidden = false;
+    previous.hidden = current === 0;
+    next.hidden = current === guides.length - 1;
+  }
+  previous.addEventListener("click", () => show(current - 1));
+  next.addEventListener("click", () => show(current + 1));
+});
 const contagemSempreVisivel = window.matchMedia(
   "(max-width: 900px) and (hover: none)"
 );
@@ -242,54 +258,45 @@ if (conteudoDestaques && navegacao) {
   }
 }
 
-document
-  .querySelectorAll(".dc-event-carousel .dc-event-nav")
-  .forEach(navegacaoEventos => {
-    const anterior = navegacaoEventos.querySelector(".dc-event-prev");
-    const faixaEventos = document.getElementById(
-      anterior.getAttribute("aria-controls")
-    );
-    const proximo = navegacaoEventos.querySelector(".dc-event-next");
-    const progresso = navegacaoEventos.querySelector(".dc-event-progress");
-    const [primeiro, segundo] = faixaEventos.children;
+document.querySelectorAll(".dc-rail").forEach(rail => {
+  const nav = rail.querySelector(".dc-rail-nav");
+  const previous = nav?.querySelector(".dc-rail-prev");
+  const next = nav?.querySelector(".dc-rail-next");
+  const track = previous && document.getElementById(previous.getAttribute("aria-controls"));
+  if (!track || !next) return;
 
-    function atualizarNavegacao() {
-      const { scrollWidth, clientWidth, scrollLeft } = faixaEventos;
-      const limite = scrollWidth - clientWidth;
-      navegacaoEventos.hidden = limite <= 1;
-      if (navegacaoEventos.hidden) return;
+  function update() {
+    const limit = Math.max(0, track.scrollWidth - track.clientWidth);
+    const position = Math.min(limit, Math.max(0, track.scrollLeft));
+    nav.hidden = limit <= 1;
+    previous.disabled = position <= 1;
+    next.disabled = position >= limit - 1;
+  }
 
-      const posicao = Math.min(limite, Math.max(0, scrollLeft));
-      anterior.disabled = posicao <= 1;
-      proximo.disabled = posicao >= limite - 1;
-      progresso.style.setProperty(
-        "--dc-event-progress-start",
-        `${(posicao / scrollWidth) * 100}%`
-      );
-      progresso.style.setProperty(
-        "--dc-event-progress-width",
-        `${(clientWidth / scrollWidth) * 100}%`
-      );
-    }
+  function move(direction) {
+    const items = Array.from(track.children);
+    const position = track.scrollLeft;
+    const targetPosition = Math.max(0, Math.min(track.scrollWidth - track.clientWidth, position + direction * track.clientWidth));
+    const starts = items.map(item => item.getBoundingClientRect().left - track.getBoundingClientRect().left + position);
+    const target = direction > 0
+      ? starts.find(start => start >= targetPosition - 2 && start > position + 2)
+      : starts.filter(start => start <= targetPosition + 2 && start < position - 2).at(-1);
+    track.scrollTo({ left: target ?? targetPosition, behavior: movimentoReduzido.matches ? "instant" : "smooth" });
+  }
 
-    function rolarEventos(sentido) {
-      const passo =
-        segundo.getBoundingClientRect().left -
-        primeiro.getBoundingClientRect().left;
-      faixaEventos.scrollBy({
-        left: sentido * passo,
-        behavior: movimentoReduzido.matches ? "auto" : "smooth",
-      });
-    }
-
-    anterior.addEventListener("click", () => rolarEventos(-1));
-    proximo.addEventListener("click", () => rolarEventos(1));
-    faixaEventos.addEventListener("scroll", atualizarNavegacao, {
-      passive: true,
-    });
-    new ResizeObserver(atualizarNavegacao).observe(faixaEventos);
-    atualizarNavegacao();
+  previous.addEventListener("click", () => move(-1));
+  next.addEventListener("click", () => move(1));
+  track.addEventListener("keydown", event => {
+    if (event.target !== track || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === "Home" || event.key === "End") track.scrollTo({ left: event.key === "Home" ? 0 : track.scrollWidth, behavior: movimentoReduzido.matches ? "instant" : "smooth" });
+    else move(event.key === "ArrowRight" ? 1 : -1);
   });
+  track.addEventListener("scroll", update, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(update).observe(track);
+  window.addEventListener("resize", update);
+  update();
+});
 
 const filtros = document.querySelector(".dc-tabs");
 if (filtros && document.referrer && !movimentoReduzido.matches) {
@@ -379,3 +386,4 @@ document.addEventListener("keydown", evento => {
     painel.querySelector("summary").focus();
   });
 });
+

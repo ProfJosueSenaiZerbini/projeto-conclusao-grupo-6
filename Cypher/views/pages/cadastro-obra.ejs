@@ -21,7 +21,7 @@
       <%= editando ? 'Editar obra' : 'Cadastrar obra' %>
     </h1>
     <p>
-      Registre a faixa e organize a participação de cada pessoa envolvida.
+      <%= valores.tipo === 'Letra' ? 'Escreva sua letra e registre a autoria, mesmo que ainda não exista gravação.' : 'Registre a faixa e organize a participação de cada pessoa envolvida.' %>
     </p>
   </div>
 </div>
@@ -57,7 +57,7 @@
 <form class="work-form" method="post" action="<%= editando ? `/works/${encodeURIComponent(obraId)}/edit` : '/works/new' %>" data-work-form data-work-categories="<%= (usuario.categories ?? []).join('|') %>" data-type-other-legacy-empty="<%= tipoOutroLegadoVazio %>" data-genre-other-legacy-empty="<%= generoOutroLegadoVazio %>" data-role-other-legacy-empty="<%= papelOutroLegadoVazio %>">
   <section class="work-selected-type" aria-labelledby="work-selected-type-title">
     <div class="work-selected-type-icon lucide-icon" aria-hidden="true">
-      <%- valores.tipo === 'Instrumental' ? icones.headphones : valores.tipo === 'Outro' ? icones.sparkles : icones.fileMusic %>
+      <%- valores.tipo === 'Instrumental' ? icones.headphones : valores.tipo === 'Outro' ? icones.sparkles : valores.tipo === 'Letra' ? icones.pen : icones.fileMusic %>
     </div>
     <div>
       <div class="eyebrow">
@@ -82,16 +82,16 @@
       </span>
       <div>
         <h2>
-          <%= valores.tipo === 'Instrumental' ? 'Informações do instrumental' : valores.tipo === 'Outro' ? 'Informações do projeto' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Informações do lançamento' : 'Informações da obra' %>
+          <%= valores.tipo === 'Letra' ? 'Informações da letra' : valores.tipo === 'Instrumental' ? 'Informações do instrumental' : valores.tipo === 'Outro' ? 'Informações do projeto' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Informações do lançamento' : 'Informações da obra' %>
         </h2>
         <p>
-          <%= valores.tipo === 'Instrumental' ? 'Comece pelos dados que identificam o material.' : valores.tipo === 'Outro' ? 'Registre os dados gerais que ajudam a organizar este projeto.' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Comece pelos dados gerais do lançamento.' : 'Comece pelos dados que identificam a faixa.' %>
+          <%= valores.tipo === 'Letra' ? 'A letra pode existir sem composição ou gravação vinculada.' : valores.tipo === 'Instrumental' ? 'Comece pelos dados que identificam o material.' : valores.tipo === 'Outro' ? 'Registre os dados gerais que ajudam a organizar este projeto.' : valores.tipo === 'EP' || valores.tipo === 'Álbum' ? 'Comece pelos dados gerais do lançamento.' : 'Comece pelos dados que identificam a faixa.' %>
         </p>
       </div>
     </div>
     <div class="form-grid">
       <label class="field-full">
-        Título da obra
+        <%= valores.tipo === 'Letra' ? 'Título da letra' : 'Título da obra' %>
         <span class="required-mark">
           *
         </span>
@@ -104,7 +104,7 @@
         <small>O valor fica como detalhe do tipo “Outro”; não altera os tipos gerais do catálogo.</small>
       </label>
       <label>
-        Gênero ou categoria<% if (valores.tipo !== 'Outro') { %>
+        Gênero ou categoria<% if (valores.tipo !== 'Outro' && valores.tipo !== 'Letra') { %>
         <span class="required-mark">
           *
         </span>
@@ -113,7 +113,7 @@
           Opcional
         </span>
       <% } %>
-      <select name="genero" data-work-genre-select<%= valores.tipo !== 'Outro' ? ' required' : '' %>>
+      <select name="genero" data-work-genre-select<%= valores.tipo !== 'Outro' && valores.tipo !== 'Letra' ? ' required' : '' %>>
         <option value="">
           Selecione
         </option>
@@ -154,13 +154,9 @@
       </textarea>
     </label>
     <% if (['composicao','letra'].includes(classeAcervo)) { %><label class="field-full">
-      Letra
-      <span class="optional-mark">
-        Opcional
-      </span>
-      <textarea name="letra" rows="5" maxlength="5000" placeholder="Adicione um trecho da letra. Em uma obra pública, ele aparece no perfil.">
-        <%= valores.letra %>
-      </textarea>
+      <%= classeAcervo === 'letra' ? 'Texto da letra' : 'Letra' %>
+      <% if (classeAcervo === 'letra') { %><span class="required-mark">*</span><% } else { %><span class="optional-mark">Opcional</span><% } %>
+      <textarea name="letra" rows="<%= classeAcervo === 'letra' ? 18 : 5 %>" maxlength="5000"<%= classeAcervo === 'letra' ? ' required minlength="1" class="work-lyrics-editor"' : '' %> placeholder="<%= classeAcervo === 'letra' ? 'Escreva a letra completa, separando versos e estrofes por linhas.' : 'Adicione um trecho da letra. Em uma obra pública, ele aparece no perfil.' %>"><%= valores.letra %></textarea>
     </label><% } %>
   </div>
 </section>

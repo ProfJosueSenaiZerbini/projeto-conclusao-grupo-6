@@ -285,11 +285,17 @@ export function catalogoObras(req: Request, res: Response) {
       itens: obras.filter(o => ["Faixa", "Single"].includes(o.tipo)),
     },
     {
+      id: "letras",
+      titulo: "Letras da cena",
+      descricao: "Palavras com identidade própria, mesmo antes de virar música.",
+      itens: obras.filter(o => o.tipo === "Letra"),
+    },
+    {
       id: "outros",
       titulo: "Outras expressões da cena",
       descricao: "Mais formatos, outras formas de criar.",
       itens: obras.filter(
-        o => !o.colecao && !["Faixa", "Single"].includes(o.tipo)
+        o => !o.colecao && !["Faixa", "Single", "Letra"].includes(o.tipo)
       ),
     },
   ].filter(g => g.itens.length);

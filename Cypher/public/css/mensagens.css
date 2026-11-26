@@ -191,3 +191,11 @@
   .msg-layout { height: max(320px, calc(100dvh - 250px)); }
   .msg-sidebar-head { padding-top: 14px; }
 }
+
+.msg-conversations-heading { margin:0 0 16px; font:700 30px/1.1 "Oswald",sans-serif; }
+.msg-sidebar-head { grid-template-columns:minmax(0,1fr) 42px; column-gap:12px; }
+.msg-sidebar-head .msg-settings { grid-column:2; }
+.msg-search, .msg-search.is-collapsible, .msg-search.is-collapsible.is-open { grid-column:1; grid-row:1; justify-self:end; width:100%; }
+.msg-search.is-collapsible { width:42px; max-width:100%; transition:width .28s ease; }
+.msg-search.is-collapsible.is-open { width:100%; }
+@media (prefers-reduced-motion:reduce) { .msg-search.is-collapsible { transition:none; } }

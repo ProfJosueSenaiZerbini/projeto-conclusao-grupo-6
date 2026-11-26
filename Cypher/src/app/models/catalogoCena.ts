@@ -19,6 +19,7 @@ import {
   oportunidadesCena,
   ofertasCena,
   conversasCena,
+  eventosCatalogoCena,
 } from "./cenaConteudo.js";
 import { profissoesCatalogo } from "./modeloPerfil.js";
 import { audioCatalogoLocal } from "./audioCatalogoLocal.js";
@@ -545,41 +546,37 @@ export function semearCatalogoCena(
           localizacao_confirmada: false,
         });
       }
-      const eventos: {
-        id: string;
-        autor: string;
-        titulo: string;
-        local: string;
-        descricao: string;
-        dias: number;
-        vagas: number;
-      }[] = [];
-      for (const [i, e] of eventos.entries()) {
-        const data = new Date(agora + e.dias * 86400000)
-            .toISOString()
-            .slice(0, 10),
-          autor = idPessoaCena(e.autor);
+      for (const e of eventosCatalogoCena) {
+        const autor = idPessoaCena(e.autor);
         run(
-          `INSERT INTO eventos(id,proprietario_id,titulo,categoria,data_texto,horario,local,organizador,situacao,cor,descricao,formato,inscricao,tipo_participacao,tema_cartao,demonstracao) VALUES(?,?,?,'Encontro',?,'19:00',?,?,'Inscrições abertas','green',?,'Presencial','Inscrição sujeita à aprovação da organização.','aprovacao','classico',0) ON CONFLICT DO NOTHING`,
+          `INSERT INTO eventos(id,proprietario_id,titulo,categoria,data_texto,horario,local,organizador,situacao,cor,descricao,formato,inscricao,tipo_participacao,tema_cartao,demonstracao) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0) ON CONFLICT DO NOTHING`,
           e.id,
           autor,
           e.titulo,
-          data,
+          e.categoria,
+          e.data,
+          e.horario,
           e.local,
-          pessoasCena.find(p => p.slug === e.autor)!.nome,
-          e.descricao
+          e.categoria === "Workshop" ? "Cypher" : "Cypher Demo",
+          e.categoria === "Workshop" ? "Inscrições abertas" : "Acontece em breve",
+          e.cor,
+          e.descricao,
+          e.formato,
+          e.categoria === "Workshop" ? "Gratuito · vagas limitadas" : "",
+          "aberta",
+          e.tema
         );
         run(
           "INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,fuso,inicio_em,fim_em) VALUES(?,?,?,'America/Sao_Paulo',?,?) ON CONFLICT DO NOTHING",
           e.id,
-          e.vagas,
+          80,
           "Participação mediante inscrição e confirmação da organização. Respeite o horário e os combinados do encontro.",
-          Date.parse(data + "T22:00:00Z"),
-          Date.parse(data + "T00:00:00Z") + 86400000
+          Date.parse(e.data + "T22:00:00Z"),
+          Date.parse(e.data + "T00:00:00Z") + 86400000
         );
         for (const p of pessoasCena
           .filter(p => p.slug !== e.autor)
-          .slice(i + 2, i + 5)) {
+          .slice(2, 5)) {
           const uid = idPessoaCena(p.slug);
           run(
             "INSERT INTO eventos_acompanhamentos(evento_id,usuario_id,interessado,salvo,criada_em) VALUES(?,?,1,1,?) ON CONFLICT DO NOTHING",

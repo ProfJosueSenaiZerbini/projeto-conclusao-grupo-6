@@ -385,6 +385,31 @@
     color-mix(in srgb, var(--dc-olive) 35%, var(--dc-surface));
   border-radius: 2px 0 0 4px;
 }
+.ob-card-lyrics::before {
+  background: repeating-linear-gradient(0deg, #b5a573 0 4px, #e8dcad 5px 7px);
+}
+.ob-card-lyrics .ob-cover {
+  display: grid;
+  place-items: center;
+  background: #282e22;
+}
+.ob-lyrics-paper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 72%;
+  height: 82%;
+  padding: 18px 12px 16px 35px;
+  overflow: hidden;
+  color: #2f3b33;
+  background: linear-gradient(90deg, transparent 25px, #d8a8a0 26px, transparent 27px), repeating-linear-gradient(#f5f0da 0 25px, #bac7b6 26px 27px);
+  box-shadow: 7px 8px 0 #a5a387, 12px 13px 14px #0007;
+  transform: rotate(-4deg);
+}
+.ob-lyrics-paper span { font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.ob-lyrics-paper strong { font: 700 clamp(17px, 2.5vw, 27px)/1.15 "Space Grotesk", sans-serif; overflow-wrap: anywhere; }
+.ob-lyrics-read { display: inline-flex; justify-content: space-between; align-items: center; min-height: 44px; margin-top: auto; padding: 0 13px; border: 1px solid var(--dc-line); color: var(--dc-ink); font-weight: 700; text-decoration: none; }
+.ob-lyrics-read:hover, .ob-lyrics-read:focus-visible { border-color: var(--dc-accent); color: var(--dc-accent); }
 .ob-card:is(:hover, :focus-within) {
   transform: translateY(-4px);
   border-color: var(--dc-olive);

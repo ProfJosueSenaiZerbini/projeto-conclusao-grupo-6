@@ -87,6 +87,8 @@
 .cy-work-card--letra { --work-accent: #e4d8a6; }
 .cy-work-card--composicao { --work-accent: #bad0a1; }
 :is(.cy-work-card--letra, .cy-work-card--composicao) .cy-work-cover { width: 98px; height: 128px; background: repeating-linear-gradient(#e8e1bd 0 15px, #a7aa8a 16px 17px); color: #28382a; box-shadow: 5px 5px 0 #777e61, 9px 9px 0 #3b4932; }
+.cy-work-card--letra .cy-work-cover { border-left: 8px dotted #777e61; background: linear-gradient(90deg, transparent 17px, #d39c94 18px, transparent 19px), repeating-linear-gradient(#f4efd9 0 16px, #a8baa8 17px 18px); transform: rotate(-4deg); }
+.cy-work-card--letra .cy-work-cover svg { width: 27px; height: 27px; opacity: .78; }
 .cy-work-card--composicao .cy-work-cover { transform: rotate(5deg); border-left: 10px solid #364932; }
 .cy-work-card--obra .cy-work-cover { border: 6px double #c7c694; }
 .cy-work-card--outro .cy-work-cover { transform: rotate(5deg); border-radius: 18px 2px 18px 2px; }

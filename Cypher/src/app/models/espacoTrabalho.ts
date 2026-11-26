@@ -39,15 +39,15 @@ export function normalizarBusca(texto: string) {
 
 const iconesProfissao: Record<string, string> = {
   rapper: "mic",
-  mc: "mic",
+  mc: "radio",
   compositor: "fileMusic",
   letrista: "pen",
-  beatmaker: "audioLines",
+  beatmaker: "drum",
   produtor: "sliders",
   dj: "disc",
-  freestyleiro: "mic",
+  freestyleiro: "audioLines",
   "b-boy-b-girl": "footprints",
-  dancarino: "footprints",
+  dancarino: "music2",
   coreografo: "users",
   grafiteiro: "spray",
   ilustrador: "brush",
@@ -56,15 +56,19 @@ const iconesProfissao: Record<string, string> = {
   videomaker: "clapperboard",
   "editor-video": "scissors",
   "engenheiro-audio": "headphones",
-  mixador: "sliders",
-  masterizador: "audioLines",
+  mixador: "settings",
+  masterizador: "music",
   empresario: "briefcase",
-  "produtor-cultural": "users",
+  "produtor-cultural": "sparkles",
   "organizador-eventos": "calendarDays",
   "criador-conteudo": "video",
   "jornalista-cultural": "newspaper",
   podcaster: "podcast",
 };
+
+export function iconeDaProfissao(id: string): string {
+  return iconesProfissao[id] || "sparkles";
+}
 
 export function profissoesDaConta(usuario: UsuarioDaSessao) {
   return profissoesCatalogo
@@ -183,15 +187,17 @@ function apresentar(linha: Linha, usuario: UsuarioDaSessao) {
   }
   const modalidade = modalidades.find(m => m.modalidade === linha.modalidade)!;
   const id = encodeURIComponent(linha.id);
+  const ficha = JSON.parse(linha.ficha) as Record<string, string | number | null>;
   return {
     ...linha,
     proprio: Boolean(linha.proprio),
     papel,
     atuacoes,
-    icone: modalidade.icone,
+    icone: linha.modalidade === "obra" && linha.tipo === "Letra" ? "pen" : modalidade.icone,
+    letra: linha.modalidade === "obra" && linha.tipo === "Letra" && linha.proprio ? String(ficha.Letra ?? "") : "",
     fatos: Object.entries(
-      JSON.parse(linha.ficha) as Record<string, string | number | null>
-    ).filter(([, v]) => v !== null && v !== ""),
+      ficha
+    ).filter(([chave, v]) => !(linha.tipo === "Letra" && chave === "Letra") && v !== null && v !== ""),
     link: /^https?:\/\//i.test(linha.link) ? linha.link : "",
     detalhes: rotaEspaco + "/" + linha.modalidade + "/" + id,
     base: modalidade.base + "/" + id,

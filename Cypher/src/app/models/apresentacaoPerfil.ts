@@ -31,7 +31,7 @@ import { contatoEtarioPermitido } from "./protecoesConta.js";
 import { idProfissaoPorCategoria } from "./questionarioAtuacao.js";
 import { podePublicar } from "./permissoes.js";
 import { projetoTrabalho } from "./projetosTrabalho.js";
-import { reputacaoPublica, resumoReputacao } from "./colaboracoes.js";
+import { reputacaoPublica } from "./colaboracoes.js";
 import { seloPerfil } from "./seloPerfil.js";
 import { conexoesCena, itemCena } from "./catalogoCena.js";
 import { enderecoObra } from "./enderecosPerfil.js";
@@ -50,14 +50,13 @@ type Identidade = {
 };
 type Visitante = { id: string; tipoConta: string; demonstracao: boolean };
 const abasPerfil = {
-  catalogo: "Catálogo",
-  creditos: "Participações",
-  galeria: "Galeria e portfólio",
   sobre: "Sobre",
   atuacao: "Atuação",
+  catalogo: "Catálogo",
+  galeria: "Galeria e portfólio",
   avaliacoes: "Avaliações",
 };
-type Aba = keyof typeof abasPerfil;
+type Aba = keyof typeof abasPerfil | "creditos";
 type Trabalho = {
   id: string;
   tipo: string;
@@ -193,9 +192,7 @@ export function montarApresentacao(
   const rep =
     p.demo || visitante.demonstracao
       ? null
-      : proprio
-        ? { ...resumoReputacao(p.id), avaliacoesPublicas: [] }
-        : reputacaoPublica(p.id, visitante.id);
+      : reputacaoPublica(p.id, visitante.id);
   const capacidades = {
     tipoConta: "profissional" as const,
     categories: contexto ? [contexto] : p.categorias,
@@ -204,12 +201,11 @@ export function montarApresentacao(
     podePublicar(capacidades, "obra") ||
     podePublicar(capacidades, "beat") ||
     podePublicar(capacidades, "evento");
-  const abas = (Object.keys(abasPerfil) as Aba[])
+  const abas = (Object.keys(abasPerfil) as (keyof typeof abasPerfil)[])
     .filter(
       a =>
         ({
           catalogo: catalogo.length > 0 || (editavel && podeCatalogo),
-          creditos: participacoes.length > 0,
           galeria: galeria.length > 0 || editavel || (!!portfolio && !contexto),
           sobre: true,
           atuacao: p.categorias.length > 0,
@@ -217,20 +213,10 @@ export function montarApresentacao(
         })[a]
     )
     .map(id => ({ id, nome: abasPerfil[id] }));
-  const aba =
-    abas.find(a => a.id === nav.aba)?.id ??
-    (catalogo.length
-      ? "catalogo"
-      : galeria.length
-        ? "galeria"
-        : participacoes.length
-          ? "creditos"
-          : "sobre");
+  const aba = abas.find(a => a.id === nav.aba)?.id ?? "sobre";
   const itens =
     aba === "catalogo"
-      ? catalogo
-      : aba === "creditos"
-        ? participacoes
+      ? [...catalogo, ...participacoes]
         : aba === "galeria"
           ? galeria
           : [];
@@ -367,7 +353,7 @@ export function montarApresentacao(
     paginas,
     portfolioUrl: portfolio ? "/portfolio/" + slug : "",
     cena:
-      !contexto && (aba === "sobre" || aba === "creditos")
+      !contexto && (aba === "sobre" || aba === "catalogo")
         ? conexoesCena(visitante.id, p.id)
         : null,
     obra: detalhe

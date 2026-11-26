@@ -5,6 +5,7 @@
     <div class="et-heading"><h2 class="cy-work-heading"><%= item.titulo %></h2><p><%= item.autor %> · <%= item.tipo %><%= item.metadados ? ' · ' + item.metadados : '' %></p></div></div>
   <% if (item.papel) { %><p class="et-role"><%= item.proprio ? 'Seu papel' : 'Sua participação' %> · <%= item.papel %></p><% } %>
   <% if (item.descricao) { %><p class="et-description"><%= item.descricao %></p><% } %>
+  <% if (item.tipo === 'Letra' && item.letra) { %><section class="et-lyrics-sheet" aria-label="Texto da letra"><span>LETRA / <%= item.titulo %></span><div><%= item.letra %></div></section><% } %>
   <%- include('../partials/componentes/midias-publicacao',{tipo:item.modalidade,id:item.id}) %>
   <% if (item.fatos.length) { %><dl class="et-facts"><% item.fatos.forEach(([label,valor]) => { %><div><dt><%= label %></dt><dd><%= valor %></dd></div><% }) %></dl><% } %>
   <% if (musical) { %>

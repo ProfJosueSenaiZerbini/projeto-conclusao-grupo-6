@@ -402,6 +402,19 @@ type OportunidadeCena = {
 };
 export const oportunidadesCena: OportunidadeCena[] = [];
 
+// Eventos públicos do catálogo local, mantidos em código para instalações novas.
+export const eventosCatalogoCena = [
+  { id: "demo-evento-batalha", autor: "jay", titulo: "Batalha da Aldeia", data: "2026-11-27", horario: "19:00", local: "São Paulo, SP", categoria: "Batalha", descricao: "MCs se enfrentam em duelos de freestyle, com beats ao vivo e voto do público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
+  { id: "demo-evento-cypher", autor: "jay", titulo: "Batalha do Santa Cruz", data: "2026-12-04", horario: "17:00", local: "São Paulo, SP", categoria: "Cypher", descricao: "Roda aberta para trocar versos, testar rimas e improvisar na batida.", formato: "Roda de improviso", cor: "green", tema: "cartaz-de-rua" },
+  { id: "demo-destaque-mulheres-no-mic", autor: "caroljafet", titulo: "Batalha das Gurias", data: "2026-11-28", horario: "20:00", local: "São Paulo, SP", categoria: "Show", descricao: "Noite de rap independente com MCs mulheres no palco e DJ entre os shows.", formato: "Apresentações ao vivo", cor: "violet", tema: "cartaz-de-rua" },
+  { id: "demo-destaque-roda-da-madrugada", autor: "jay", titulo: "Duelo de MCs Nacional", data: "2026-12-05", horario: "21:00", local: "São Paulo, SP", categoria: "Cypher", descricao: "Roda aberta de freestyle, com troca de versos e beats escolhidos pelo público.", formato: "Roda de improviso", cor: "green", tema: "classico" },
+  { id: "demo-destaque-voz-da-praca", autor: "fioti", titulo: "Red Bull FrancaMente", data: "2026-12-12", horario: "18:00", local: "São Paulo, SP", categoria: "Batalha", descricao: "Batalha de rimas na praça, com duelos de improviso e final decidida pelo público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
+  { id: "demo-evento-show", autor: "fioti", titulo: "Rap in Cena Festival", data: "2026-12-11", horario: "20:00", local: "São Paulo, SP", categoria: "Show", descricao: "Noite de rap independente com DJ sets e apresentação de faixas autorais.", formato: "Apresentações ao vivo", cor: "violet", tema: "classico" },
+  { id: "demo-workshop-beatbox", autor: "caroljafet", titulo: "Campeonato Nacional de Beatbox", data: "2026-12-20", horario: "15h", local: "Casa Cypher · São Paulo, SP", categoria: "Workshop", descricao: "Prática de ritmo, timbres e criação de bases usando a voz e o corpo como instrumentos.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
+  { id: "demo-workshop-dj-producao", autor: "wkilla", titulo: "A Arte do DJ", data: "2026-12-06", horario: "14h", local: "Estúdio Cypher · São Paulo, SP", categoria: "Workshop", descricao: "Uma sessão prática sobre discotecagem, construção de sets e fundamentos da produção musical.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
+  { id: "demo-workshop-slam-poesia", autor: "jay", titulo: "Slam da Guilhermina", data: "2026-12-13", horario: "16h", local: "Teatro de Bolso · São Paulo, SP", categoria: "Workshop", descricao: "Encontro aberto para experimentar escrita, presença de palco e poesia falada em comunidade.", formato: "Presencial · 90 minutos", cor: "yellow", tema: "cartaz-de-rua" },
+];
+
 export const ofertasCena: Record<
   string,
   {

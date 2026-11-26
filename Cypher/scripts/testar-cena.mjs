@@ -59,14 +59,14 @@ try {
   ok(() =>
     assert.equal(
       b.listarEventosCypher({ ordem: "recentes" }, "visitante").length,
-      12
+      9
     )
   );
   ok(() =>
     assert.equal(
       descoberta.publicacoesDescoberta("eventos", "", false, "visitante")
         .length,
-      12
+      9
     )
   );
   ok(() =>
@@ -418,8 +418,10 @@ try {
       ok(() => assert.match(visivel, /Essa começou com uma guia de voz/));
     if (nome === "descoberta") {
       ok(() => assert.match(principal, /href="\/dashboard\?tipo=musica"[^>]*>Ver mais/));
-      const formatos = [...principal.matchAll(/data-release-format="([^"]+)"/g)].map(m => m[1]).sort();
-      ok(() => assert.deepEqual(formatos, ["album", "beat", "ep", "faixa"]));
+      const trilhoLancamentos = principal.match(/id="trilho-lancamentos"[\s\S]*?<div class="dc-rail-nav"/)?.[0] ?? "";
+      const formatos = [...trilhoLancamentos.matchAll(/data-release-format="([^"]+)"/g)].map(m => m[1]);
+      ok(() => assert.deepEqual([...formatos.slice(0, 4)].sort(), ["album", "beat", "ep", "faixa"]));
+      ok(() => assert.ok(formatos.length > 4));
       ok(() => assert.doesNotMatch(principal, /class="dc-release-action"/));
       const slides = [...html.matchAll(/class="dc-slide"[\s\S]*?<\/a>/g)].map(
         m => m[0]

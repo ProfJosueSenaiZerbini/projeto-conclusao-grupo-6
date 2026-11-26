@@ -307,9 +307,10 @@
       const limites = sidebar.getBoundingClientRect();
       const botao = opcoesSidebar.getBoundingClientRect();
       const largura = menuOpcoesSidebar.getBoundingClientRect().width;
-      menuOpcoesSidebar.style.left = `${Math.max(12, Math.min(limites.right + 8, window.innerWidth - largura - 12))}px`;
-      menuOpcoesSidebar.style.bottom = `${Math.max(12, window.innerHeight - botao.bottom)}px`;
-      menuOpcoesSidebar.style.maxHeight = `${Math.max(120, Math.min(window.innerHeight - 24, botao.bottom - 12))}px`;
+      const movel = window.matchMedia("(max-width: 900px)").matches;
+      menuOpcoesSidebar.style.left = `${movel ? 12 : Math.max(12, Math.min(limites.right + 8, window.innerWidth - largura - 12))}px`;
+      menuOpcoesSidebar.style.bottom = `${Math.max(12, window.innerHeight - botao.top + 8)}px`;
+      menuOpcoesSidebar.style.maxHeight = `${Math.max(80, botao.top - 20)}px`;
     };
     opcoesSidebar.addEventListener("click", () => {
       if (opcoesSidebar.getAttribute("aria-expanded") === "true") {
@@ -431,17 +432,21 @@
   const camadaMenu = document.querySelector(
     "[data-sidebar-close].mobile-overlay"
   );
-  const abrirMenu = document.querySelector("[data-sidebar-open]");
+  const botoesAbrirMenu = [...document.querySelectorAll("[data-sidebar-open]")];
+  let acionadorMenu = null;
   const fecharMenu = () => {
-    if (barraLateral?.classList.contains("sidebar-open")) abrirMenu?.focus();
-    abrirMenu?.setAttribute("aria-expanded", "false");
+    if (!barraLateral?.classList.contains("sidebar-open")) return;
+    botoesAbrirMenu.forEach(botao => botao.setAttribute("aria-expanded", "false"));
     barraLateral?.classList.remove("sidebar-open");
     document.body.classList.remove("sidebar-visible");
     if (camadaMenu) camadaMenu.hidden = true;
+    acionadorMenu?.focus();
+    acionadorMenu = null;
   };
-  document.querySelectorAll("[data-sidebar-open]").forEach(botao => {
+  botoesAbrirMenu.forEach(botao => {
     botao.addEventListener("click", () => {
-      botao.setAttribute("aria-expanded", "true");
+      acionadorMenu = botao;
+      botoesAbrirMenu.forEach(item => item.setAttribute("aria-expanded", "true"));
       barraLateral?.classList.add("sidebar-open");
       document.body.classList.add("sidebar-visible");
       if (camadaMenu) camadaMenu.hidden = false;
@@ -455,7 +460,24 @@
     link.addEventListener("click", fecharMenu);
   });
   document.addEventListener("keydown", evento => {
+    if (!barraLateral?.classList.contains("sidebar-open")) return;
     if (evento.key === "Escape" && !evento.defaultPrevented) fecharMenu();
+    if (evento.key !== "Tab") return;
+    const focaveis = [...barraLateral.querySelectorAll('a[href], button:not([disabled]), input:not([disabled])')]
+      .filter(item => item.getClientRects().length && !item.closest('[hidden]'));
+    if (!focaveis.length) return;
+    const primeiro = focaveis[0];
+    const ultimo = focaveis[focaveis.length - 1];
+    if (evento.shiftKey && (document.activeElement === primeiro || !barraLateral.contains(document.activeElement))) {
+      evento.preventDefault();
+      ultimo.focus();
+    } else if (!evento.shiftKey && (document.activeElement === ultimo || !barraLateral.contains(document.activeElement))) {
+      evento.preventDefault();
+      primeiro.focus();
+    }
+  });
+  window.matchMedia("(min-width: 901px)").addEventListener("change", evento => {
+    if (evento.matches) fecharMenu();
   });
 
   const atualizarInteresse = (
@@ -940,11 +962,13 @@
   };
   const aplicarTema = tema => {
     document.documentElement.classList.toggle("dark", tema === "dark");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", tema === "dark" ? "#10140f" : "#bdbbaa");
     document.querySelectorAll("[data-theme-toggle]").forEach(controle => {
       const escuro = tema === "dark";
       const destino = escuro ? "claro" : "escuro";
       controle.checked = escuro;
       controle.title = `Ativar tema ${destino}`;
+      controle.setAttribute("aria-label", `Tema escuro ${escuro ? "ativado" : "desativado"}`);
     });
     document.querySelectorAll("[data-theme-mode]").forEach(botao => {
       botao.setAttribute(
@@ -1063,6 +1087,13 @@
   atualizarDetalhesOutrosObra();
 
   const contextoPorTipo = {
+    Letra: {
+      contexto: "Letra independente",
+      sugestao: "A letra pode ficar privada e não precisa de gravação para ser registrada.",
+      campos: ["description"],
+      creditos: "Autoria e participações",
+      lancamento: "Identificação da letra",
+    },
     Música: {
       contexto: "Faixa musical",
       sugestao:

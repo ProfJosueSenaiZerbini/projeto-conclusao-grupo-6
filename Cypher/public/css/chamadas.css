@@ -789,3 +789,150 @@
     display: none;
   }
 }
+
+/* Exploração de oportunidades */
+.op-explore .op-filters {
+  padding: clamp(18px, 2.5vw, 30px);
+  border-radius: 3px 10px 3px 8px;
+  background: var(--dc-panel);
+  box-shadow: var(--dc-shadow);
+}
+.op-explore .op-filters-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.op-explore .op-filters-heading h3 {
+  margin-top: 5px;
+  font: 700 clamp(24px, 2.7vw, 32px)/1.15 "Oswald", sans-serif;
+}
+.op-explore .op-filters-heading p {
+  max-width: 370px;
+  color: var(--dc-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.op-explore .op-quick {
+  grid-template-columns: minmax(240px, 2fr) minmax(170px, 1fr) minmax(160px, 1fr) auto;
+}
+.op-explore .op-quick .op-button { white-space: nowrap; }
+.op-explore .op-quick .op-button svg,
+.op-explore .op-roles svg { width: 17px; height: 17px; flex: none; }
+.op-explore .op-filter-bottom {
+  align-items: center;
+  margin-top: 22px;
+  padding-top: 20px;
+}
+.op-explore .op-filter-bottom > label { flex: 1 1 180px; }
+.op-explore .op-advanced { margin-left: 0; }
+.op-explore .op-advanced > summary {
+  border: 1px solid var(--dc-line);
+  border-radius: 3px 7px 2px 5px;
+  background: var(--dc-card);
+}
+.op-explore .op-advanced[open] > summary {
+  width: fit-content;
+  margin-bottom: 18px;
+  padding: 8px 12px;
+  border-color: var(--dc-accent);
+}
+.op-explore .op-filter-chevron {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 20px;
+  line-height: 0.6;
+  transition: transform 180ms ease;
+}
+.op-explore .op-advanced[open] .op-filter-chevron { transform: rotate(180deg); }
+.op-explore .op-fields {
+  padding-top: 18px;
+  border-top: 1px solid var(--dc-line);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.op-explore .op-fields .op-button { justify-self: start; align-self: end; }
+.op-explore .op-results-heading {
+  align-items: end;
+  margin: 38px 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--dc-line);
+}
+.op-explore .op-results-heading h3 {
+  margin-top: 6px;
+  font: 700 clamp(25px, 2.8vw, 34px)/1.1 "Oswald", sans-serif;
+}
+.op-explore .op-count {
+  border-radius: 2px 6px 2px 4px;
+  background: var(--dc-yellow);
+  color: #182015;
+  font-size: 14px;
+}
+.op-explore .op-chips { margin: 0 0 20px; }
+.op-explore .op-chips a {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 2px 7px 2px 5px;
+  background: var(--dc-surface);
+  font-size: 14px;
+}
+.op-explore .op-chips a:hover { border-color: var(--dc-accent); }
+.op-explore .op-grid { gap: clamp(14px, 1.8vw, 24px); }
+.op-explore .op-card {
+  position: relative;
+  overflow: hidden;
+  padding: 25px;
+  border-radius: 3px 10px 3px 8px;
+  box-shadow: var(--dc-shadow);
+}
+.op-explore .op-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--dc-olive);
+}
+.op-explore .op-card h3 { font-size: clamp(21px, 1.6vw, 25px); }
+.op-explore .op-card h3 a:hover { color: var(--dc-accent); }
+.op-explore .op-roles { display: flex; gap: 7px; align-items: flex-start; line-height: 1.4; }
+.op-explore .op-facts { gap: 14px 12px; }
+.op-explore .op-facts dt { font-size: 13px; }
+.op-explore .op-facts dd { line-height: 1.4; }
+.op-explore .op-card footer a { min-height: 44px; }
+.op-explore .op-empty {
+  padding: clamp(40px, 6vw, 76px) 20px;
+  border-radius: 3px 10px 3px 8px;
+  background: var(--dc-panel);
+}
+.op-explore .op-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+@media (max-width: 1150px) {
+  .op-explore .op-quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .op-explore .op-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .op-explore .op-filters-heading { display: block; }
+  .op-explore .op-filters-heading p { margin-top: 8px; }
+  .op-explore .op-quick,
+  .op-explore .op-fields { grid-template-columns: minmax(0, 1fr); }
+  .op-explore .op-filter-bottom > label { flex-basis: 100%; }
+  .op-explore .op-advanced { width: 100%; }
+  .op-explore .op-advanced > summary { justify-content: space-between; }
+  .op-explore .op-results-heading { margin-top: 28px; }
+  .op-explore .op-card { padding: 21px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .op-explore .op-filter-chevron { transition: none; }
+}
+.op-explore .op-filters-heading .op-eyebrow{color:var(--dc-accent)}
+.op-explore .op-quick label,.op-explore .op-filter-bottom label{font-size:13px}
+.op-explore .op-quick :is(input,select),.op-explore .op-filter-bottom select{background:var(--dc-card)}
+.op-explore .op-advanced[open]{padding-top:4px}
+.op-explore .op-chips a{transition:border-color .18s,background .18s}
+.op-explore .op-chips a:hover{background:var(--dc-hover)}
+.op-explore .op-card-highlights{display:flex;flex-wrap:wrap;gap:8px;margin-top:-3px}
+.op-explore .op-card-highlights span{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--dc-line);border-radius:2px 6px 2px 4px;background:var(--dc-surface);font:600 12px/1.3 'Space Grotesk',sans-serif;color:var(--dc-ink)}
+.op-explore .op-card-highlights svg{width:14px;height:14px}
+.op-explore .op-empty{border:1px dashed var(--dc-olive)}

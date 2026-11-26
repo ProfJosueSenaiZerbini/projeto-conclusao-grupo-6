@@ -28,7 +28,7 @@ try {
   let r = bootstrap();
   assert.equal(r.status, 0, r.stderr);
   db = new Database(arquivo);
-  assert.equal(db.pragma("user_version", { simple: true }), 39);
+  assert.equal(db.pragma("user_version", { simple: true }), 40);
   assert.deepEqual(db.pragma("integrity_check"), [{ integrity_check: "ok" }]);
   assert.deepEqual(db.pragma("foreign_key_check"), []);
   const tabelas = db
@@ -112,7 +112,7 @@ try {
   r = bootstrap();
   assert.equal(r.status,0,r.stderr);
   db = new Database(arquivo);
-  assert.equal(db.pragma("user_version", { simple: true }),39);
+  assert.equal(db.pragma("user_version", { simple: true }),40);
   assert.deepEqual(
     db.prepare("SELECT nome,nome_informado,vulgo,nome_publico,competencias_json,competencias_publicas FROM perfis WHERE usuario_id='legado'").get(),
     {nome:"Nome Legado",nome_informado:"Nome Legado",vulgo:"Vulgo Legado",nome_publico:1,competencias_json:"[]",competencias_publicas:0}
@@ -140,7 +140,7 @@ try {
   r = bootstrap();
   assert.equal(r.status, 0, r.stderr);
   db = new Database(arquivo);
-  assert.equal(db.pragma("user_version", { simple: true }), 39);
+  assert.equal(db.pragma("user_version", { simple: true }), 40);
   assert.ok(db.pragma("table_info(notificacoes)").some(coluna => coluna.name === "removida_em"));
   assert.equal(db.prepare("SELECT posicao FROM midias_publicacoes WHERE id='foto-anterior'").get().posicao, "principal");
   assert.ok(db.pragma("table_info(preferencias_usuario)").some(coluna => coluna.name === "avisos_desativados_json"));
@@ -164,7 +164,7 @@ try {
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /mais recente/);
   console.log(
-    "OK: schema 39, base sem demonstrações, identidades, integridade, unicidade, idempotência e recusa sem mutação de bases incompatíveis."
+    "OK: schema 40, base sem demonstrações, identidades, integridade, unicidade, idempotência e recusa sem mutação de bases incompatíveis."
   );
 } finally {
   if (db?.open) db.close();

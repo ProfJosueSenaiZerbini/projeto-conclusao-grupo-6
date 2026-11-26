@@ -62,31 +62,22 @@
           </div>
         </header>
 
-        <div class="dc-controls beats-controls">
+        <div class="dc-controls cy-filter-bar beats-controls">
           <% if (generos.length) { %>
             <nav class="dc-tabs beats-genres" aria-label="Filtrar beats por gênero">
               <a href="<%= urlGenero('') %>"<% if (!genero) { %> aria-current="page"<% } %>><span aria-hidden="true"><%- icones.headphones %></span> Todos</a>
-              <% generos.forEach(opcao => { %>
-                <a href="<%= urlGenero(opcao) %>"<% if (opcao === genero) { %> aria-current="page"<% } %>><%= opcao %></a>
-              <% }) %>
+              <% generos.forEach(opcao => { %><a href="<%= urlGenero(opcao) %>"<% if (opcao === genero) { %> aria-current="page"<% } %>><%= opcao %></a><% }) %>
             </nav>
           <% } %>
-          <% if (podeCadastrarBeat && filtrado) { %>
-            <a class="dc-primary beats-publish" href="/beats/new"><span aria-hidden="true"><%- icones.plus %></span> Cadastrar beat</a>
-          <% } %>
-        </div>
-        <form class="beats-search-filters" action="/beats#catalogo-beats" method="get" aria-label="Buscar e filtrar beats">
-          <% if (ordem !== 'original') { %><input type="hidden" name="ordem" value="<%= ordem %>"><% } %>
-          <% if (genero) { %><input type="hidden" name="genero" value="<%= genero %>"><% } %>
-          <div class="beats-search-row">
-            <label for="beats-query">Título ou produtor</label>
-            <input id="beats-query" name="q" type="search" value="<%= q %>" maxlength="120" placeholder="Buscar no Banco de Beats">
-            <button class="dc-primary" type="submit">Buscar</button>
+          <form class="beats-search-filters" action="/beats#catalogo-beats" method="get" aria-label="Buscar e filtrar beats">
+            <% if (genero) { %><input type="hidden" name="genero" value="<%= genero %>"><% } %>
+            <label class="beats-query-label sr-only" for="beats-query">Título ou produtor</label>
+            <div class="beats-search-row"><input id="beats-query" name="q" type="search" value="<%= q %>" maxlength="120" placeholder="Título ou produtor"><button class="dc-primary" type="submit" aria-label="Buscar beats"><%- icones.search %></button></div>
+            <label class="beats-sort">Ordenar por <select name="ordem"><% for (const [valor, rotulo] of [['original','Seleção Cypher'],['price','Menor preço'],['bpm','BPM crescente'],['title','Título A–Z']]) { %><option value="<%= valor %>" <%= ordem === valor ? 'selected' : '' %>><%= rotulo %></option><% } %></select></label>
             <% const quantidadeFiltros = Object.entries(filtros).filter(([campo, valor]) => campo !== 'q' && campo !== 'genero' && valor).length; %>
-          </div>
-          <details class="beats-advanced" <%= quantidadeFiltros ? 'open' : '' %>>
+            <details class="beats-advanced cy-filter-panel" <%= quantidadeFiltros ? 'open' : '' %>>
             <summary><%- icones.sliders %> Filtros avançados <%= quantidadeFiltros ? '(' + quantidadeFiltros + ')' : '' %></summary>
-            <div class="beats-filter-grid">
+            <div class="beats-advanced-panel"><div class="beats-filter-grid">
               <% for (const [campo, rotulo, opcoes] of camposSelecao) { %>
                 <label><%= rotulo %>
                   <select name="<%= campo %>">
@@ -109,22 +100,15 @@
                 </fieldset>
               <% } %>
             </div>
-            <button class="dc-primary" type="submit">Aplicar filtros</button>
+            <button class="dc-primary" type="submit">Aplicar filtros</button></div>
           </details>
-        </form>
+          </form>
+          <a class="ci-button beats-collection-link" href="/colecoes">Minha coleção</a>
+          <% if (podeCadastrarBeat && filtrado) { %><a class="dc-primary beats-publish" href="/beats/new"><span aria-hidden="true"><%- icones.plus %></span> Cadastrar beat</a><% } %>
+          <button type="button" class="ci-button" data-importar-favoritos hidden>Importar favoritos deste navegador</button>
+        </div>
 
         <% if (beats.length) { %>
-          <div class="beats-toolbar">
-            <div class="ci-actions">
-              <a class="ci-button" href="/colecoes">Minha coleção</a>
-              <button type="button" class="ci-button" data-importar-favoritos hidden>Importar favoritos deste navegador</button>
-            </div>
-            <form action="/beats#catalogo-beats" method="get" class="ci-actions">
-              <% for (const [campo, valor] of Object.entries(filtros)) { if (valor) { %><input type="hidden" name="<%= campo %>" value="<%= valor %>"><% } } %>
-              <label class="beats-sort">Ordenar por <select name="ordem"><% for (const [valor, rotulo] of [['original','Seleção Cypher'],['price','Menor preço'],['bpm','BPM crescente'],['title','Título A–Z']]) { %><option value="<%= valor %>" <%= ordem === valor ? 'selected' : '' %>><%= rotulo %></option><% } %></select></label>
-              <button class="ci-button" type="submit">Ordenar</button>
-            </form>
-          </div>
           <div class="beats-catalog">
             <% beats.forEach((beat, indice) => { %><%- include('../partials/componentes/cartao-beat', { beat, indice: inicioPagina + indice, disponibilidades }) %><% }) %>
           </div>
