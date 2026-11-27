@@ -50,7 +50,7 @@ O catálogo de apresentação é opcional. Para carregá-lo ou atualizá-lo, exe
 
 Há fluxos implementados para contas, descoberta, perfis, obras, beats, eventos, projetos, oportunidades e administração. O catálogo profissional contempla **25 profissões**. Recursos como créditos, selos e interações seguem em evolução. A compra externa de beats depende de credenciais e homologação do Mercado Pago; sem isso, arquivos Premium não são liberados.
 
-Os [requisitos funcionais](Documentação/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RF-Cypher.md) e as [regras de negócio](Documentação/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RN-Cypher.md) descrevem o produto planejado. Para o comportamento executável, consulte o código em `Cypher/src`.
+Os [requisitos funcionais](Docs/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RF-Cypher.md) e as [regras de negócio](Docs/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RN-Cypher.md) descrevem o produto planejado. Para o comportamento executável, consulte o código em `Cypher/src`.
 
 ## Estrutura do repositório
 
@@ -63,7 +63,7 @@ Os [requisitos funcionais](Documentação/02%20-%20Requisitos%20e%20Regras%20de%
 │   ├── public/           # CSS, JavaScript e recursos estáticos
 │   ├── scripts/          # cargas, verificações e testes
 │   └── docs/             # documentação técnica pontual
-└── Documentação/         # planejamento, requisitos e arquitetura
+└── Docs/                 # planejamento, requisitos e arquitetura
 ```
 
 ## Verificação
@@ -72,8 +72,8 @@ Dentro de `Cypher`, execute `npm run check` para validar os tipos e `npm run bui
 
 ## Documentação
 
-- [Escopo do projeto](Documentação/01%20-%20Planejamento%20e%20Pesquisa/CYPHER%20-%20Escopo%20do%20Projeto.md)
-- [Requisitos funcionais](Documentação/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RF-Cypher.md)
-- [Regras de negócio](Documentação/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RN-Cypher.md)
-- [Definição da stack](Documentação/04%20-%20Arquitetura%20e%20Tecnologias/Definicao-de-Stack-Cypher.md)
+- [Escopo do projeto](Docs/01%20-%20Planejamento%20e%20Pesquisa/CYPHER%20-%20Escopo%20do%20Projeto.md)
+- [Requisitos funcionais](Docs/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RF-Cypher.md)
+- [Regras de negócio](Docs/02%20-%20Requisitos%20e%20Regras%20de%20Negócios/RN-Cypher.md)
+- [Definição da stack](Docs/04%20-%20Arquitetura%20e%20Tecnologias/Definicao-de-Stack-Cypher.md)
 - [Anexos de mensagens](Cypher/docs/anexos-mensagens.md)
