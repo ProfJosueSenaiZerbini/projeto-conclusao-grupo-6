@@ -63,7 +63,7 @@
       const id = card.dataset.obId;
       const curtida = !favoritos.has(id);
       try {
-        const resposta = await fetch(`/works/${encodeURIComponent(id)}/like`, {
+        const resposta = await fetch(`/obras/${encodeURIComponent(id)}/curtir`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-csrf-token": document.querySelector('meta[name="csrf-token"]')?.content || "" },
           body: JSON.stringify({ curtida }),
@@ -77,10 +77,11 @@
         atualizarColecao();
         if (resultado.curtida) saltarCurtida(botao, resultado.total);
         else botao.querySelector(".ob-like-jump")?.remove();
-        anunciar(`${card.dataset.obTitle}: ${resultado.total} curtidas. ${resultado.curtida ? "Curtida adicionada." : "Curtida removida."}`);
+        const unidade = resultado.total === 1 ? "curtida" : "curtidas";
+        window.cypherAvisar?.(`${resultado.curtida ? "Curtida adicionada" : "Curtida removida"} · ${resultado.total} ${unidade}.`);
         if (card.hidden) colecao?.focus();
       } catch {
-        anunciar("Não foi possível salvar a curtida. Tente novamente.");
+        window.cypherAvisar?.("Não foi possível salvar a curtida. Tente novamente.", "erro");
       } finally { botao.disabled = false; }
     });
   });
@@ -138,8 +139,8 @@
           falhou = true;
           audio.pause();
           atualizarPlayer();
-          anunciar(
-            `A prévia de ${card.dataset.obTitle} não carregou. Tente novamente.`
+          window.cypherAvisar?.(
+            `A prévia de ${card.dataset.obTitle} não carregou. Tente novamente.`, "erro"
           );
         }
       });

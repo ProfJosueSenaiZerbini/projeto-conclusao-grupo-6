@@ -1471,31 +1471,46 @@ body,
   background: transparent;
 }
 .entry-theme .theme-switch {
-  --switch-track: #e7e5d3;
-  --switch-border: #74865b;
-  --switch-mark: #526837;
-  --switch-icon: #435f26;
+  --theme-track: #dcd7c5;
+  --theme-frame: #666644;
+  --theme-ink: #39412d;
+  --theme-focus: #425b28;
+  --theme-ball-bright: #fff0bd;
+  --theme-ball-base: #d8a449;
+  --theme-ball-shade: #925718;
+  --theme-ball-ink: #281908;
+  --theme-highlight: #fff6d445;
+  --theme-grain: #342a181a;
+  --theme-ball-left: 5px;
   position: relative;
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 3.5em;
+  display: block;
+  flex: none;
+  width: 76px;
   height: 44px;
   margin: 0;
   padding: 0;
   border: 0;
-  font: 400 17px/1 "Space Grotesk", sans-serif;
   cursor: pointer;
 }
+
 .dark .entry-theme .theme-switch {
-  --switch-track: #171717;
-  --switch-border: #91a173;
-  --switch-mark: #efcd52;
-  --switch-icon: #c4df8b;
+  --theme-track: #191d15;
+  --theme-frame: #889266;
+  --theme-ink: #e0e4ca;
+  --theme-focus: #d6e8a2;
+  --theme-ball-bright: #edf5c7;
+  --theme-ball-base: #bbc982;
+  --theme-ball-shade: #687840;
+  --theme-ball-ink: #1a2211;
+  --theme-highlight: #eef8ce24;
+  --theme-grain: #c1cb9a1a;
+  --theme-ball-left: calc(100% - 35px);
 }
+
 .entry-theme .theme-switch > input {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 5;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -1505,67 +1520,75 @@ body,
   opacity: 0;
   cursor: pointer;
 }
-.entry-theme .theme-switch__slider {
+
+.theme-switch__slider {
   position: absolute;
-  inset: 5px 0;
+  inset: 4px 0;
+  isolation: isolate;
   overflow: hidden;
-  border: 1px solid var(--switch-border);
-  border-radius: 2px 5px 1px 4px;
-  color: var(--switch-icon);
-  background: var(--switch-track);
-  box-shadow: inset 2px 5px 10px #00000035, 1px 2px 0 #080f0b35;
+  border: 1px solid var(--theme-frame);
+  border-radius: 11px 6px 11px 6px;
+  color: var(--theme-ink);
+  background-color: var(--theme-track);
+  background-image: repeating-linear-gradient(130deg, transparent 0 3px, var(--theme-grain) 3px 4px, transparent 4px 7px);
+  box-shadow: inset 0 2px 6px #10140f70, 2px 3px 0 #10140f68;
   pointer-events: none;
-  transition: background-color .4s ease, border-color .4s ease;
+  transition: background-color 220ms ease, border-color 220ms ease;
 }
-.entry-theme .theme-switch__slider::before {
+
+.theme-switch__ball {
   position: absolute;
-  content: "";
-  left: .3em;
-  bottom: .3em;
-  width: .1em;
-  height: 1.4em;
-  background: var(--switch-mark);
-  transition: transform .4s ease, background-color .4s ease;
+  z-index: 1;
+  top: 3px;
+  left: var(--theme-ball-left);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px 5px 8px 5px;
+  background: linear-gradient(149deg, var(--theme-ball-bright), var(--theme-ball-base) 58%, var(--theme-ball-shade) 130%);
+  box-shadow: inset 0 1px #fff8, inset 0 -2px #18180d48, 1px 2px 3px #12150da0;
+  transition: left 360ms cubic-bezier(.3, .08, .24, 1.13);
 }
-.entry-theme .theme-switch__slider > span {
+
+.theme-switch__glass {
   position: absolute;
-  top: 50%;
+  z-index: 2;
+  inset: 1px;
+  border: 1px solid var(--theme-highlight);
+  border-radius: inherit;
+  background: linear-gradient(170deg, var(--theme-highlight), transparent 38%);
+  box-shadow: inset 0 -1px 2px #18201140;
+}
+
+.theme-switch__sun, .theme-switch__moon {
+  position: absolute;
+  z-index: 3;
+  top: 3px;
   display: grid;
   place-items: center;
-  transform: translateY(-50%);
-  transition: opacity .4s ease;
+  width: 28px;
+  height: 28px;
 }
-.entry-theme .theme-switch__slider svg {
-  display: block;
-  width: 16px;
-  height: 16px;
-}
-.entry-theme .theme-switch__sun { left: .6em; }
-.entry-theme .theme-switch__moon { right: .6em; opacity: .4; }
-.entry-theme .theme-switch > input:checked + .theme-switch__slider {
-  box-shadow: inset 2px 5px 10px #000000d9, 1px 2px 0 #080f0b35;
-}
-.entry-theme .theme-switch > input:checked + .theme-switch__slider::before {
-  transform: translateX(2.8em) rotate(360deg);
-}
-.entry-theme .theme-switch > input:checked + .theme-switch__slider .theme-switch__sun { opacity: .4; }
-.entry-theme .theme-switch > input:checked + .theme-switch__slider .theme-switch__moon { opacity: 1; color: var(--switch-mark); }
-.entry-theme .theme-switch > input:focus-visible { outline: none; }
-.entry-theme .theme-switch > input:focus-visible + .theme-switch__slider {
-  outline: 2px solid var(--switch-mark);
-  outline-offset: 4px;
+.theme-switch__sun { left: 5px; color: var(--theme-ball-ink); }
+.theme-switch__moon { right: 7px; }
+.dark .theme-switch__sun { color: inherit; }
+.dark .theme-switch__moon { color: var(--theme-ball-ink); }
+.theme-switch__slider svg { width: 16px; height: 16px; }
+
+.theme-switch > input:focus-visible + .theme-switch__slider {
+  outline: 2px solid var(--theme-focus);
+  outline-offset: 3px;
 }
 @media (hover: hover) {
-  .entry-theme .theme-switch:hover .theme-switch__slider { border-color: var(--switch-mark); }
+  .theme-switch:hover .theme-switch__slider { border-color: var(--theme-focus); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .entry-theme .theme-switch__slider,
-  .entry-theme .theme-switch__slider::before,
-  .entry-theme .theme-switch__slider > span { transition: none; }
+  .theme-switch__slider, .theme-switch__ball { transition: none; }
 }
 @media (forced-colors: active) {
-  .entry-theme .theme-switch__slider { color: CanvasText; background: Canvas; border-color: CanvasText; box-shadow: none; }
-  .entry-theme .theme-switch__slider::before { background: Highlight; }
-  .entry-theme .theme-switch > input:focus-visible + .theme-switch__slider { outline-color: Highlight; }
-  .entry-theme .theme-switch > input:checked + .theme-switch__slider { border-color: Highlight; }
+  .theme-switch__slider { background: Canvas; border-color: CanvasText; color: CanvasText; box-shadow: none; }
+  .theme-switch__ball { forced-color-adjust: none; background: Highlight; box-shadow: none; }
+  .theme-switch__glass { display: none; }
+  .theme-switch__sun, .dark .theme-switch__moon { forced-color-adjust: none; color: HighlightText; }
+  .theme-switch__moon, .dark .theme-switch__sun { color: CanvasText; }
+  .theme-switch > input:focus-visible + .theme-switch__slider { outline-color: Highlight; }
 }

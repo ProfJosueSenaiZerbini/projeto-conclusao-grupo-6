@@ -55,6 +55,12 @@ try {
       "INSERT INTO eventos(id,proprietario_id,titulo,categoria,data_texto,demonstracao) VALUES(?,'organizacao-legada',?,'Encontro','2026-12-20',1)"
     ).run(id, id);
   const r = m.semearCatalogoCena({ audioSintetico: true, gerarArte: false });
+  const localizados = db.prepare(`SELECT c.local_confirmado, json_extract(c.endereco_mapa_json,'$.cidade') cidade
+    FROM eventos_configuracoes c JOIN catalogo_cena k ON k.id=c.evento_id AND k.tipo='evento' AND k.ficcional=1`).all();
+  ok(() => assert.equal(localizados.length, 9));
+  ok(() => assert.ok(localizados.every(x=>x.local_confirmado===1)));
+  ok(() => assert.deepEqual([...new Set(localizados.map(x=>x.cidade))].sort(), ["Campinas","Hortolândia"]));
+  ok(() => assert.equal(m.atualizarLocaisEventosCena(),0));
   const descoberta = await import("../dist/src/app/models/modeloDescoberta.js");
   ok(() =>
     assert.equal(
@@ -171,17 +177,14 @@ try {
     assert.ok(
       m
         .conexoesCena("visitante", pap)
-        .destaques.some(v => v.url.startsWith("/work-projects/"))
+        .destaques.some(v => v.id === "cena-obra-sem-atalho" && v.url.includes("/artistas/lezin?obra="))
     )
   );
   for (const pessoa of conteudo.pessoasCena) {
     const redePessoa = m.conexoesCena("visitante", m.idPessoaCena(pessoa.slug));
-    ok(() =>
-      assert.ok(
-        redePessoa.conexoes.length > 0 && redePessoa.destaques.length > 0,
-        pessoa.slug
-      )
-    );
+    ok(() => assert.ok(redePessoa, pessoa.slug));
+    ok(() => assert.ok(redePessoa.conexoes.every(v => v.id !== m.idPessoaCena(pessoa.slug)), pessoa.slug));
+    ok(() => assert.equal(redePessoa.destaques.length > 0, redePessoa.totalTrabalhos > 0, pessoa.slug));
   }
   ok(() =>
     assert.equal(
@@ -190,7 +193,7 @@ try {
           "SELECT count(*) n FROM comentarios_conteudo WHERE id LIKE 'cena-%'"
         )
         .get().n,
-      16
+      Object.values(conteudo.conversasCena).reduce((total, mensagens) => total + mensagens.length, 0)
     )
   );
   ok(() =>
@@ -302,6 +305,7 @@ try {
     )
   );
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   const icons = await import("lucide-static");
@@ -349,6 +353,17 @@ try {
       ...options,
       headers: { cookie, ...options.headers },
     });
+  const novasProducoes = (await import("../dist/src/app/models/producoesDemonstrativas.js")).producoesDemonstrativas;
+  ok(() => assert.equal(novasProducoes.length, 3));
+  for (const producao of novasProducoes) {
+    const pagina = await req("/trabalhos-e-galerias/" + producao.id);
+    ok(() => assert.equal(pagina.status, 200));
+    const html = await pagina.text();
+    ok(() => assert.ok(html.includes(producao.titulo)));
+    const arte = await req("/midias-de-trabalho/" + producao.id + "-arte");
+    ok(() => assert.equal(arte.status, 200));
+    ok(() => assert.match(arte.headers.get("content-type"), /^image\/svg\+xml/));
+  }
   const outro = beat
     .fichaBeat("visitante", "demo-beat-desde-ontem")
     .ofertas.find(o => o.modalidade === "premium");
@@ -360,27 +375,26 @@ try {
   );
   const pages = [
     ["descoberta", "/"],
-    ["lancamentos", "/dashboard?tipo=musica&q=profetiza"],
-    ["lancamento-beat", "/dashboard?tipo=musica&q=vice%20city"],
-    ["beats", "/beats"],
-    ["beat", "/beats/demo-beat-parece-sorte"],
-    ["vendido", "/beats/demo-beat-visao-de-rua"],
-    ["papatinho", "/p/papatinho.cena"],
-    ["lezin", "/p/lezin"],
-    ["perfil-proprio", "/profile"],
-    ["perfil-atuacao", "/p/lezin?aba=atuacao&atuacao=Letrista"],
-    ["perfil-creditos", "/p/papatinho.cena?aba=creditos&atuacao=Produtor%28a%29"],
-    ["perfil-ficha", "/p/lezin?obra=cena-obra-sem-atalho"],
-    ["perfil-album", "/p/lezin?obra=demo-album-profetiza"],
-    ["obras", "/works"],
-    ["eventos", "/events?localizacao="],
+    ["lancamentos", "/descoberta?tipo=musica&q=profetiza"],
+    ["lancamento-beat", "/descoberta?tipo=musica&q=vice%20city"],
+    ["beats", "/banco-de-beats"],
+    ["beat", "/banco-de-beats/demo-beat-parece-sorte"],
+    ["vendido", "/banco-de-beats/demo-beat-visao-de-rua"],
+    ["papatinho", "/artistas/papatinho.cena"],
+    ["lezin", "/artistas/lezin"],
+    ["perfil-proprio", "/perfil"],
+    ["perfil-atuacao", "/artistas/lezin?aba=atuacao&atuacao=Letrista"],
+    ["perfil-creditos", "/artistas/papatinho.cena?aba=catalogo&atuacao=Produtor%28a%29"],
+    ["perfil-ficha", "/artistas/lezin?obra=cena-obra-sem-atalho"],
+    ["perfil-album", "/artistas/lezin?obra=demo-album-profetiza"],
+    ["obras", "/obras"],
+    ["eventos", "/eventos?localizacao="],
     ["conversa", "/interacoes/obra/cena-obra-sem-atalho"],
-    ["projetos", "/work-projects"],
-    ["projeto", "/work-projects/cena-projeto-corpo"],
-    ["oportunidades", "/opportunities"],
+    ["projetos", "/trabalhos-e-galerias"],
+    ["oportunidades", "/oportunidades"],
     ["portfolio", "/portfolio/lezin"],
-    ["pedido", "/purchases/" + novoPedido],
-    ["checkout", "/purchases/" + novoPedido + "/checkout"],
+    ["pedido", "/compras/" + novoPedido],
+    ["checkout", "/compras/" + novoPedido + "/finalizar"],
   ];
   for (const [nome, url] of pages) {
     const response = await req(url),
@@ -390,6 +404,11 @@ try {
       .replace(/<script[\s\S]*?<\/script>/gi, "")
       .replace(/<[^>]*>/g, " ");
     const principal = html.match(/<main[^>]*>[\s\S]*?<\/main>/)?.[0] ?? "";
+    if (nome === "descoberta") {
+      const trilho = principal.split('id="trilho-producoes-descoberta"')[1]?.split("</section>")[0] ?? "";
+      ok(() => assert.equal((trilho.match(/class="dc-producao"/g) || []).length, 3));
+      for (const producao of novasProducoes) ok(() => assert.ok(trilho.includes(producao.titulo)));
+    }
     if (nome === "perfil-proprio") {
       ok(() => assert.match(principal, /Editar perfil/));
       ok(() => assert.doesNotMatch(principal, /\/cena\/perfis\/papatinho\.jpg/));
@@ -400,8 +419,8 @@ try {
     }
     if (nome === "perfil-atuacao") {
       const experiencia = principal.split('class="pf-experience"')[1];
-      ok(() => assert.match(experiencia, /<summary>Letrista\s*</));
-      ok(() => assert.doesNotMatch(experiencia, /<summary>Rapper\s*</));
+      ok(() => assert.match(experiencia, /<details class="pf-role-card"\s+open><summary>[\s\S]*?<strong>Letrista<\/strong>/));
+      ok(() => assert.doesNotMatch(experiencia, /<strong>Rapper<\/strong>/));
     }
     if (nome === "perfil-creditos") {
       ok(() => assert.match(principal, /<h3>Sem Atalho<\/h3>/));
@@ -412,12 +431,12 @@ try {
       ok(() => assert.match(principal, /Créditos confirmados/));
     }
     if (nome === "perfil-album") {
-      ok(() => assert.match(principal, /href="\/p\/lezin\?obra=demo-album-profetiza-faixa-1#obra-demo-album-profetiza-faixa-1">Intro<\/a>/));
+      ok(() => assert.match(principal, /href="\/artistas\/lezin\?obra=demo-album-profetiza-faixa-1">Intro<\/a>/));
     }
     if (nome === "conversa")
       ok(() => assert.match(visivel, /Essa começou com uma guia de voz/));
     if (nome === "descoberta") {
-      ok(() => assert.match(principal, /href="\/dashboard\?tipo=musica"[^>]*>Ver mais/));
+      ok(() => assert.match(principal, /href="\/descoberta\?tipo=musica"[^>]*>Ver mais/));
       const trilhoLancamentos = principal.match(/id="trilho-lancamentos"[\s\S]*?<div class="dc-rail-nav"/)?.[0] ?? "";
       const formatos = [...trilhoLancamentos.matchAll(/data-release-format="([^"]+)"/g)].map(m => m[1]);
       ok(() => assert.deepEqual([...formatos.slice(0, 4)].sort(), ["album", "beat", "ep", "faixa"]));
@@ -470,13 +489,13 @@ try {
     }
   }
   db.prepare("UPDATE obras SET publicada=0 WHERE id=?").run("demo-album-profetiza-faixa-1");
-  const semFaixa = await (await req("/dashboard?tipo=musica&q=profetiza")).text();
+  const semFaixa = await (await req("/descoberta?tipo=musica&q=profetiza")).text();
   ok(() => assert.match(semFaixa, /13 faixas/));
   ok(() => assert.doesNotMatch(semFaixa, /data-release-track="\/audio\/Profetiza\/1\./));
   db.prepare("UPDATE obras SET publicada=1 WHERE id=?").run("demo-album-profetiza-faixa-1");
   const credito = db.prepare("SELECT id FROM creditos WHERE obra_id='cena-obra-sem-atalho' AND usuario_creditado_id=? AND verificado=1").get(pap);
   db.prepare("UPDATE creditos SET verificado=0 WHERE id=?").run(credito.id);
-  const semCredito = await (await req("/p/papatinho.cena?aba=creditos&atuacao=Produtor%28a%29")).text();
+  const semCredito = await (await req("/artistas/papatinho.cena?aba=catalogo&atuacao=Produtor%28a%29")).text();
   ok(() => assert.doesNotMatch(semCredito, /<h3>Sem Atalho<\/h3>/));
   db.prepare("UPDATE creditos SET verificado=1 WHERE id=?").run(credito.id);
   const conversaUrl = "/interacoes/obra/cena-obra-sem-atalho";
@@ -559,24 +578,24 @@ try {
   ok(() =>
     assert.doesNotMatch(excluidoJson.html, /Comentário atualizado no painel/)
   );
-  const revisaoLicenca = await req("/purchases/" + novoPedido + "/checkout");
+  const revisaoLicenca = await req("/compras/" + novoPedido + "/finalizar");
   const htmlLicenca = await revisaoLicenca.text();
   ok(() => assert.equal(revisaoLicenca.status, 200));
   ok(() => assert.match(htmlLicenca, /Sem cobrança/));
   ok(() => assert.match(htmlLicenca, /Confirmar licença/));
-  const semCsrf = await req("/purchases/" + novoPedido + "/confirm", {
+  const semCsrf = await req("/compras/" + novoPedido + "/confirmar", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: '{"confirmacao":"sim"}',
   });
   ok(() => assert.equal(semCsrf.status, 403));
-  const semConfirm = await req("/purchases/" + novoPedido + "/confirm", {
+  const semConfirm = await req("/compras/" + novoPedido + "/confirmar", {
     method: "POST",
     headers: { "content-type": "application/json", "x-csrf-token": csrf },
     body: "{}",
   });
   ok(() => assert.equal(semConfirm.status, 400));
-  const confirmada = await req("/purchases/" + novoPedido + "/confirm", {
+  const confirmada = await req("/compras/" + novoPedido + "/confirmar", {
     method: "POST",
     headers: { "content-type": "application/json", "x-csrf-token": csrf },
     body: '{"confirmacao":"sim"}',

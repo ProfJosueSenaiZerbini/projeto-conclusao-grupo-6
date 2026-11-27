@@ -153,7 +153,7 @@ export const editar: Acao = (req, res) => formulario(req, res);
 export const salvar: Acao = (req, res) => {
   try {
     const id = m.salvarProjetoTrabalho(ator(res), req.body, req.params.id);
-    return res.redirect(303, "/work-projects/" + id + "?salvo=1");
+    return res.redirect(303, "/trabalhos-e-galerias/" + id + "?salvo=1");
   } catch (e) {
     if (e instanceof m.ErroTrabalho && e.status === 400)
       return formulario(req, res, req.body, e.message, 400);
@@ -168,7 +168,7 @@ export const detalhe: Acao = (req, res) =>
   });
 export const retirar: Acao = (req, res) => {
   m.retirarProjeto(ator(res), req.params.id!);
-  res.redirect(303, "/work-projects?meus=sim");
+  res.redirect(303, "/trabalhos-e-galerias?meus=sim");
 };
 export const upload: Acao = (req, res) => {
   try {
@@ -201,9 +201,9 @@ export const visibilidadeMidia: Acao = (req, res) => {
     req.params.id!,
     req.body.publico === "sim"
   );
-  res.redirect(303, "/work-projects/new#acervo");
+  res.redirect(303, "/trabalhos-e-galerias/novo#acervo");
 };
 export const removerMidia: Acao = (req, res) => {
   m.excluirMidia(ator(res), req.params.id!);
-  res.redirect(303, "/work-projects/new#acervo");
+  res.redirect(303, "/trabalhos-e-galerias/novo#acervo");
 };

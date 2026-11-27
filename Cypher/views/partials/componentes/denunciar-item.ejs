@@ -1,0 +1,4 @@
+<% const dinamico = typeof linkEventoDinamico !== "undefined" && linkEventoDinamico; %>
+<a class="cy-report-link" href="<%= dinamico ? "#" : "/suporte/novo?objeto_tipo=" + encodeURIComponent(tipo) + "&objeto_id=" + encodeURIComponent(id) %>" aria-label="<%= rotulo %>" title="<%= rotulo %>"<% if (dinamico) { %> data-event-report-link hidden<% } %>>
+  <%- include("icone-denuncia") %>
+</a>

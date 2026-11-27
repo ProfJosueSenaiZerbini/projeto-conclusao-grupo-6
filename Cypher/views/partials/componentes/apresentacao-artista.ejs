@@ -5,11 +5,11 @@
    const retrato = a.foto;
    const capa = a.capa || a.destaque?.imagem;
    const slug = encodeURIComponent(pessoa.handle.replace(/^@/, ''));
-   const publica = '/p/' + slug;
+   const publica = '/artistas/' + slug;
    const temPublico = !a.proprio || pessoa.profilePublic;
 %>
 <article class="pf-identity" aria-labelledby="artista-nome">
-  <div class="pf-cover <%= capa ? 'has-art' : '' %>">
+  <div class="pf-cover<%= capa ? ' has-art' : '' %><%= a.selo ? ' pf-cover-com-selo' : '' %>">
     <% if (capa) { %><img class="pf-cover-art" src="<%= capa %>" alt="" fetchpriority="high"><% } %>
     <div class="pf-signature">
       <div class="pf-portrait" aria-hidden="true"><% if (retrato) { %><img src="<%= retrato %>" alt="" fetchpriority="high"><% } else { %><span><%= pessoa.initials %></span><% } %></div>
@@ -18,8 +18,14 @@
         <% if (segundoNome) { %><p class="pf-fullname"><%= segundoNome %></p><% } %>
         <% if (pessoa.categories.length) { %><ul class="pf-roles" aria-label="Atuações profissionais"><% for (const c of pessoa.categories) { %><li><%= pessoa.rotulosCategorias[c] || c %></li><% } %></ul><% } %>
       </div>
-      <%- include('selo-assinatura',{selo:a.selo,nome}) %>
     </div>
+    <% if (a.selo) { %>
+      <div class="pf-selo-assinatura">
+        <div class="pf-selo-suporte"><%- include("selo-assinatura", { selo: a.selo, nome }) %></div>
+        <span class="pf-selo-legenda" aria-hidden="true">Selo profissional</span>
+        <% if (a.outraPessoa) { %><%- include("denunciar-item", { tipo: "selo", id: a.selo.id, rotulo: "Denunciar este selo" }) %><% } %>
+      </div>
+    <% } %>
     <% if (a.destaque) { %><a class="pf-cover-credit" href="<%= a.destaque.url %>"><%- icones.disc %><span><small>Do acervo</small><strong><%= a.destaque.titulo %></strong></span></a><% } %>
   </div>
   <div class="pf-identity-foot">
@@ -35,29 +41,33 @@
       </div>
     </div>
     <div class="pf-actions">
-      <% if (a.editavel) { %><a class="pf-button primary" href="/profile?editar=1#editar-perfil"><%- icones.pen %>Editar perfil</a><% } %>
+      <% if (a.editavel) { %><a class="pf-button primary" href="/perfil?editar=1#editar-perfil"><%- icones.pen %>Editar perfil</a><% } %>
       <% if (a.outraPessoa) { %><%- include('acoes-conteudo',{tipo:'perfil',id:pessoa.id}) %><% } %>
-      <% if (a.conversa) { %><a class="pf-button" href="/messages/<%= encodeURIComponent(a.conversa) %>"><%- icones.messageCircle %> Mandar mensagem</a>
-      <% } else if (a.iniciarConversa) { %><form method="post" action="/messages/start"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="alvo_id" value="<%= pessoa.id %>"><button class="pf-button" type="submit"><%- icones.messageCircle %> Mandar mensagem</button></form>
+      <% if (a.conversa) { %><a class="pf-button" href="/mensagens/<%= encodeURIComponent(a.conversa) %>"><%- icones.messageCircle %> Mandar mensagem</a>
+      <% } else if (a.iniciarConversa) { %><form method="post" action="/mensagens/iniciar"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="alvo_id" value="<%= pessoa.id %>"><button class="pf-button" type="submit"><%- icones.messageCircle %> Mandar mensagem</button></form>
       <% } else if (a.outraPessoa && pessoa.contact) { %><a class="pf-button" href="<%= a.url('sobre').split('#')[0] %>#contato">Contato</a><% } %>
-      <% if (a.editavel || a.outraPessoa || temPublico) { %>
+      <% if (temPublico) { %>
+        <button class="pf-button pf-share" type="button" data-share-profile="<%= publica %>"><span class="pf-share-icon" aria-hidden="true"><%- icones.share %></span><span data-share-label>Compartilhar perfil</span></button>
+        <span class="pf-sr" data-share-status role="status"></span>
+      <% } %>
+      <% if (a.outraPessoa) { %><%- include("denunciar-item",{tipo:"perfil",id:pessoa.id,rotulo:"Denunciar este perfil"}) %><% } %>
+      <% if ((a.editavel && temPublico) || a.propor || a.representar || (!a.proprio && !a.outraPessoa && typeof usuario !== 'undefined' && usuario.id === pessoa.id)) { %>
         <details class="pf-menu"><summary class="pf-button" aria-label="Mais ações do perfil"><%- icones.more %></summary>
           <div class="pf-menu-list">
             <% if (a.editavel) { %>
               <% if (temPublico) { %><a href="<%= publica %>">Ver perfil público</a><% } %>
             <% } %>
-            <% if (!a.proprio && !a.outraPessoa && typeof usuario !== 'undefined' && usuario.id === pessoa.id) { %><a href="/profile">Voltar ao meu perfil</a><% } %>
-            <% if (a.propor) { %><a href="/colaboracoes/new?destinatario=<%= encodeURIComponent(pessoa.handle) %>">Propor colaboração</a><% } %>
+            <% if (!a.proprio && !a.outraPessoa && typeof usuario !== 'undefined' && usuario.id === pessoa.id) { %><a href="/perfil">Voltar ao meu perfil</a><% } %>
+            <% if (a.propor) { %><a href="/colaboracoes/novo?destinatario=<%= encodeURIComponent(pessoa.handle) %>">Propor colaboração</a><% } %>
             <% if (a.representar) { %><a href="/representacoes?destinatario=<%= encodeURIComponent(pessoa.handle) %>">Propor representação</a><% } %>
-            <% if (temPublico) { %><a href="<%= publica %>" data-share-profile>Compartilhar perfil</a><% } %>
-            <% if (temPublico) { %><a href="<%= publica %>" data-copy-profile>Copiar link do perfil</a><% } %>
-            <% if (a.outraPessoa) { %><a href="/suporte/new?objeto_tipo=perfil&amp;objeto_id=<%= encodeURIComponent(pessoa.id) %>">Denunciar perfil</a>
-              <% if (a.selo) { %><a href="/suporte/new?objeto_tipo=selo&amp;objeto_id=<%= encodeURIComponent(a.selo.id) %>">Denunciar selo</a><% } %>
-            <% } %>
           </div>
         </details>
       <% } %>
-      <span class="pf-share-status" role="status"></span>
     </div>
   </div>
 </article>
+<% if (temPublico) { %>
+  <dialog class="pf-share-dialog" aria-labelledby="pf-share-titulo" data-share-dialog>
+    <form method="dialog"><h3 id="pf-share-titulo">Compartilhar perfil</h3><label>Endereço do perfil<input type="url" readonly data-share-url></label><button type="submit" class="pf-button">Fechar</button></form>
+  </dialog>
+<% } %>

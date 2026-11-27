@@ -1,0 +1,39 @@
+<%
+  const url = '/oportunidades/' + encodeURIComponent(chamada.id);
+  const selo = { servico: ['Serviço', 'briefcase'], projeto: ['Projeto', 'clapperboard'], colaboracao: ['Colaboração', 'users'], vaga: ['Vaga profissional', 'tag'] }[chamada.tipo] ?? ['Oportunidade', 'briefcase'];
+  const funcoes = chamada.funcoes.map(funcao => funcao.nome).filter(Boolean);
+  const vagas = Math.max(0, chamada.vagas - chamada.ocupadas);
+  const remunera = chamada.valor_centavos == null
+    ? (remuneracoes[chamada.remuneracao] ?? 'A combinar')
+    : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(chamada.valor_centavos / 100) + ' / ' + ({ projeto: 'projeto', hora: 'hora', mes: 'mês' }[chamada.unidade] ?? 'projeto');
+  const prazo = /^\d{4}-\d{2}-\d{2}$/.test(chamada.prazo ?? '') ? chamada.prazo.split('-').reverse().join('/') : '';
+  const local = [modosTrabalho[chamada.modalidade], chamada.localizacao].filter(Boolean).join(' · ');
+%>
+<article class="cy-call-card" data-tipo="<%= chamada.tipo %>">
+  <header class="cy-call-band">
+    <span class="cy-call-icon" aria-hidden="true"><%- icones[selo[1]] ?? icones.briefcase %></span>
+    <span class="cy-call-type"><%= selo[0] %></span>
+    <span class="cy-call-state" data-state="<%= chamada.estado %>"><%= estadosChamada[chamada.estado] %></span>
+  </header>
+  <div class="cy-call-body">
+    <h3><a href="<%= url %>"><%= chamada.titulo %></a></h3>
+    <% if (chamada.descricao) { %><p class="cy-call-summary"><%= chamada.descricao %></p><% } %>
+    <% if (funcoes.length) { %>
+      <ul class="cy-call-roles" aria-label="Profissões procuradas">
+        <% funcoes.slice(0, 3).forEach(funcao => { %><li><%= funcao %></li><% }) %>
+        <% if (funcoes.length > 3) { %><li>+<%= funcoes.length - 3 %></li><% } %>
+      </ul>
+    <% } %>
+    <dl class="cy-call-facts">
+      <div><dt>Condições</dt><dd><%= remunera %></dd></div>
+      <div><dt>Vagas</dt><dd><%= vagas %> <%= vagas === 1 ? 'livre' : 'livres' %></dd></div>
+      <% if (local) { %><div><dt>Modalidade</dt><dd><%= local %></dd></div><% } %>
+      <% if (prazo) { %><div><dt>Candidaturas até</dt><dd><time datetime="<%= chamada.prazo %>"><%= prazo %></time></dd></div><% } %>
+    </dl>
+    <% if (contextoCard === 'minhas') { %><p class="cy-call-note"><%= chamada.candidaturas %> candidaturas · <%= chamada.ocupadas %> vagas ocupadas</p><% } %>
+    <footer class="cy-call-footer">
+      <span><%= chamada.autor_nome || 'Cypher' %></span>
+      <a href="<%= url %>" aria-label="Ver chamada: <%= chamada.titulo %>">Ver chamada <span aria-hidden="true"><%- icones.arrowUpRight ?? '' %></span></a>
+    </footer>
+  </div>
+</article>

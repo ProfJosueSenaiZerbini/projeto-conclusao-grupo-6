@@ -1,0 +1,102 @@
+/* Campos dos editores: rótulos estáveis e uma mesma altura para os controles. */
+:is([data-cy-wizard], [data-cy-fields]) {
+  --create-ink: var(--dc-ink, var(--text-primary, #252d20));
+  --create-muted: var(--dc-muted, var(--text-secondary, #526048));
+  --create-line: var(--dc-line, #85906f);
+  --create-paper: var(--dc-surface, var(--bg-surface, #f4f5ed));
+  --create-focus: var(--dc-accent, #496524);
+  --create-error: #9a3828;
+  color-scheme: light;
+}
+.dark :is([data-cy-wizard], [data-cy-fields]) {
+  --create-ink: var(--dc-ink, var(--text-primary, #f1f2e7));
+  --create-muted: var(--dc-muted, var(--text-secondary, #bcc6ac));
+  --create-line: var(--dc-line, #71805a);
+  --create-paper: var(--dc-surface, var(--bg-surface, #1d2519));
+  --create-focus: var(--dc-accent, #bad987);
+  --create-error: #fab89c;
+  color-scheme: dark;
+}
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field {
+  display: grid;
+  align-content: start;
+  align-self: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+  color: var(--create-ink);
+}
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field[hidden] { display: none !important; }
+.cy-create-caption {
+  font: 700 13px/1.4 "Space Grotesk", sans-serif;
+  overflow-wrap: anywhere;
+}
+.cy-create-hint {
+  color: var(--create-muted);
+  font: 400 12px/1.45 "Space Grotesk", sans-serif;
+  overflow-wrap: anywhere;
+}
+.cy-create-hint:has(> [hidden]):not(:has(> :not([hidden]))) { display: none; }
+.cy-create-hint .op-field-error { color: var(--create-error); }
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > :is(input, select, textarea) {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--create-line);
+  border-radius: 3px 7px 2px 5px;
+  background-color: var(--create-paper);
+  color: var(--create-ink);
+  color-scheme: inherit;
+  font: 400 16px/1.35 "Space Grotesk", sans-serif;
+  align-self: start;
+}
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > :is(input:not([type="file"]), select) { height: 48px; }
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > textarea { resize: vertical; min-height: 88px; }
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > :is(input, textarea)::placeholder {
+  color: var(--create-muted);
+  opacity: 1;
+}
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--create-focus);
+  outline-offset: 2px;
+  border-color: var(--create-focus);
+}
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > [aria-invalid="true"] { border-color: var(--create-error); }
+form:is([data-cy-wizard], [data-cy-fields]) label.cy-create-field > :disabled { opacity: .65; }
+form:is([data-cy-wizard], [data-cy-fields]) .pt-fields > button { min-height: 48px; margin-bottom: 0; }
+@supports (grid-template-rows: subgrid) {
+  :is([data-cy-wizard], [data-cy-fields]) :is(.ev-editor-grid, .op-fields, .pt-fields, .bl-two, .cn-form-fields, .form-grid):has(> .cy-create-field) { row-gap: 6px; }
+  :is([data-cy-wizard], [data-cy-fields]) :is(.ev-editor-grid, .op-fields, .pt-fields, .bl-two, .cn-form-fields, .form-grid):has(> .cy-create-field) > * {
+    grid-row: span 3;
+    margin-block-end: 8px;
+  }
+  form:is([data-cy-wizard], [data-cy-fields]) :is(.ev-editor-grid, .op-fields, .pt-fields, .bl-two, .cn-form-fields, .form-grid) > label.cy-create-field {
+    grid-template-rows: subgrid;
+    align-self: stretch;
+    margin-block-start: 0;
+  }
+  form:is([data-cy-wizard], [data-cy-fields]) .pt-fields:has(> button) > button { align-self: end; }
+}
+
+/* A folha de letra mantém a altura e a pauta próprias. */
+form[data-cy-wizard] label.cy-create-field > textarea.work-lyrics-editor {
+  min-height: 330px;
+  padding: 18px 18px 18px 48px;
+  font-size: 16px;
+  line-height: 31px;
+}
+form[data-cy-wizard] label.cy-create-field > input[type="file"]::file-selector-button {
+  margin-inline-end: 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--create-line);
+  border-radius: 2px 5px 2px 4px;
+  background: var(--create-paper);
+  color: var(--create-ink);
+  font: inherit;
+  cursor: pointer;
+}

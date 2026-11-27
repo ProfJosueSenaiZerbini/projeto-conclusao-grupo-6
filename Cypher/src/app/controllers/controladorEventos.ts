@@ -19,6 +19,7 @@ import {
 } from "../models/eventos.js";
 
 import type { Request, Response } from "express";
+import { cepEvento, enderecoEvento, lerEnderecoEvento, enderecoValido, rotuloEndereco, chaveEndereco, estadosEndereco, buscarPontoEvento, emitirProvaLocal, pontoDaProva, previaMapa } from "../models/localEvento.js";
 import {
   CypherModel,
   type DadosEventoCypher,
@@ -50,6 +51,9 @@ const valoresVazios: ValoresFormularioEvento = {
   data: "",
   horario: "",
   local: "",
+  modoLocal: "endereco",
+  endereco: enderecoEvento({}),
+  provaLocal: "",
   organizador: "",
   situacao: "Inscrições abertas",
   cor: "yellow",
@@ -62,7 +66,6 @@ const valoresVazios: ValoresFormularioEvento = {
   tipoParticipacao: "aberta",
   capacidade: "",
   criterios: "",
-  fuso: "America/Sao_Paulo",
   fimData: "",
   fimHorario: "",
   localConfirmado: "",
@@ -150,7 +153,12 @@ function prepararEventoParaView(evento: EventoContaPersistido) {
 function formularioDoEvento(
   evento: EventoContaPersistido
 ): ValoresFormularioEvento {
+  const cfg = configuracaoFormularioEvento(evento.proprietarioId, evento.id);
+  const endereco = lerEnderecoEvento(cfg.enderecoMapaJson);
   return {
+    modoLocal: endereco ? "endereco" : "texto",
+    endereco: endereco ?? enderecoEvento({}),
+    provaLocal: "",
     titulo: evento.title,
     categoria: evento.category,
     categoriaDetalhe: evento.categoryDetail,
@@ -168,25 +176,40 @@ function formularioDoEvento(
     premio: evento.prize,
     etiquetas: evento.tags.join(", "),
     tipoParticipacao: evento.participationType,
-    ...configuracaoFormularioEvento(evento.proprietarioId, evento.id),
+    ...cfg,
   };
 }
 
 function dadosDoFormulario(
   req: Request,
-  temaAtual = temaEventoPadrao
+  temaAtual = temaEventoPadrao,
+  anterior?: ValoresFormularioEvento,
+  ator = ""
 ): ValoresFormularioEvento {
   const valor = (chave: string) => String(req.body[chave] ?? "").trim();
+  const modoLocal = valor("modoLocal") === "endereco" ? "endereco" : "texto";
+  const endereco = enderecoEvento(req.body);
+  const local = modoLocal === "endereco" ? rotuloEndereco(endereco) : valor("local");
+  const provaLocal = modoLocal === "endereco" ? valor("provaLocal") : "";
+  const ponto = provaLocal ? pontoDaProva(ator, endereco, provaLocal) : null;
+  const enderecoMapaJson = modoLocal === "endereco" && enderecoValido(endereco) ? JSON.stringify(endereco) : "";
+  const mesmoLocal = anterior && anterior.modoLocal === modoLocal &&
+    (modoLocal === "endereco" ? chaveEndereco(anterior.endereco) === chaveEndereco(endereco) : anterior.local === local);
+  const mapa = mesmoLocal ? anterior : undefined;
+  const erroMapa = modoLocal !== "endereco" ? "" : !enderecoValido(endereco)
+    ? "Informe rua, cidade e estado ou selecione outro tipo de local."
+    : valor("cep") && !endereco.cep ? "Informe um CEP com 8 dígitos ou deixe o campo em branco."
+    : provaLocal && !ponto ? "A confirmação do mapa expirou ou o endereço mudou. Confira o ponto novamente ou publique sem mapa." : "";
   return {
     titulo: valor("titulo"),
     capacidade: valor("capacidade"),
     criterios: valor("criterios"),
-    fuso: valor("fuso"),
     fimData: valor("fimData"),
     fimHorario: valor("fimHorario"),
-    localConfirmado: valor("localConfirmado"),
-    latitude: valor("latitude"),
-    longitude: valor("longitude"),
+    modoLocal, endereco, enderecoMapaJson, provaLocal: erroMapa ? "" : provaLocal, erroMapa,
+    localConfirmado: ponto ? "sim" : mapa?.localConfirmado ?? "",
+    latitude: ponto?.latitude ?? mapa?.latitude ?? "",
+    longitude: ponto?.longitude ?? mapa?.longitude ?? "",
     serieId: valor("serieId"),
     versao: valor("versao"),
     categoria: valor("categoria"),
@@ -205,7 +228,7 @@ function dadosDoFormulario(
         : [],
     data: valor("data"),
     horario: valor("horario"),
-    local: valor("local"),
+    local,
     organizador: valor("organizador"),
     situacao: valor("situacao"),
     cor: valor("cor") || "yellow",
@@ -275,6 +298,7 @@ function renderizarFormulario(
     tiposWorkshop,
     temasEvento,
     temaSelecionado: resolverTemaEvento(valores.temaCartao),
+    estadosEndereco,
     tiposParticipacaoEvento,
   });
 }
@@ -285,7 +309,7 @@ function exigirOrganizador(
 ): UsuarioDaSessao | undefined {
   const usuario = usuarioAtual(res);
   if (!podePublicar(usuario, "evento")) {
-    res.redirect("/events?erro=permissao");
+    res.redirect("/eventos?erro=permissao");
     return undefined;
   }
   return usuario;
@@ -297,12 +321,12 @@ function exigirResponsavelEvento(
 ): { usuario: UsuarioDaSessao; evento: EventoContaPersistido } | undefined {
   const usuario = usuarioAtual(res);
   if (usuario.demonstracao || usuario.tipoConta !== "profissional") {
-    res.redirect("/events?erro=permissao");
+    res.redirect("/eventos?erro=permissao");
     return undefined;
   }
   const evento = CypherModel.evento(String(req.params.id), usuario.id);
   if (!evento || !evento.owned || evento.demonstracao) {
-    res.redirect("/events?erro=evento");
+    res.redirect("/eventos?erro=evento");
     return undefined;
   }
   return { usuario, evento };
@@ -316,6 +340,7 @@ export function oportunidades(req: Request, res: Response) {
       ? undefined
       : textoQuery(req, "localizacao").slice(0, 100);
   const filtros = normalizarFiltros(req, localizacao ?? preferencias.regiao);
+  const mapaAgenda = filtros.localizacao ? "/eventos/mapa?" + new URLSearchParams({localizacao:filtros.localizacao}) : "/eventos/mapa";
   const q = textoQuery(req, "q").slice(0, 120);
   const termos = normalizarBusca(q).split(/\s+/).filter(Boolean);
   const todos = CypherModel.eventosDisponiveis(
@@ -397,6 +422,7 @@ export function oportunidades(req: Request, res: Response) {
     localizacaoSelecionada: localizacao,
     opcoesCategorias,
     opcoesFormatos,
+    mapaAgenda,
     podeGerenciar: podePublicar(usuario, "evento"),
     erro: textoQuery(req, "erro"),
     mensagem: textoQuery(req, "mensagem"),
@@ -411,8 +437,8 @@ function redirecionarEventos(
 ) {
   return res.redirect(
     sucesso
-      ? `/events?mensagem=${encodeURIComponent(mensagem)}`
-      : `/events?erro=${encodeURIComponent(erro)}`
+      ? `/eventos?mensagem=${encodeURIComponent(mensagem)}`
+      : `/eventos?erro=${encodeURIComponent(erro)}`
   );
 }
 
@@ -482,6 +508,32 @@ export function atualizarInteresse(req: Request, res: Response) {
   );
 }
 
+export async function consultarLocalEvento(req: Request, res: Response) {
+  res.set("Cache-Control","private, no-store");
+  const usuario = usuarioAtual(res);
+  if (!usuario || !podePublicar(usuario, "evento")) return res.status(403).json({mensagem:"Somente organizadores podem consultar endereços de eventos."});
+  const e = enderecoEvento(req.body);
+  if (req.body.acao === "cep") {
+    if (!e.cep) return res.status(400).json({mensagem:"Digite um CEP com 8 dígitos."});
+    try {
+      const r = await fetch("https://viacep.com.br/ws/" + e.cep + "/json/", {signal:AbortSignal.timeout(4500)});
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      if (d.erro) return res.status(404).json({mensagem:"CEP não encontrado. Confira o número ou preencha o endereço manualmente."});
+      return res.json({ endereco: enderecoEvento({cep:e.cep,rua:d.logradouro,bairro:d.bairro,cidade:d.localidade,uf:d.uf}) });
+    } catch { return res.status(503).json({mensagem:"A busca por CEP está indisponível. Você pode preencher o endereço manualmente."}); }
+  }
+  if(req.body.acao !== "mapa" || !enderecoValido(e) || !e.numero || (req.body.cep && !e.cep))
+    return res.status(400).json({mensagem:"Preencha rua, número, cidade e estado para conferir o ponto."});
+  try {
+    const ponto = await buscarPontoEvento(e);
+    if (!ponto) return res.status(404).json({mensagem:"Não encontrei um ponto confiável para esse número. Confira o endereço ou publique sem pino."});
+    return res.json({prova:emitirProvaLocal(usuario.id,e,ponto), mapa:previaMapa(ponto)});
+  } catch {
+    return res.status(503).json({mensagem:"Não foi possível consultar o mapa agora. Tente novamente ou publique sem pino."});
+  }
+}
+
 export function novoEvento(req: Request, res: Response) {
   const usuario = exigirOrganizador(req, res);
   if (!usuario) return;
@@ -500,8 +552,8 @@ export function novoEvento(req: Request, res: Response) {
 export function criarEvento(req: Request, res: Response) {
   const usuario = exigirOrganizador(req, res);
   if (!usuario) return;
-  const valores = dadosDoFormulario(req);
-  const erro = validarFormularioEvento(valores);
+  const valores = dadosDoFormulario(req, temaEventoPadrao, undefined, usuario.id);
+  const erro = valores.erroMapa || validarFormularioEvento(valores);
   if (erro) return renderizarFormulario(req, res, valores, erro, false);
   let eventoId;
   try {
@@ -526,7 +578,7 @@ export function criarEvento(req: Request, res: Response) {
     tipo: "evento_criado",
     titulo: "Novo evento criado",
     mensagem: `“${valores.titulo}” foi adicionado às suas oportunidades.`,
-    url: "/events",
+    url: "/eventos",
     entidadeTipo: "evento",
     entidadeId: eventoId,
     chaveOrigem: `evento-criado:${eventoId}`,
@@ -534,7 +586,7 @@ export function criarEvento(req: Request, res: Response) {
   return res.redirect(
     res.locals.origemEspaco
       ? "/espaco-de-trabalho?resultado=eventoCriado"
-      : "/events?mensagem=Evento criado com sucesso."
+      : "/eventos?mensagem=Evento criado com sucesso."
   );
 }
 
@@ -557,10 +609,15 @@ export function atualizarEvento(req: Request, res: Response) {
   const responsavel = exigirResponsavelEvento(req, res);
   if (!responsavel) return;
   const { usuario, evento } = responsavel;
-  const valores = dadosDoFormulario(req, resolverTemaEvento(evento.temaCartao));
+  const valores = dadosDoFormulario(
+    req,
+    resolverTemaEvento(evento.temaCartao),
+    formularioDoEvento(evento),
+    usuario.id
+  );
   const categoriaOutroLegadaVazia =
     evento.category === "Outro" && !evento.categoryDetail;
-  const erro = validarFormularioEvento(valores, categoriaOutroLegadaVazia);
+  const erro = valores.erroMapa || validarFormularioEvento(valores, categoriaOutroLegadaVazia);
   if (erro)
     return renderizarFormulario(
       req,
@@ -611,7 +668,7 @@ export function atualizarEvento(req: Request, res: Response) {
       tipo: "evento_atualizado",
       titulo: "Evento atualizado",
       mensagem: `As informações de “${valores.titulo}” foram salvas.`,
-      url: "/events",
+      url: "/eventos",
       entidadeTipo: "evento",
       entidadeId: String(req.params.id),
       chaveOrigem: `evento-atualizado:${req.params.id}:${valores.titulo}:${valores.situacao}`,
@@ -621,8 +678,8 @@ export function atualizarEvento(req: Request, res: Response) {
     atualizado
       ? res.locals.origemEspaco
         ? "/espaco-de-trabalho?resultado=eventoAtualizado"
-        : "/events?mensagem=Evento atualizado com sucesso."
-      : "/events?erro=evento"
+        : "/eventos?mensagem=Evento atualizado com sucesso."
+      : "/eventos?erro=evento"
   );
 }
 
@@ -632,6 +689,6 @@ export function excluirEvento(req: Request, res: Response) {
   const { usuario } = responsavel;
   return res.redirect(
     303,
-    `/events/${encodeURIComponent(String(req.params.id))}#gestao`
+    `/eventos/${encodeURIComponent(String(req.params.id))}#gestao`
   );
 }

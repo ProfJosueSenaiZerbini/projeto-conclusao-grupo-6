@@ -1,0 +1,97 @@
+/* Trilha comum. O controle continua nativo para teclado, toque e leitores de tela. */
+input[type="range"] {
+  --cy-range-track: color-mix(
+    in srgb,
+    var(--dc-olive, #566b3b) 27%,
+    var(--dc-field, #e9ecdf)
+  );
+  --cy-range-edge: color-mix(in srgb, var(--dc-ink, #20261c) 24%, transparent);
+  --cy-range-fill: var(--dc-accent, #526b31);
+  --cy-range-halo: var(--dc-surface, #f2f3ec);
+  --cy-range-altura: 40px;
+  --cy-range-diametro: 16px;
+  --cy-range-trilha: 6px;
+  appearance: none;
+  -webkit-appearance: none;
+  min-inline-size: 0;
+  inline-size: 100%;
+  min-block-size: var(--cy-range-altura);
+  block-size: var(--cy-range-altura);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  box-sizing: border-box;
+  height: var(--cy-range-trilha);
+  border: 1px solid var(--cy-range-edge);
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    var(--cy-range-fill) var(--cy-range-progresso, 0%),
+    var(--cy-range-track) 0
+  );
+}
+input[type="range"]::-moz-range-track {
+  box-sizing: border-box;
+  height: var(--cy-range-trilha);
+  border: 1px solid var(--cy-range-edge);
+  border-radius: 99px;
+  background: var(--cy-range-track);
+}
+input[type="range"]::-moz-range-progress {
+  height: var(--cy-range-trilha);
+  border-radius: 99px;
+  background: var(--cy-range-fill);
+}
+input[type="range"]::-webkit-slider-thumb {
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  width: var(--cy-range-diametro);
+  height: var(--cy-range-diametro);
+  margin-top: calc(
+    (var(--cy-range-trilha) - var(--cy-range-diametro)) / 2 - 1px
+  );
+  border: 2px solid var(--cy-range-halo);
+  border-radius: 50%;
+  background: var(--cy-range-fill);
+  box-shadow: 0 0 0 1px var(--cy-range-edge);
+}
+input[type="range"]::-moz-range-thumb {
+  box-sizing: border-box;
+  width: var(--cy-range-diametro);
+  height: var(--cy-range-diametro);
+  border: 2px solid var(--cy-range-halo);
+  border-radius: 50%;
+  background: var(--cy-range-fill);
+  box-shadow: 0 0 0 1px var(--cy-range-edge);
+}
+input[type="range"]:focus-visible {
+  outline: 2px solid var(--cy-range-fill);
+  outline-offset: 2px;
+}
+input[type="range"]:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (hover: hover) {
+  input[type="range"]:not(:disabled):hover {
+    --cy-range-diametro: 18px;
+  }
+}
+@media (forced-colors: active) {
+  input[type="range"] {
+    --cy-range-track: Canvas;
+    --cy-range-edge: ButtonText;
+    --cy-range-fill: Highlight;
+    --cy-range-halo: Canvas;
+    forced-color-adjust: none;
+  }
+  input[type="range"]:focus-visible {
+    outline-color: Highlight !important;
+  }
+}

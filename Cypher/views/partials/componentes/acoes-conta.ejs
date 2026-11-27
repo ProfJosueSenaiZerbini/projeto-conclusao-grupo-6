@@ -21,14 +21,13 @@
         <% if ((notificacoesRecentes ?? []).length) { %>
           <div class="notification-list">
             <% notificacoesRecentes.forEach(notificacao => { %>
-              <article class="notification-item<%= notificacao.lida ? '' : ' notification-item-unread' %>">
+              <article class="notification-item<%= notificacao.tipo === 'mensagem' ? ' notification-item-message' : '' %><%= notificacao.lida ? '' : ' notification-item-unread' %>">
                 <a href="<%= notificacao.url || '/notificacoes' %>">
-                  <strong>
-                    <%= notificacao.titulo %>
-                  </strong>
-                  <span>
-                    <%= notificacao.mensagem %>
-                  </span>
+                  <% if (notificacao.remetenteIniciais) { %><%- include('avatar-notificacao', { aviso: notificacao }) %><% } %>
+                  <div class="notification-copy">
+                    <strong><%= notificacao.titulo %></strong>
+                    <% if (notificacao.mensagem) { %><span><%= notificacao.mensagem %></span><% } %>
+                  </div>
                 </a>
                 <% if (!notificacao.lida) { %>
                   <form method="post" action="/notificacoes/<%= encodeURIComponent(notificacao.id) %>/lida">
@@ -48,6 +47,6 @@
         <% } %>
       </section>
     </div>
-    <a class="topbar-avatar" href="/profile" aria-label="<%= usuario.initials %> · Perfil de <%= usuario.name %>" title="Perfil de <%= usuario.name %>">
+    <a class="topbar-avatar" href="/perfil" aria-label="<%= usuario.initials %> · Perfil de <%= usuario.name %>" title="Perfil de <%= usuario.name %>">
       <%- include('avatar-usuario') %>
     </a>

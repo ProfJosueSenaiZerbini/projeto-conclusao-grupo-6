@@ -8,7 +8,10 @@
     "build": "tsc",
     "start": "node dist/src/aplicacao.js",
     "check": "tsc --noEmit",
-    "seed:catalog": "node --import tsx scripts/inserir-catalogo-demonstrativo.mjs",
+    "seed:catalog": "node --import tsx scripts/restaurar-catalogo-demonstrativo.mjs",
+    "demo:restaurar": "node --import tsx scripts/restaurar-catalogo-demonstrativo.mjs",
+    "demo:contas": "node --import tsx scripts/preparar-contas-demo.mjs",
+    "test:demo": "npm run build && node scripts/testar-seed-portatil.mjs",
     "test:scene": "npm run build && node scripts/testar-cena.mjs",
     "test:db": "node scripts/testar-banco.mjs && node scripts/testar-politicas-perfil.mjs",
     "test:search": "npm run build && node scripts/testar-busca-global.mjs",
@@ -32,8 +35,9 @@
     "test:central": "npm run build && node scripts/testar-central.mjs",
     "test:support": "npm run build && node scripts/testar-suporte.mjs",
     "test:accounts": "npm run build && node scripts/testar-contas.mjs",
-    "test:events": "npm run build && node scripts/testar-eventos.mjs",
-    "test:beats": "npm run build && node scripts/testar-beats.mjs"
+    "test:events": "npm run build && node scripts/testar-eventos.mjs && node scripts/testar-mapa-eventos.mjs",
+    "test:beats": "npm run build && node scripts/testar-beats.mjs",
+    "test:routes": "npm run build && node scripts/testar-rotas.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",

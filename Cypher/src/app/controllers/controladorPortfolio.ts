@@ -107,7 +107,7 @@ export const editar: Acao = (req, res) => {
 export const salvar: Acao = (req, res) => {
   try {
     m.salvarPortfolio(uid(res), req.body);
-    res.redirect(303, "/portfolio/edit?salvo=1");
+    res.redirect(303, "/portfolio/editar?salvo=1");
   } catch (e) {
     if (e instanceof m.ErroPortfolio && e.status === 400)
       return editor(res, e.message, 400, req.body);
@@ -124,12 +124,12 @@ export const preview: Acao = (req, res) => {
     );
     item.url =
       item.tipo === "projeto"
-        ? "/work-projects/" + encodeURIComponent(item.id)
+        ? "/trabalhos-e-galerias/" + encodeURIComponent(item.id)
         : item.tipo === "obra"
           ? enderecoObra(String(perfil?.identificador ?? ""), item.id)
           : item.tipo === "beat"
-            ? "/beats#beat-" + encodeURIComponent(item.id)
-            : "/events?localizacao=#evento-" + encodeURIComponent(item.id);
+            ? "/banco-de-beats#beat-" + encodeURIComponent(item.id)
+            : "/eventos?localizacao=#evento-" + encodeURIComponent(item.id);
   }
   return res.render("pages/portfolio", {
     title: "Prévia do portfólio",
@@ -216,7 +216,7 @@ export const ficha: Acao = (req, res) => {
     titular: dados.titular,
     origem:
       item.tipo === "projeto"
-        ? "/work-projects/" + encodeURIComponent(item.id)
+        ? "/trabalhos-e-galerias/" + encodeURIComponent(item.id)
         : "",
     voltar: "/portfolio/" + encodeURIComponent(p.handle.replace(/^@/, "")),
   });

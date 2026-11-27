@@ -3,6 +3,8 @@
 @import "./cartao-profissional.css";
 @import "./temas-evento.css";
 @import "./cartao-lancamento-cena.css";
+@import "./cartao-oportunidade.css";
+@import "./cartao-producao-cena.css";
 
 .dc-shell {
   --rail: 76px;
@@ -57,11 +59,16 @@
   transform: none;
 }
 
-/* Superfície translúcida compartilhada pela navegação. */
+/* Superfície translúcida da navegação e das áreas externas de Mensagens. */
 .dc-header,
 .dc-shell .sidebar.sidebar,
 .dc-shell .sidebar .sidebar-bottom > .resource-links {
   --dc-nav-label-ink: #191f15;
+}
+.dc-header,
+.dc-shell .sidebar.sidebar,
+.dc-shell .sidebar .sidebar-bottom > .resource-links,
+.msg-page .op-content {
   background: transparent;
   backdrop-filter: blur(5px);
 }
@@ -74,7 +81,8 @@
 .dc-shell .sidebar::before,
 .dc-shell .sidebar::after,
 .dc-shell .sidebar .resource-links::before,
-.dc-shell .sidebar .resource-links::after {
+.dc-shell .sidebar .resource-links::after,
+.msg-page .op-content::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -83,7 +91,8 @@
 }
 .dc-header::before,
 .dc-shell .sidebar::before,
-.dc-shell .sidebar .resource-links::before {
+.dc-shell .sidebar .resource-links::before,
+.msg-page .op-content::before {
   background: var(--dc-panel);
   opacity: 0.8;
 }
@@ -1198,15 +1207,17 @@
   visibility: hidden;
   pointer-events: none;
 }
-@media (hover: hover) and (pointer: fine) {
-  .dc-rail-nav .dc-feature-arrow:not(:disabled) {
-    opacity: 0;
-    visibility: hidden;
-  }
-  .dc-rail:is(:hover, :focus-within) .dc-rail-nav .dc-feature-arrow:not(:disabled) {
-    opacity: 1;
-    visibility: visible;
-  }
+.dc-rail-nav .dc-feature-arrow,
+.dc-feature-controls .dc-feature-arrow {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.dc-rail.dc-mouse-over .dc-rail-nav .dc-feature-arrow:not(:disabled),
+.dc-feature.dc-mouse-over .dc-feature-controls .dc-feature-arrow:not(:disabled) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 @media (max-width: 700px) {
   .dc-rail-nav .dc-feature-arrow {
@@ -1857,110 +1868,7 @@
     flex-wrap: wrap;
     gap: 3px;
   }
-  .dc-bottom {
-    --dc-nav-glass: #edebd7bf;
-    --dc-nav-highlight: linear-gradient(135deg, #b9cf8b99, #8fa95ce6);
-    --dc-nav-glow: #617b4566;
-    --dc-nav-gold: var(--dc-paper);
-    position: fixed;
-    inset: auto max(10px, env(safe-area-inset-right))
-      calc(10px + env(safe-area-inset-bottom))
-      max(10px, env(safe-area-inset-left));
-    z-index: 28;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    max-width: 480px;
-    margin-inline: auto;
-    border: 1px solid var(--dc-line);
-    border-radius: 1rem;
-    overflow: hidden;
-    background: var(--dc-nav-glass);
-    backdrop-filter: blur(12px);
-    box-shadow:
-      inset 1px 1px 4px #ffffff40,
-      inset -1px -1px 6px #00000026,
-      0 4px 12px #080f0b33;
-  }
-  .dark .dc-bottom {
-    --dc-nav-glass: #171b15dc;
-    --dc-nav-highlight: linear-gradient(135deg, #748b4b80, #3c5229);
-    --dc-nav-glow: #b0c97866;
-    --dc-nav-gold: var(--dc-yellow);
-  }
-  .dc-bottom > a {
-    position: relative;
-    z-index: 2;
-    display: grid;
-    justify-items: center;
-    align-content: center;
-    gap: 4px;
-    min-height: 54px;
-    padding: 4px 2px;
-    border-radius: 1rem;
-    color: var(--dc-ink);
-    font-size: clamp(9px, 2.9vw, 12px);
-    font-weight: 600;
-    line-height: 1.2;
-    text-align: center;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
-  }
-  .dc-bottom > a:active {
-    background: #0000000d;
-  }
-  .dark .dc-bottom > a:active {
-    background: #ffffff12;
-  }
-  .dc-bottom > a > span {
-    display: grid;
-  }
-  .dc-bottom > a svg {
-    width: 21px;
-    height: 21px;
-  }
-  .dc-bottom > a[aria-current] {
-    font-weight: 800;
-  }
-  .dark .dc-bottom > a[aria-current] svg {
-    color: var(--dc-nav-gold);
-  }
-  .dc-shell .dc-bottom > a:focus-visible {
-    outline-offset: -3px;
-  }
-  .dc-nav-glider {
-    position: absolute;
-    inset: 0 auto 0 0;
-    z-index: 1;
-    width: 20%;
-    border-radius: inherit;
-    background: var(--dc-nav-highlight);
-    box-shadow:
-      inset 0 2px 0 var(--dc-nav-gold),
-      0 0 18px var(--dc-nav-glow),
-      inset 0 0 10px #ffffff40;
-    pointer-events: none;
-    transform: translateX(
-      calc(100% * var(--dc-nav-position, var(--dc-nav-current)))
-    );
-    transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1);
-  }
-  .dc-bottom:has(> a:nth-child(1):focus-visible) {
-    --dc-nav-position: 0;
-  }
-  .dc-bottom:has(> a:nth-child(2):focus-visible) {
-    --dc-nav-position: 1;
-  }
-  .dc-bottom:has(> a:nth-child(3):focus-visible) {
-    --dc-nav-position: 2;
-  }
-  .dc-bottom:has(> a:nth-child(4):focus-visible) {
-    --dc-nav-position: 3;
-  }
-  .dc-bottom:has(> a:nth-child(5):focus-visible) {
-    --dc-nav-position: 4;
-  }
+
 }
 @media (max-width: 560px) {
   .dc-header {
@@ -2148,7 +2056,6 @@
   .dc-shell :is(a, button, summary, input, select):focus-visible {
     outline: 2px solid Highlight;
   }
-  .dc-bottom > a[aria-current],
   .dc-shell .sidebar .side-link.active {
     outline: 2px solid Highlight;
   }
@@ -2181,13 +2088,6 @@
 .dc-guide > .central-glass-card + .central-glass-card {
   margin-top: 12px;
 }
-.dc-central-guide[hidden], .dc-central-nav button[hidden] { display: none; }
-.dc-central-guides { position: relative; }
-.dc-central-nav { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
-.dc-central-nav button { position: absolute; top: 50%; display: grid; place-items: center; width: 40px; height: 72px; border: 1px solid var(--dc-line); border-radius: 6px; background: color-mix(in srgb, var(--dc-surface) 88%, transparent); color: var(--dc-ink); box-shadow: 0 3px 16px #0008; transform: translateY(-50%); pointer-events: auto; cursor: pointer; }
-.dc-central-prev { left: 0; }
-.dc-central-next { right: 0; }
-.dc-central-nav svg { width: 18px; height: 18px; }
 
 /* O painel externo compartilha a superfície e os links da sidebar. */
 .dc-shell .sidebar .sidebar-bottom > .resource-links {
@@ -2234,29 +2134,121 @@ html:not(.dark) .dc-content .dc-heading > a {
 
 /* Trilhos da Descoberta: o toque rola naturalmente; as setas aparecem só quando há conteúdo oculto. */
 .dc-rail { min-width: 0; }
-.dc-rail .dc-tiles, .dc-rail .dc-people, .dc-rail .dc-agenda-pages { touch-action: pan-x pan-y; overscroll-behavior-x: contain; }
+.dc-rail :is(.dc-tiles, .dc-people, .dc-agenda-pages, .dc-guide-track) { touch-action: pan-x pan-y pinch-zoom; overscroll-behavior-x: contain; }
 #conteudo-descoberta .dc-rail .dc-people { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(190px, calc((100% - 24px) / 3)); grid-template-columns: none; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; gap: 12px; padding: 6px 6px 132px; margin-bottom: -120px; scrollbar-width: none; }
 #conteudo-descoberta .dc-rail:has(.dc-people) { z-index: 1; }
 #conteudo-descoberta .dc-rail:has(.dc-people):is(:hover, :focus-within) { z-index: 5; }
-#conteudo-descoberta .dc-rail:has(.dc-people) .dc-rail-nav { bottom: 120px; }
+#conteudo-descoberta .dc-rail:has(.dc-people) .dc-rail-nav { bottom: 120px; z-index: auto; }
+/* O card aberto (z-index: 3) cobre o indicador, mas não as setas. */
+#conteudo-descoberta .dc-rail:has(.dc-people) .dc-rail-progress { z-index: 1; }
+#conteudo-descoberta .dc-rail:has(.dc-people) .dc-feature-arrow { z-index: 4; }
 .dc-rail .dc-people > * { scroll-snap-align: start; }
+/* O espaço do painel de perfil pode transbordar visualmente, mas não recebe cliques. */
+#conteudo-descoberta .dc-rail:has(> .dc-people),
+#conteudo-descoberta .dc-rail > .dc-people {
+  pointer-events: none;
+}
+#conteudo-descoberta .dc-rail > .dc-people > .cy-profile-card {
+  pointer-events: auto;
+}
+/* Mesmo quando um card aberto alcançar outra seção, o link dela vem primeiro. */
+#conteudo-descoberta .dc-heading > a {
+  position: relative;
+  z-index: 6;
+}
 .dc-rail .dc-people:focus-visible, .dc-agenda-pages:focus-visible { outline: 2px solid var(--dc-olive); outline-offset: 2px; }
 @media (max-width: 700px) { #conteudo-descoberta .dc-rail .dc-people { grid-auto-columns: minmax(190px, 78%); } }
-.dc-rail :is(.dc-tiles, .dc-people, .dc-agenda-pages) { scrollbar-width: none; }
-.dc-rail :is(.dc-tiles, .dc-people, .dc-agenda-pages)::-webkit-scrollbar { display: none; }
+.dc-rail:has(.dc-rail-nav:not([hidden])) :is(.dc-tiles, .dc-people, .dc-agenda-pages, .dc-guide-track) { scrollbar-width: none; }
+.dc-rail:has(.dc-rail-nav:not([hidden])) :is(.dc-tiles, .dc-people, .dc-agenda-pages, .dc-guide-track)::-webkit-scrollbar { display: none; }
 
 .dc-discovery-section { min-width: 0; }
-.dc-opportunities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .dc-opportunity { display: flex; flex-direction: column; min-width: 0; min-height: 245px; padding: 18px; border: 1px solid var(--dc-line); border-radius: 3px 9px 2px 7px; background: var(--dc-panel); box-shadow: var(--dc-shadow); }
 .dc-opportunity .dc-stamp { align-self: flex-start; }
 .dc-opportunity h3 { margin: 14px 0 8px; font: 700 clamp(17px, 1.5vw, 21px)/1.2 'Oswald', sans-serif; }
 .dc-opportunity h3 a { color: var(--dc-ink); text-decoration: none; }
 .dc-opportunity h3 a:hover, .dc-opportunity h3 a:focus-visible { color: var(--dc-accent); text-decoration: underline; }
 .dc-opportunity > p { margin: 0 0 14px; color: var(--dc-muted); font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.dc-opportunity-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
-.dc-opportunity-tags span { padding: 5px 7px; border: 1px solid var(--dc-line); border-radius: 3px; color: var(--dc-ink); font-size: 10px; font-weight: 700; }
 .dc-opportunity footer { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--dc-line); font-size: 10px; color: var(--dc-muted); }
 .dc-opportunity footer a { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: var(--dc-accent); font-weight: 700; text-decoration: none; }
 .dc-opportunity footer svg { width: 14px; height: 14px; }
-@media (max-width: 1100px) { .dc-opportunities { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 650px) { .dc-opportunities { grid-template-columns: minmax(0, 1fr); } .dc-opportunity { min-height: 0; } }
+@media (max-width: 650px) { .dc-opportunity { min-height: 0; } }
+
+/* O progresso indica que há mais conteúdo sem disputar espaço com os cards. */
+.dc-rail-nav .dc-rail-progress {
+  position: absolute;
+  right: 22%;
+  bottom: 1px;
+  left: 22%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--dc-line);
+}
+.dc-rail-progress > span {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: inherit;
+  background: var(--dc-accent);
+}
+.dc-feature-controls .dc-feature-arrow:disabled {
+  visibility: hidden;
+}
+.dc-guide-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 0 8px;
+  scroll-snap-type: x proximity;
+}
+.dc-guide-track > * { min-width: 0; scroll-snap-align: start; }
+.dc-guide-track:focus-visible { outline: 2px solid var(--dc-olive); outline-offset: 2px; }
+.dc-agenda-pages { padding-bottom: 8px; }
+.dc-rail .dc-people { scroll-padding-inline: 6px; }
+@media (forced-colors: active) {
+  .dc-rail-nav .dc-rail-progress { background: Canvas; border: 1px solid CanvasText; }
+  .dc-rail-progress > span { background: CanvasText; forced-color-adjust: none; }
+}
+
+/* Cypher Central: the navigation stays below the card, including on hover. */
+.dc-guide-rail > .dc-rail-nav:not([hidden]) {
+  position: static;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 36px;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 10px;
+}
+.dc-guide-rail > .dc-rail-nav .dc-feature-arrow {
+  position: static;
+  width: 36px;
+  height: 36px;
+  transform: none;
+  border-radius: 3px 7px 3px 5px;
+  background: var(--dc-surface);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.dc-guide-rail .dc-rail-prev { grid-column: 1; grid-row: 1; }
+.dc-guide-rail .dc-rail-next { grid-column: 3; grid-row: 1; }
+.dc-guide-rail .dc-rail-progress {
+  position: relative;
+  inset: auto;
+  grid-column: 2;
+  grid-row: 1;
+  width: min(100%, 128px);
+  justify-self: center;
+}
+@media (any-hover: hover) and (any-pointer: fine) {
+  .dc-guide-rail > .dc-rail-nav:not([hidden]) { min-height: 36px; }
+}
+@media (any-hover: none) {
+  .dc-guide-rail > .dc-rail-nav .dc-feature-arrow { display: none; }
+}
+/* The summary stays open so the controls never move as the pointer leaves the card. */
+.dc-guide-track .central-glass-card { transform: none; overflow-wrap: anywhere; }
+.dc-guide-track .central-glass-reveal { display: block; }
+.dc-guide-track .central-glass-reveal p { padding-top: 9px; overflow: visible; }
+.dc-guide-track .central-glass-reveal p::before { content: none; }

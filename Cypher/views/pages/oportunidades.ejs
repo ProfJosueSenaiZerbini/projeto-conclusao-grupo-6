@@ -8,14 +8,14 @@
     if (filtros.formato) params.set('formato', filtros.formato);
     if (filtros.periodo !== 'todos') params.set('periodo', filtros.periodo);
     if (filtros.ordem !== 'recentes') params.set('ordem', filtros.ordem);
-    return '/events' + (params.size ? '?' + params : '');
+    return '/eventos' + (params.size ? '?' + params : '');
   }
 
   const rotulosCategorias = new Map([
     ['Batalha', 'Batalhas'], ['Show', 'Shows'], ['Cypher', 'Cyphers'],
     ['Workshop', 'Workshops'], ['Outro', 'Outros'],
   ]);
-  const limparFiltros = '/events?localizacao=';
+  const limparFiltros = '/eventos?localizacao=';
   const filtrosBusca = { ...filtros, localizacao: localizacaoSelecionada };
   if (filtrosBusca.periodo === 'todos') delete filtrosBusca.periodo;
   if (filtrosBusca.ordem === 'recentes') delete filtrosBusca.ordem;
@@ -50,17 +50,20 @@
           <% }) %>
         </nav>
 
-        <form class="events-location-form" action="/events" method="get" role="search" aria-label="Localização dos eventos">
+        <div class="events-local-tools">
+        <form class="events-location-form" action="/eventos" method="get" role="search" aria-label="Localização dos eventos">
           <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
           <% for (const [nome, valor] of Object.entries(filtrosBusca)) { if (nome !== 'localizacao' && valor) { %>
             <input type="hidden" name="<%= nome %>" value="<%= valor %>">
           <% }} %>
           <%- include('../partials/componentes/campo-busca', { campo: { id: 'localizacao-eventos', nome: 'localizacao', valor: filtros.localizacao, limite: 100, rotulo: 'Cidade e bairro', rotuloBotao: 'Filtrar por cidade e bairro' } }) %>
         </form>
+        <a class="events-map-link" href="<%= mapaAgenda %>" aria-label="Ver eventos no mapa" title="Ver eventos no mapa"><span aria-hidden="true"><%- icones.map %></span><span>Mapa</span></a>
+        </div>
 
         <details class="dc-filter events-refinement<%= refinoAtivo ? ' events-refinement-active' : '' %>">
           <summary aria-label="Filtros" title="Filtros"><span aria-hidden="true"><%- icones.sliders %></span></summary>
-          <form action="/events" method="get">
+          <form action="/eventos" method="get">
             <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
             <% if (filtros.categoria) { %><input type="hidden" name="categoria" value="<%= filtros.categoria %>"><% } %>
 
@@ -96,9 +99,8 @@
         </details>
 
         <% if (podeGerenciar) { %>
-          <a class="dc-primary event-create-icon" href="/events/new" aria-label="Cadastrar evento" title="Cadastrar evento"><span aria-hidden="true"><%- icones.plus %></span></a>
+          <a class="dc-primary event-create-icon" href="/eventos/novo" aria-label="Cadastrar evento" title="Cadastrar evento"><span aria-hidden="true"><%- icones.plus %></span></a>
         <% } %>
-        <a class="events-map-link" href="/events/map"><span aria-hidden="true"><%- icones.mapPin %></span> Ver mapa</a>
       </div>
 
       <section aria-labelledby="titulo-agenda-eventos">

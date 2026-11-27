@@ -515,7 +515,7 @@ try {
   );
   acao("colega", audioC, "aceitar", { consentimento: "sim" });
   acao("artista", audioC, "pedir_conclusao", {
-    evidencia_url: "/work-media/" + audio.id,
+    evidencia_url: "/midias-de-trabalho/" + audio.id,
     evidencia_descricao: "Áudio autorizado acessível a ambas as contas.",
     evidencia_confirmada: "sim",
   });
@@ -593,6 +593,7 @@ try {
     assert.equal(db.prepare("SELECT count(*) n FROM colaboracoes").get().n, qtd)
   );
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   app.locals.icones = new Proxy({}, { get: () => "<svg></svg>" });
@@ -647,13 +648,13 @@ try {
     });
   for (const [url, user] of [
     ["/colaboracoes", "artista"],
-    ["/colaboracoes/new", "artista"],
+    ["/colaboracoes/novo", "artista"],
     ["/colaboracoes/" + id, "artista"],
     ["/admin/reputacao", "mod"],
     ["/admin/reputacao/" + contested, "mod"],
     ["/reputacao/artista", "ouvinte"],
-    ["/profile", "artista"],
-    ["/p/artista", "ouvinte"],
+    ["/perfil", "artista"],
+    ["/artistas/artista", "ouvinte"],
   ]) {
     const r = await get(url, user),
       html = await r.text();
@@ -663,7 +664,7 @@ try {
       process.env.CYPHER_QA_OUTPUT &&
       [
         "/colaboracoes",
-        "/colaboracoes/new",
+        "/colaboracoes/novo",
         "/colaboracoes/" + id,
         "/admin/reputacao/" + contested,
       ].includes(url)
@@ -675,7 +676,7 @@ try {
       const nome =
         url === "/colaboracoes"
           ? "lista"
-          : url.endsWith("/new")
+          : url.endsWith("/novo")
             ? "convite"
             : url.startsWith("/admin/")
               ? "moderacao"
@@ -703,7 +704,7 @@ try {
   }
   for (const [url, user, expected] of [
     ["/colaboracoes/" + id, "terceiro", 404],
-    ["/colaboracoes/new", "ouvinte", 403],
+    ["/colaboracoes/novo", "ouvinte", 403],
     ["/admin/reputacao", "editor", 403],
   ]) {
     const r = await get(url, user);

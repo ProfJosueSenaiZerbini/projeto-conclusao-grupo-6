@@ -70,34 +70,35 @@ try {
 
   await pedir("/interacoes/perfil/parceira/seguir", "autora", 303, { ativo: "sim" });
   await pedir("/interacoes/perfil/autora/seguir", "parceira", 303, { ativo: "sim" });
-  const destaque = (await pedir("/dashboard", "autora", 200)).html;
-  assert.match(destaque.split("Profissionais para colaborar").at(-1).split("Eventos em destaque")[0], /\/p\/parceira/);
-  assert.match((await pedir("/p/parceira", "autora", 200)).html, /action="\/messages\/start"/);
-  const primeira = await pedir("/messages/start", "autora", 303, { alvo_id: "parceira" });
+  const destaque = (await pedir("/descoberta", "autora", 200)).html;
+  assert.match(destaque.split("Profissionais para colaborar").at(-1).split("Eventos em destaque")[0], /\/artistas\/parceira/);
+  assert.match((await pedir("/artistas/parceira", "autora", 200)).html, /action="\/mensagens\/iniciar"/);
+  const primeira = await pedir("/mensagens/iniciar", "autora", 303, { alvo_id: "parceira" });
   const rota = primeira.local;
-  assert.equal((await pedir("/messages/start", "parceira", 303, { alvo_id: "autora" })).local, rota);
+  assert.equal((await pedir("/mensagens/iniciar", "parceira", 303, { alvo_id: "autora" })).local, rota);
   await pedir(rota, "terceiro", 403);
   await pedir(rota, null, 302);
   const mensagem = { texto: "CONTEUDO_PRIVADO_DO_ENSAIO", chave: "fixture-mensagem-0001" };
   await pedir(rota, "autora", 303, mensagem);
   await pedir(rota, "autora", 303, mensagem);
-  assert.match((await pedir(rota, "autora", 200)).html, /· Enviada/);
+  assert.match((await pedir(rota, "autora", 200)).html, /class="msg-delivery" aria-label="Enviada"/);
   const caixaDestino = await pedir(rota, "parceira", 200);
-  assert.equal(caixaDestino.html.split(mensagem.texto).length - 1, 1);
-  assert.match((await pedir(rota, "autora", 200)).html, /· Lida/);
-  await pedir(rota + "/hide", "terceiro", 403, {});
-  await pedir(rota + "/hide", "autora", 303, {});
-  assert.ok(!(await pedir("/messages", "autora", 200)).html.includes(rota));
-  assert.ok((await pedir("/messages", "parceira", 200)).html.includes(rota));
+  const bolhas = caixaDestino.html.match(/<article id="mensagem-[\s\S]*?<\/article>/g) ?? [];
+  assert.equal(bolhas.filter(bolha => bolha.includes(mensagem.texto)).length, 1);
+  assert.match((await pedir(rota, "autora", 200)).html, /class="msg-delivery is-read" aria-label="Lida"/);
+  await pedir(rota + "/ocultar", "terceiro", 403, {});
+  await pedir(rota + "/ocultar", "autora", 303, {});
+  assert.ok(!(await pedir("/mensagens", "autora", 200)).html.includes(rota));
+  assert.ok((await pedir("/mensagens", "parceira", 200)).html.includes(rota));
   assert.match((await pedir(rota, "parceira", 200)).html, /CONTEUDO_PRIVADO_DO_ENSAIO/);
-  await pedir("/messages/block", "autora", 303, { acao: "bloquear", alvo_id: "parceira" });
+  await pedir("/mensagens/bloquear", "autora", 303, { acao: "bloquear", alvo_id: "parceira" });
   const leitor = new Database(process.env.CYPHER_DB_PATH, { readonly: true });
   try {
     const vinculos = leitor.prepare("SELECT count(*) FROM profissionais_seguidos WHERE seguidor_id IN ('autora','parceira') AND profissional_id IN ('autora','parceira')").pluck();
     assert.equal(vinculos.get(), 0);
-    await pedir("/messages/start", "parceira", 403, { alvo_id: "autora" });
+    await pedir("/mensagens/iniciar", "parceira", 403, { alvo_id: "autora" });
     await pedir(rota, "parceira", 403, { texto: "Nova", chave: "fixture-bloqueio-0001" });
-    await pedir("/messages/block", "autora", 303, { acao: "desbloquear", alvo_id: "parceira" });
+    await pedir("/mensagens/bloquear", "autora", 303, { acao: "desbloquear", alvo_id: "parceira" });
     assert.equal(vinculos.get(), 0);
   } finally {
     leitor.close();
@@ -132,7 +133,7 @@ try {
   await pedir("/admin/selos/imagem/" + idSelo, "moderador", 200);
   await pedir("/admin/selos/" + idSelo, "moderador", 303, { acao: "aprovado", motivo: "Revisão da autorização da marca." });
   await pedir("/creditos/obra/credito-voz", "parceira", 303, { acao: "confirmado" });
-  for (const [url, funcao] of [["/events/evento", "Sonorização"], ["/beats/beat", "Mixagem"], ["/p/autora?obra=obra", "Vocal"]]) {
+  for (const [url, funcao] of [["/eventos/evento", "Sonorização"], ["/banco-de-beats/beat", "Mixagem"], ["/artistas/autora?obra=obra", "Vocal"]]) {
     const { html } = await pedir(url, "terceiro", 200);
     assert.ok(html.includes(funcao), "Função em " + url);
     assert.ok(html.includes("/selos/imagem/" + idSelo), "Selo aprovado em " + url);

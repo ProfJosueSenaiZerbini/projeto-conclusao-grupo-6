@@ -15,7 +15,7 @@
         <a class="sp-back" href="<%= tipo==='obra'?'/espaco-de-trabalho/obra/'+encodeURIComponent(trabalho.id):trabalho.url %>">Voltar à ficha</a>
         <h1>Créditos de <%= trabalho.titulo %></h1>
         <ul><% for(const item of creditos){ %><li><a href="/creditos/<%= tipo %>/<%= item.id %>"><%= item.nome %> · <%= item.funcao %></a> · <%= estados[item.estado] %></li><% } %></ul>
-        <% if(tipo==='obra'){ %><a class="sp-button" href="/works/<%= encodeURIComponent(trabalho.id) %>/edit">Editar créditos da obra</a><% } else { %>
+        <% if(tipo==='obra'){ %><a class="sp-button" href="/obras/<%= encodeURIComponent(trabalho.id) %>/editar">Editar créditos da obra</a><% } else { %>
           <form class="sp-panel sp-form" method="post" action="<%= path %>">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <label>Identificador profissional<input name="perfil" required maxlength="81" placeholder="@identificador"></label>
@@ -47,7 +47,7 @@
         <% if(historico.length){ %><section class="sp-panel"><h2>Histórico do crédito</h2><ul><% for(const item of historico){ %><li><strong><%= estados[item.estado] %></strong><% if(item.motivo){ %><p><%= item.motivo %></p><% } %></li><% } %></ul></section><% } %>
       <% } else if(tela==='selos'){ %>
         <% if(admin){ %><header class="sp-heading"><div><span class="sp-eyebrow">CADASTRO E CURADORIA</span><h1>Aprovação de selos profissionais</h1><p>Confira a imagem e a autorização de uso antes de registrar a decisão.</p></div></header><p class="admin-queue-count"><%= itens.length %> <%= itens.length === 1 ? "solicitação na fila" : "solicitações na fila" %></p><% } else { %><h1>Solicitações de selo profissional</h1><% } %>
-        <% if(!admin){ %><a class="sp-back" href="/profile?editar=1&amp;secao=atuacao#profile-editor-selo">Voltar ao perfil</a>
+        <% if(!admin){ %><a class="sp-back" href="/perfil?editar=1&amp;secao=selo#profile-editor-selo">Voltar ao Selo profissional</a>
           <% if(!itens.some(i=>i.estado==='pendente')){ %>
             <form class="sp-panel sp-form" action="/selos/solicitacoes" method="post" data-selo-externo>
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -65,11 +65,12 @@
             <h2><%= admin ? item.titular : {pendente:'Em análise',aprovado:'Aprovado',recusado:'Recusado'}[item.estado] %></h2>
             <img src="<%= admin?'/admin':'' %>/selos/imagem/<%= item.id %>" width="96" height="96" class="sp-selo-imagem" alt="Marca solicitada">
             <p><%= item.justificativa %></p>
+            <% if(item.objetivo === 'camada'){ %><p>Marca para usar como camada no Estúdio. Aprovar não altera o selo publicado.</p><% } %>
             <% if(item.motivo){ %><p><strong>Decisão:</strong> <%= item.motivo %></p><% } %>
             <% if(admin){ %><form class="sp-form" method="post" action="/admin/selos/<%= item.id %>">
               <input type="hidden" name="_csrf" value="<%= csrfToken %>">
               <label>Justificativa da decisão<textarea name="motivo" minlength="10" maxlength="1500" required></textarea></label>
-              <button class="sp-button sp-primary" name="acao" value="aprovado">Aprovar e ativar</button><button class="sp-button" name="acao" value="recusado">Recusar</button>
+              <button class="sp-button sp-primary" name="acao" value="aprovado"><%= item.objetivo === 'camada' ? 'Aprovar para o Estúdio' : 'Aprovar e ativar' %></button><button class="sp-button" name="acao" value="recusado">Recusar</button>
             </form><% } %>
           </article>
         <% } %>

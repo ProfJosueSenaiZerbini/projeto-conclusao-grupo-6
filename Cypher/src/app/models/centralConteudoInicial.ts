@@ -29,7 +29,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: Nina quer conhecer a produção local. Ela procura um beatmaker, abre o catálogo e lê sua apresentação antes de decidir como se conectar.",
-    acao_url: "/profile",
+    acao_url: "/perfil",
     acao_label: "Conferir minha apresentação",
   },
   {
@@ -93,7 +93,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: Davi organiza fotografias próprias e uma participação confirmada na capa de outro artista. O portfólio distingue as duas relações e informa sua função.",
-    acao_url: "/portfolio/edit",
+    acao_url: "/portfolio/editar",
     acao_label: "Organizar meu portfólio",
   },
   {
@@ -192,13 +192,13 @@ export const guiasIniciais = [
       {
         titulo: "Aceite os termos e acompanhe a autorização",
         conteudo:
-          "O Free Use exige aceite das condições da oferta. A licença Premium não exclusiva reúne os termos e os arquivos escolhidos em um pedido. Consulte sua licença e os materiais autorizados em Minhas Compras.",
-        dica: "O pedido e a confirmação da aquisição ficam em Minhas Compras. Confira o estado da sua licença antes de utilizar os arquivos.",
+          "O Free Use exige aceite das condições da oferta. O Premium não exclusivo usa um pedido, confirmado no fluxo da compra. Consulte a licença e os arquivos autorizados em Minhas Compras.",
+        dica: "O checkout depende da configuração da integração. O retorno do navegador não comprova aprovação nem libera arquivos por si só.",
       },
     ],
     exemplo:
       "Na prática: um beat apresenta uma condição de uso gratuito e outra oferta. A pessoa lê cada texto separadamente antes de considerar qualquer utilização.",
-    acao_url: "/beats",
+    acao_url: "/banco-de-beats",
     acao_label: "Explorar o Banco de Beats",
   },
   {
@@ -230,7 +230,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: Joana marca interesse em uma batalha. Isso ajuda a acompanhar a divulgação, mas não significa que ela disputou ou esteve presente.",
-    acao_url: "/events",
+    acao_url: "/eventos",
     acao_label: "Consultar eventos",
   },
   {
@@ -262,7 +262,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma videomaker se candidata a uma chamada de clipe. Ela lê os prazos e discute a entrega antes de aceitar as mesmas condições da outra parte.",
-    acao_url: "/opportunities",
+    acao_url: "/oportunidades",
     acao_label: "Explorar oportunidades",
   },
   {
@@ -294,7 +294,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma pessoa percebe dados privados em uma publicação. Ela identifica o registro e descreve o risco, sem reproduzir esses dados em outros espaços públicos.",
-    acao_url: "/settings",
+    acao_url: "/configuracoes",
     acao_label: "Revisar minha privacidade",
   },
   {
@@ -367,7 +367,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma coreógrafa apresenta um processo com dançarinos e uma B-girl. Ela descreve sua direção coreográfica e diferencia as participações no texto da experiência.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Registrar um trabalho de dança",
   },
   {
@@ -399,7 +399,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: um grafiteiro reúne detalhes de um mural, uma ilustradora mostra uma série e um designer apresenta uma identidade. Cada trabalho explica uma entrega diferente.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Montar um trabalho visual",
   },
   {
@@ -431,7 +431,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma fotógrafa faz a capa, um videomaker registra o show e uma editora monta o clipe. Cada pessoa descreve sua entrega e apresenta somente os materiais autorizados.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Apresentar uma produção audiovisual",
   },
   {
@@ -463,7 +463,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: um engenheiro registra a captação, uma mixadora apresenta sua etapa e um masterizador descreve a finalização. As três fichas podem tratar da mesma produção sem confundir as funções.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Registrar uma experiência técnica",
   },
   {
@@ -495,7 +495,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma empresária descreve um projeto de carreira, um produtor cultural registra uma mostra e uma organizadora administra a divulgação do evento correspondente.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Documentar um projeto de produção",
   },
   {
@@ -527,7 +527,7 @@ export const guiasIniciais = [
     ],
     exemplo:
       "Na prática: uma jornalista apresenta uma cobertura cultural e uma criadora registra uma série de vídeos. Cada ficha informa a pauta e separa suas funções das contribuições de outras pessoas.",
-    acao_url: "/work-projects/new",
+    acao_url: "/trabalhos-e-galerias/novo",
     acao_label: "Apresentar um conteúdo cultural",
   },
 ];

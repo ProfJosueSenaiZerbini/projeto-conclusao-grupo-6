@@ -10,7 +10,7 @@
       <% if (erro) { %><p class="pf-notice pf-error" role="alert"><%= erro %></p><% } %>
       <% if (salvo) { %><p class="pf-notice" role="status">Portfólio salvo. Suas escolhas estão disponíveis nas próximas sessões.</p><% } %>
       <% if (typeof titular !== "undefined") { %><a class="pf-button" href="/portfolio/<%= encodeURIComponent(titular.handle.replace(/^@/,'')) %>">Abrir meu portfólio</a><% } %>
-      <form id="pf-form" method="post" action="/portfolio/edit">
+      <form id="pf-form" method="post" action="/portfolio/editar">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <textarea name="itens" id="pf-dados" hidden><%= JSON.stringify(itens.map(item => ({ chave: item.chave, selecionado: Boolean(item.selecionado), oculto: Boolean(item.oculto), destaque: Boolean(item.destaque), ordem: item.ordem, secao: item.secao || '' }))) %></textarea>
         <section class="pf-panel" aria-labelledby="pf-selecao-titulo">
@@ -46,7 +46,7 @@
             <% }) %>
           </ol><% } else { %><div class="pf-empty"><span class="lucide-icon" aria-hidden="true"><%- icones.briefcase %></span><h4>Seu acervo começa com o primeiro trabalho.</h4><p>Cadastre uma produção ou acompanhe suas participações confirmadas pelo Espaço de Trabalho.</p><a class="pf-button" href="/espaco-de-trabalho">Abrir Espaço de Trabalho</a></div><% } %>
         </section>
-        <section class="pf-panel" aria-labelledby="pf-visibilidade-titulo"><header class="pf-panel-heading"><span class="pf-step">04 / VISIBILIDADE</span><h3 id="pf-visibilidade-titulo">Confira antes de apresentar</h3></header><label class="pf-check"><input type="checkbox" name="visivel" value="sim" <%= config.visivel ? 'checked' : '' %>> Exibir meu portfólio para pessoas autenticadas na Cypher</label><p class="pf-help">A vitrine acompanha a privacidade do perfil e de cada trabalho. Adicionar um item não libera materiais privados.</p><div class="pf-form-actions"><button class="pf-button" type="submit" formaction="/portfolio/preview" formtarget="_blank">Ver prévia <span class="lucide-icon" aria-hidden="true"><%- icones.eye %></span></button><button class="pf-button pf-primary" type="submit">Salvar portfólio <span class="lucide-icon" aria-hidden="true"><%- icones.check %></span></button></div></section>
+        <section class="pf-panel" aria-labelledby="pf-visibilidade-titulo"><header class="pf-panel-heading"><span class="pf-step">04 / VISIBILIDADE</span><h3 id="pf-visibilidade-titulo">Confira antes de apresentar</h3></header><label class="pf-check"><input type="checkbox" name="visivel" value="sim" <%= config.visivel ? 'checked' : '' %>> Exibir meu portfólio para pessoas autenticadas na Cypher</label><p class="pf-help">A vitrine acompanha a privacidade do perfil e de cada trabalho. Adicionar um item não libera materiais privados.</p><div class="pf-form-actions"><button class="pf-button" type="submit" formaction="/portfolio/previa" formtarget="_blank">Ver prévia <span class="lucide-icon" aria-hidden="true"><%- icones.eye %></span></button><button class="pf-button pf-primary" type="submit">Salvar portfólio <span class="lucide-icon" aria-hidden="true"><%- icones.check %></span></button></div></section>
       </form>
       <span class="pf-sr" id="pf-aviso" aria-live="polite"></span>
     </main>

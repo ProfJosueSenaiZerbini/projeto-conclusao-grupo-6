@@ -20,11 +20,24 @@ import {
 import { dataAtualCadastro } from "../validators/validarIdentidade.js";
 import { resolverTemaEvento } from "../models/temasEvento.js";
 import { listar as listarOportunidades } from "../models/oportunidades.js";
+import { modosTrabalho, remuneracoes, estadosChamada } from "../validators/validarOportunidade.js";
 import { listarProjetos, formatosTrabalho } from "../models/projetosTrabalho.js";
+import { capaPublicacao } from "../models/midiasPublicacoes.js";
+
 import {
   formatoLancamentoCena,
   lancamentoCena,
 } from "../models/lancamentosCena.js";
+
+const capasEditoriais: ReadonlyMap<string, string> = new Map(
+  ["demo-cx-luz-de-concreto", "demo-cx-muros-em-dialogo"].map(
+    id => [id, "/img/cena/producoes/" + id + ".svg"]
+  )
+);
+const capaPublicacaoProjeto = (usuarioId: string, projetoId: string) => {
+  const capa = capaPublicacao(usuarioId, "projeto", projetoId);
+  return capa ? "/midias-de-publicacao/" + encodeURIComponent(capa) : "";
+};
 
 const albumAteAUltimaRima = "demo-obra-ate-a-ultima-rima";
 const faixaAlice = idFaixaDemo(albumAteAUltimaRima, 7);
@@ -87,10 +100,10 @@ const dataCurta = new Intl.DateTimeFormat("pt-BR", {
 function ficha(item: PublicacaoDescoberta) {
   const id = encodeURIComponent(item.id);
   if (item.grupo === "obras") return enderecoObra(item.handle, item.id);
-  if (item.grupo === "beats") return "/beats#beat-" + id;
+  if (item.grupo === "beats") return "/banco-de-beats#beat-" + id;
   return item.demonstracao
-    ? "/events?localizacao=#evento-" + id
-    : "/events/" + id;
+    ? "/eventos?localizacao=#evento-" + id
+    : "/eventos/" + id;
 }
 
 export function descoberta(req: Request, res: Response) {
@@ -283,17 +296,9 @@ export function descoberta(req: Request, res: Response) {
       )
         .pessoas.slice(0, 3)
         .map(cartaoPerfil);
-  const oportunidades = filtrado ? [] : listarOportunidades(usuario.id, {}, "explorar")
-    .itens.slice(0, 3)
-    .map((item: Record<string, any>) => ({
-      id: item.id as string,
-      titulo: item.titulo as string,
-      descricao: item.descricao as string,
-      local: item.localizacao as string,
-      modalidade: item.modalidade as string,
-      autor: item.autor_nome as string,
-      funcoes: (item.funcoes as { nome: string }[]).map(funcao => funcao.nome).slice(0, 2),
-    }));
+  const oportunidades = filtrado
+    ? []
+    : listarOportunidades(usuario.id, {}, "explorar").itens.slice(0, 5);
   const novosTalentos = filtrado ? [] : pessoas
     .filter(item => !seguidos.has(item.userId) && !populares.some(popular => popular.userId === item.userId) && !pessoas.slice(0, 6).some(destaque => destaque.userId === item.userId))
     .slice(0, 6);
@@ -364,6 +369,8 @@ export function descoberta(req: Request, res: Response) {
       titulo: item.titulo as string,
       descricao: item.descricao as string,
       autor: item.autor as string,
+      modalidade: item.modalidade as string,
+      imagem: item.itens.find(midia => midia.mime?.startsWith("image/"))?.url || capaPublicacaoProjeto(usuario.id, item.id) || capasEditoriais.get(item.id),
       formato: formatosTrabalho.find(formato => formato.id === item.modalidade)?.nome ?? "Projeto",
     }));
   const producoes = filtrado || projetosCena.length ? [] : publicacoes.filter(item => item.grupo === "obras" && !vitrine.some(destaque => destaque.id === item.id)).slice(0, 6).map(comLancamento);
@@ -393,6 +400,9 @@ export function descoberta(req: Request, res: Response) {
     pessoas: pessoas.slice(0, 18),
     populares,
     oportunidades,
+    modosTrabalho,
+    remuneracoes,
+    estadosChamada,
     beats,
     projetosCena,
     producoes,

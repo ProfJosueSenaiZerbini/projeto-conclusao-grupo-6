@@ -399,38 +399,12 @@ body:has(.ci-dialog[open]) {
   font: inherit;
   box-sizing: border-box;
 }
-.ci-message-menu {
-  position: relative;
-}
-.ci-message-menu summary {
-  list-style: none;
-  cursor: pointer;
-  color: var(--dc-muted);
-  padding: 0 4px;
-  letter-spacing: 1px;
-}
-.ci-message-menu summary::-webkit-details-marker {
-  display: none;
-}
-.ci-message-menu a {
-  position: absolute;
-  right: 0;
-  z-index: 2;
-  padding: 12px 18px;
-  border: 1px solid var(--dc-line);
-  border-radius: 8px;
-  color: var(--dc-ink);
-  background: var(--ci-surface, var(--dc-field));
-  text-decoration: none;
-  box-shadow: 0 6px 20px #0002;
-}
 .ci-composer {
   padding: 16px 24px max(16px, env(safe-area-inset-bottom));
   margin: 0;
   border-top: 1px solid var(--dc-line);
 }
-.ci-composer .sr-only,
-#ci-status {
+.ci-composer .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -482,8 +456,7 @@ body:has(.ci-dialog[open]) {
   height: 36px;
 }
 .ci-icon:focus-visible,
-.ci-comment-trigger:focus-visible,
-.ci-message-menu summary:focus-visible {
+.ci-comment-trigger:focus-visible {
   outline: 2px solid var(--dc-accent);
   outline-offset: 3px;
 }

@@ -29,3 +29,8 @@
 .banco-beats .beats-advanced-panel > button { width:100%; }
 .banco-beats .beats-collection-link { display:inline-flex; align-items:center; min-height:44px; padding-left:10px; border-left:1px solid var(--dc-line); white-space:nowrap; }
 @media(max-width:700px) { .cy-filter-bar { flex-wrap:wrap; } .cy-filter-bar .dc-tabs { flex:1 1 100%; overflow-x:auto; flex-wrap:nowrap; } .search-filter-panel .search-filters { grid-template-columns:1fr; } .banco-beats .beats-search-filters { flex-basis:100%; } .banco-beats .beats-sort { padding-left:0; border-left:0; } .banco-beats .beats-advanced { flex:1 1 100%; padding-left:0; border-left:0; } .banco-beats .beats-advanced-panel { left:0; right:auto; width:100%; } }
+
+/* As duas caixas compartilham os tamanhos e os estados de filtro. */
+.dc-controls .cy-inbox-tabs { flex: 0 1 auto; gap: 4px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+.dc-controls .cy-inbox-tabs a { min-height: 36px; padding: 6px 10px; font-size: 12px; }
+.dc-controls .cy-inbox-tab-count { place-items: center; min-width: 18px; padding-inline: 4px; border-radius: 6px; background: var(--dc-surface); color: var(--dc-ink); font-size: 10px; }

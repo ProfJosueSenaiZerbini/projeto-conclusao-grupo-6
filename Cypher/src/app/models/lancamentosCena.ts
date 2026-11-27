@@ -102,7 +102,7 @@ export function lancamentoCena(item: PublicacaoDescoberta, visitante: string) {
       titulo: f.titulo,
       url: enderecoObra(item.handle, f.obraId),
       duracao: duracaoDaFaixa(f.obraId, disco?.duracoes?.[f.ordem - 1]),
-      audio: midia ? "/publication-media/" + midia.id : audioCatalogoLocal[f.obraId] || "",
+      audio: midia ? "/midias-de-publicacao/" + midia.id : audioCatalogoLocal[f.obraId] || "",
     };
   }) : disco ? faixasPublicasDoDisco(item, disco, visitante) : [];
   const audioLocal = Object.hasOwn(audioCatalogoLocal, item.id)
@@ -111,7 +111,7 @@ export function lancamentoCena(item: PublicacaoDescoberta, visitante: string) {
   const audio =
     audioLocal ||
     (ehBeat && item.temPrevia && !item.demonstracao
-      ? "/beats/" + encodeURIComponent(item.id) + "/preview"
+      ? "/banco-de-beats/" + encodeURIComponent(item.id) + "/previa"
       : "");
   const duracao = duracaoDaFaixa(item.id, item.duracao);
   const bpm = item.bpm && Number(item.bpm) > 0 ? item.bpm + " BPM" : "";

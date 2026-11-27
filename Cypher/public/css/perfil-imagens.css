@@ -1,0 +1,342 @@
+/* Campos de foto e capa, compartilhados por contas profissionais e de público. */
+.pi-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 0.85rem;
+}
+.pi-imagens [hidden] {
+  display: none !important;
+}
+.pi-cartao {
+  min-inline-size: 0;
+  overflow: hidden;
+  border: 1px solid var(--dc-line);
+  border-radius: 6px 16px 6px 6px;
+  background: var(--dc-surface);
+}
+.pi-amostra {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-block-size: clamp(136px, 16vw, 196px);
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  isolation: isolate;
+  border: 0;
+  background: radial-gradient(ellipse at 48% 40%, #506046, #252d23 78%);
+  color: #f4f1da;
+  cursor: pointer;
+}
+.pi-amostra::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 6px,
+    #f4f1da10 7px 8px
+  );
+  pointer-events: none;
+}
+[data-pi-campo="capa"] .pi-amostra {
+  background: linear-gradient(145deg, #202b23, #3e4b34 54%, #262b24);
+}
+.pi-amostra > img {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  transition: transform 230ms ease;
+}
+[data-pi-campo="imagem"] .pi-amostra > img,
+[data-pi-campo="imagem"] .pi-vazio {
+  position: relative;
+  inset: auto;
+  inline-size: 78px;
+  block-size: 78px;
+  border: 2px solid #dfebbcb8;
+  border-radius: 4px 15px 4px 4px;
+  background: #232f23;
+}
+.pi-vazio {
+  display: grid;
+  place-items: center;
+  font:
+    700 1.65rem/1 "Space Grotesk",
+    sans-serif;
+}
+[data-pi-campo="capa"] .pi-vazio {
+  inline-size: min(60%, 180px);
+  block-size: 52px;
+  border: 1px dashed #dbedbd90;
+  border-radius: 4px 12px 4px 4px;
+}
+.pi-etiqueta,
+.pi-amostra-acao {
+  position: absolute;
+  z-index: 1;
+  border-radius: 3px 9px 3px 3px;
+  background: #161e16eb;
+  color: #f4f1da;
+}
+.pi-etiqueta {
+  inset-block-start: 9px;
+  inset-inline-start: 9px;
+  padding: 4px 6px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+.pi-amostra-acao {
+  inset-block-end: 8px;
+  inset-inline-end: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 8px;
+  font:
+    700 0.73rem/1.1 "Space Grotesk",
+    sans-serif;
+  border: 1px solid #dcebb482;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+.pi-amostra-acao svg,
+.pi-vazio svg {
+  inline-size: 16px;
+  block-size: 16px;
+}
+.pi-vazio svg {
+  inline-size: 24px;
+  block-size: 24px;
+}
+.pi-amostra:is(:hover, :focus-visible, .pi-soltar) .pi-amostra-acao {
+  background: #d3e7aa;
+  color: #172419;
+  transform: translateY(-2px);
+}
+.pi-amostra:focus-visible,
+.pi-amostra.pi-soltar {
+  outline: 2px solid #e6edbc;
+  outline-offset: -4px;
+}
+.pi-amostra:hover img {
+  transform: scale(1.035);
+}
+.pi-cartao-rodape {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.45rem;
+  padding: 0.65rem 0.8rem;
+}
+.pi-formatos {
+  margin: 0.6rem 0 0;
+  color: var(--dc-muted);
+  font-size: 0.74rem;
+}
+@media (pointer: coarse) {
+  .pi-dica-arraste {
+    display: none;
+  }
+}
+.pi-cartao-texto :is(h4, p),
+.pi-status,
+.pi-dialog p {
+  margin: 0;
+}
+.pi-cartao-texto p,
+.pi-dialog p {
+  color: var(--dc-muted);
+  font-size: 0.85rem;
+}
+.pi-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+.pi-cartao .pi-acoes {
+  align-self: end;
+}
+.pi-botao {
+  display: inline-grid;
+  min-block-size: 44px;
+  place-items: center;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--dc-line);
+  border-radius: 3px 7px 3px 3px;
+  color: var(--dc-ink);
+  background: var(--dc-surface);
+  cursor: pointer;
+  font:
+    700 0.83rem/1.15 "Space Grotesk",
+    sans-serif;
+}
+.pi-botao:not(:disabled):hover {
+  border-color: var(--dc-accent);
+}
+.pi-botao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.pi-botao:focus-visible,
+.pi-dialog canvas:focus-visible {
+  outline: 2px solid var(--dc-ink);
+  outline-offset: 3px;
+}
+.pi-secundario {
+  background: transparent;
+}
+.pi-principal {
+  background: var(--dc-accent);
+  color: #182212;
+  border-color: var(--dc-accent);
+}
+.pi-status {
+  padding-block-start: 0.35rem;
+  font-size: 0.85rem;
+}
+.pi-status:empty {
+  display: none;
+}
+.pi-dialog {
+  position: fixed;
+  inset: 0;
+  inline-size: min(620px, calc(100vw - 24px));
+  max-block-size: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  color: var(--dc-ink);
+  background: var(--dc-surface);
+  border: 1px solid var(--dc-line);
+  border-radius: 4px 15px 4px 4px;
+}
+.pi-dialog::backdrop {
+  background: #10160fbd;
+}
+.pi-dialog-corpo {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(12px, 3vw, 22px);
+}
+.pi-dialog header,
+.pi-ajustes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.55rem;
+  align-items: center;
+}
+.pi-dialog header span {
+  color: var(--dc-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+.pi-dialog h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.pi-dialog canvas {
+  display: block;
+  inline-size: min(100%, 570px);
+  block-size: auto;
+  justify-self: center;
+  outline: 1px solid var(--dc-line);
+  background: repeating-conic-gradient(
+      var(--dc-field) 0% 25%,
+      var(--dc-surface) 0% 50%
+    )
+    0 0 / 14px 14px;
+  touch-action: none;
+  cursor: grab;
+}
+.pi-dialog canvas[width="640"] {
+  inline-size: min(100%, 320px, 42dvh);
+}
+.pi-dialog canvas:active {
+  cursor: grabbing;
+}
+.pi-ajustes label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pi-dialog footer {
+  justify-content: end;
+  padding-block-start: 0.7rem;
+  border-block-start: 1px solid var(--dc-line);
+}
+.pi-imagens .pi-ajustes input[type="range"] {
+  inline-size: min(150px, 40vw);
+}
+@media (max-width: 600px) {
+  .pi-grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.pi-palco {
+  display: grid;
+  justify-items: center;
+  padding: clamp(9px, 2vw, 16px);
+  background: radial-gradient(ellipse at top, #3d4839, #202820);
+  border-radius: 6px 12px 6px 6px;
+}
+.pi-janela {
+  position: relative;
+  width: min(100%, 570px);
+}
+.pi-dialog[data-enquadramento="foto"] .pi-janela {
+  width: min(100%, 320px, 39dvh);
+}
+.pi-dialog .pi-janela canvas {
+  width: 100%;
+}
+.pi-guia {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid #f8f5dcdb;
+  border-radius: 3px;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0 calc(33.33% - 1px),
+      #f8f5dc57 calc(33.33% - 1px) 33.33%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 calc(33.33% - 1px),
+      #f8f5dc57 calc(33.33% - 1px) 33.33%
+    );
+}
+.pi-zoom {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pi-zoom label {
+  flex-wrap: wrap;
+}
+.pi-zoom output {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.pi-zoom button {
+  min-inline-size: 44px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pi-amostra > img,
+  .pi-amostra-acao {
+    transition: none;
+  }
+}

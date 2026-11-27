@@ -11,6 +11,7 @@ import { idProfissaoPorCategoria } from "./app/models/questionarioAtuacao.js";
 import { discoDemo, idFaixaDemo, imagemPerfilDemo, imagemPublicacaoDemo } from "./app/models/catalogoDemonstrativo.js";
 import { protegerEscrita } from "./app/middlewares/seguranca.js";
 import { prepararSuperAdminLocal } from "./app/models/administracao.js";
+import { vetorSelo } from "./app/models/vetoresSelo.js";
 import express from "express";
 import ejs from "ejs";
 import path from "node:path";
@@ -19,6 +20,7 @@ import { inicializarAplicacaoCypher } from "./app/models/modeloCypher.js";
 import { prepararCatalogoInicialCypher } from "./app/models/catalogoInicial.js";
 import {
   BriefcaseBusiness, Clapperboard, PenLine, Camera, Paintbrush, Footprints, Newspaper, PencilRuler, Scissors, Podcast, Drum, PenTool, SprayCan, Video,
+  BookOpen, Compass, Images, LayoutDashboard, LibraryBig, LifeBuoy, ListFilter, PanelsTopLeft, Handshake, ShieldAlert, ShoppingBag,
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
@@ -46,6 +48,7 @@ import {
   House,
   Lightbulb,
   ListChecks,
+  Map as MapIcon,
   MapPin,
   Menu,
   MicVocal,
@@ -100,6 +103,9 @@ app.set("trust proxy", process.env.CYPHER_TRUST_PROXY === "1" ? 1 : false);
 
 const icones = {
   briefcase: BriefcaseBusiness, clapperboard: Clapperboard, pen: PenLine, camera: Camera, brush: Paintbrush, footprints: Footprints, newspaper: Newspaper, design: PencilRuler, scissors: Scissors, podcast: Podcast, drum: Drum, penTool: PenTool, spray: SprayCan, video: Video,
+  bookOpen: BookOpen, compass: Compass, images: Images, layoutDashboard: LayoutDashboard,
+  libraryBig: LibraryBig, lifeBuoy: LifeBuoy, listFilter: ListFilter, panelsTopLeft: PanelsTopLeft,
+  handshake: Handshake, shieldAlert: ShieldAlert, shoppingBag: ShoppingBag,
   arrowLeft: ArrowLeft,
   arrowRight: ArrowRight,
   arrowUpRight: ArrowUpRight,
@@ -130,6 +136,7 @@ const icones = {
   house: House,
   lightbulb: Lightbulb,
   listChecks: ListChecks,
+  map: MapIcon,
   mapPin: MapPin,
   menu: Menu,
   mic: MicVocal,
@@ -171,6 +178,7 @@ app.engine("ejs", (arquivo, opcoes, concluir) => {
 if (process.env.CYPHER_VIEW_CACHE === "1") app.enable("view cache");
 app.set("views", path.resolve(process.cwd(), "views"));
 app.locals.icones = icones;
+app.locals.vetorSelo = vetorSelo;
 app.locals.acoesCriacaoSidebar = acoesCriacao;
 app.locals.iconeCategoriaProfissional = (categoria: string) =>
   iconeDaProfissao(idProfissaoPorCategoria(categoria) || "");
@@ -179,7 +187,7 @@ app.locals.reputacaoParaPerfil = (id: string, visitante: string) => {try {return
 app.locals.rotuloProfissional = rotuloProfissional;
 Object.assign(app.locals, { completudePerfil, discoDemo, idFaixaDemo, imagemPerfilDemo, imagemPublicacaoDemo });
 app.post("/payments/mercadopago/webhook", express.json({ limit: "8kb" }), webhookMercadoPago);
-app.use(["/portfolio/edit", "/portfolio/preview"], express.urlencoded({ extended: true, limit: "512kb" }));
+app.use(["/portfolio/editar", "/portfolio/previa"], express.urlencoded({ extended: true, limit: "512kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(protegerEscrita);

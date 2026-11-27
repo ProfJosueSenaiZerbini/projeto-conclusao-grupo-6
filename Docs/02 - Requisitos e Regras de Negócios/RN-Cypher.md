@@ -277,7 +277,7 @@
 
 **RN-127 — Mudança e cancelamento.** Alterações relevantes de data, local, condições de inscrição ou cancelamento do evento exigem atualização das informações e comunicação pertinente aos usuários afetados, preservando o histórico necessário.
 
-**RN-128 — Localização confiável.** Eventos sem localização publicável ou suficientemente precisa permanecem consultáveis nos formatos adequados, sem criação de endereço, coordenadas ou ponto de mapa fictícios.
+**RN-128 — Localização confiável.** Só podem ter pino eventos com endereço público e ponto preciso confirmado pela organização. O CEP auxilia o preenchimento, mas não confirma o ponto. Eventos online ou sem localização confirmada permanecem consultáveis em lista. Alterar o endereço invalida o ponto anterior; a consulta ao mapa não exige GPS.
 
 **RN-129 — Elegibilidade de avaliação pós-evento.** A avaliação da experiência de um evento exige participação ou comparecimento reconhecido pelos critérios aplicáveis; mero interesse, salvamento ou inscrição não comprovada não habilita relato como participante efetivo.
 

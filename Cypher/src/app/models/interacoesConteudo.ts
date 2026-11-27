@@ -259,7 +259,7 @@ export function listarComentarios(ator: string, alvo: Alvo) {
               ? c.autor
               : "Participante",
         perfil: profissional
-          ? "/p/" + encodeURIComponent(c.identificador.replace(/^@/, ""))
+          ? "/artistas/" + encodeURIComponent(c.identificador.replace(/^@/, ""))
           : "",
         foto: profissional ? imagemPerfilDemo(c.identificador) || "" : "",
         iniciais: profissional

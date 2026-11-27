@@ -45,7 +45,7 @@
       if (q.length < 2) return;
       const current = version;
       list.replaceChildren();
-      all.href = "/search?" + new URLSearchParams({ q });
+      all.href = "/busca?" + new URLSearchParams({ q });
       status.textContent = "Buscando na cena…";
       panel.hidden = false;
       input.setAttribute("aria-expanded", "true");
@@ -53,7 +53,7 @@
         controller = new AbortController();
         try {
           const response = await fetch(
-            "/search/suggestions?" + new URLSearchParams({ q }),
+            "/busca/sugestoes?" + new URLSearchParams({ q }),
             {
               signal: controller.signal,
               headers: { Accept: "application/json" },

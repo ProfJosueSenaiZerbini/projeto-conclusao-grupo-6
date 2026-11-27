@@ -71,20 +71,3 @@
 .mr-text {
   white-space: pre-wrap;
 }
-.mr-crop[hidden] { display: none; }
-.mr-crop { display: grid; gap: 12px; }
-.mr-crop p { margin: 0; }
-.mr-crop-frame {
-  position: relative;
-  width: min(100%, 360px);
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: var(--dc-field);
-  border: 1px solid var(--dc-line);
-  touch-action: none;
-  cursor: grab;
-}
-.mr-crop-frame.is-cover { width: min(100%, 640px); aspect-ratio: 8 / 3; }
-.mr-crop-frame:active { cursor: grabbing; }
-.mr-crop-frame img { position: absolute; max-width: none; display: block; user-select: none; pointer-events: none; }
-.mr-crop input[type="range"] { max-width: 360px; padding: 0; accent-color: var(--dc-olive); }

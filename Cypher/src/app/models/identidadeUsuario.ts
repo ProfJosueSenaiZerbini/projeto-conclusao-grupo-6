@@ -30,6 +30,7 @@ import {
 } from "./portfolio.js";
 import { ErroOportunidade } from "../validators/validarOportunidade.js";
 import { seloPerfil } from "./seloPerfil.js";
+import { entregarAvisoEmail } from "./entregaEmail.js";
 
 export type DadosIdentidade = {
   nomeInformado: string;
@@ -52,7 +53,7 @@ const unidadesFederativas = new Set(
   )
 );
 
-function localizacaoCompleta(cidade: string) {
+export function localizacaoCompleta(cidade: string) {
   const partes = cidade
     .trim()
     .match(/^(.+?)\s*(?:,|\/|\s[-–]\s)\s*([A-Za-z]{2})$/);
@@ -93,9 +94,9 @@ export function calcularCompletudePerfil(
 
   const profissional = usuario.tipoConta === "profissional";
   const pessoal = profissional
-    ? "/profile?editar=1&secao=pessoal#editar-perfil"
-    : "/profile";
-  const atuacao = "/profile?editar=1&secao=profissional";
+    ? "/perfil?editar=1&secao=pessoal#editar-perfil"
+    : "/perfil";
+  const atuacao = "/perfil?editar=1&secao=profissional";
   const adicionar = (
     id: string,
     rotulo: string,
@@ -113,13 +114,13 @@ export function calcularCompletudePerfil(
     "biografia",
     "Adicione uma biografia",
     Boolean(usuario.biography.trim()),
-    profissional ? pessoal : "/profile?editar=apresentacao#perfil-biografia"
+    profissional ? pessoal : "/perfil?editar=apresentacao#perfil-biografia"
   );
   adicionar(
     "cidade",
     "Informe sua cidade e estado",
     localizacaoCompleta(usuario.city),
-    profissional ? pessoal : "/profile?editar=apresentacao#perfil-localizacao"
+    profissional ? pessoal : "/perfil?editar=apresentacao#perfil-localizacao"
   );
 
   if (profissional) {
@@ -151,7 +152,7 @@ export function calcularCompletudePerfil(
       "contato",
       "Facilite o contato profissional",
       Boolean(usuario.contact.trim()),
-      "/profile?editar=1&secao=privacidade#profile-contato"
+      "/perfil?editar=1&secao=privacidade#profile-contato"
     );
     if (
       usuario.categories.some(categoria =>
@@ -169,13 +170,13 @@ export function calcularCompletudePerfil(
       sugestoes.push({
         id: "portfolio",
         rotulo: "Construa seu portfólio",
-        url: "/portfolio/edit",
+        url: "/portfolio/editar",
       });
     if (!conteudo.selo)
       sugestoes.push({
         id: "selo",
         rotulo: "Personalize seu selo profissional",
-        url: "/profile?editar=1&secao=identidade#profile-editor-selo",
+        url: "/perfil?editar=1&secao=selo#profile-editor-selo",
       });
   }
 
@@ -361,7 +362,7 @@ export function alterarIdentificadorUsuario(
   })();
 }
 
-export function profissionalizarUsuario(
+export async function profissionalizarUsuario(
   usuarioId: string,
   selecao: ReturnType<typeof validarSelecaoProfissional>,
   confirmacao: boolean
@@ -370,7 +371,7 @@ export function profissionalizarUsuario(
     throw new Error("Confirme a ativação irreversível do perfil profissional.");
   const { categorias, vertentes } = selecao;
   const db = conexaoInternaCypher();
-  return db.transaction(() => {
+  const destinatario = db.transaction(() => {
     const mudanca = db
       .prepare(
         "UPDATE usuarios SET tipo_conta='profissional',atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND tipo_conta='consumidor'"
@@ -415,7 +416,12 @@ export function profissionalizarUsuario(
     db.prepare(
       "INSERT INTO ativacoes_profissionais (usuario_id,categorias_json) VALUES (?,?)"
     ).run(usuarioId, JSON.stringify(categorias));
+    return db.prepare(
+      "SELECT email FROM usuarios WHERE id=? AND email_confirmado_em IS NOT NULL AND demonstracao=0"
+    ).get(usuarioId) as { email: string } | undefined;
   })();
+  if (destinatario?.email)
+    await entregarAvisoEmail(destinatario.email, "conversao");
 }
 
 export const generosInteresse = ["Rap", ...vertentesProfissionais];

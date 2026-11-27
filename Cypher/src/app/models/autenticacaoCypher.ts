@@ -125,6 +125,8 @@ export async function cadastrarUsuario(dados: {
   vulgo?: string;
   nomePublico?: boolean;
   nascimento: string;
+  tratamento?: string;
+  generoPersonalizado?: string;
   vertentes?: string[];
   email: string;
   senha: string;
@@ -153,6 +155,8 @@ export async function cadastrarUsuario(dados: {
         vulgo: dados.vulgo,
         nomePublico: dados.nomePublico,
         nascimento: dados.nascimento,
+        tratamento: dados.tratamento,
+        generoPersonalizado: dados.generoPersonalizado,
         vertentes: dados.vertentes,
         funcao,
         identificador: dados.identificador,

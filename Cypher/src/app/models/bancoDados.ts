@@ -14,8 +14,9 @@ import { esquemaInteracoes } from "./esquemaInteracoes.js";
 import { esquemaMidiasRepresentacao } from "./esquemaMidiasRepresentacao.js";
 import { consultaPreparada } from "./consultaPreparada.js";
 import { esquemaAcervoMusical, migrarAcervoMusical, guardarAcervo, impedirExclusaoVinculada, type EdicaoAcervo } from "./acervoMusical.js";
-import { interesseEventoLegado, cancelarInteresseEventoLegado, statusInteresseEventoLegado } from "./eventos.js";
+import { camposHorarioEvento, interesseEventoLegado, cancelarInteresseEventoLegado, statusInteresseEventoLegado } from "./eventos.js";
 import { contaEncerrada, contatoEtarioPermitido, menorProtegido, preferenciasPrivacidadePermitidas } from "./protecoesConta.js";
+import { fotoPerfilVisivel } from "./midiasPublicacoes.js";
 import { objetoDisponivel, objetoSobMedida, situacaoContaModeracao } from "./politicasModeracao.js";
 import Database from "better-sqlite3";
 import { rotuloProfissional } from "./tratamentoProfissional.js";
@@ -422,7 +423,7 @@ export type ObraContaPersistida = ObraPersistida & {
 };
 
 let banco;
-export const versaoEsquema = 40;
+export const versaoEsquema = 44;
 function iniciaisPublicas(nome) {
   const partes = nome
     .normalize("NFD")
@@ -1191,11 +1192,51 @@ function linhaNotificacao(linha) {
     criadaEm: String(linha.criadaEm),
   };
 }
+function apresentarNotificacaoMensagem(banco, linha, aviso, usuarioId) {
+  const prefixo = "mensagem:";
+  const sufixo = ":" + usuarioId;
+  const origem = linha.chaveOrigem ?? "";
+  const mensagemId = origem.startsWith(prefixo) && origem.endsWith(sufixo)
+    ? origem.slice(prefixo.length, -sufixo.length) : "";
+  const mensagem = mensagemId && consultaPreparada(banco, `
+    SELECT m.texto, m.conversa_id, m.autor_id, p.identificador, p.iniciais,
+           anexo.nome AS arquivo, anexo.mime,
+           coalesce(p.nome, a.nome, 'Conta Cypher') AS remetente, u.tipo_conta
+    FROM mensagens m
+    JOIN conversas c ON c.id = m.conversa_id
+    JOIN usuarios u ON u.id = @usuario
+    LEFT JOIN perfis p ON p.usuario_id = m.autor_id
+    LEFT JOIN administradores a ON a.usuario_id = m.autor_id
+    LEFT JOIN mensagens_anexos anexo ON anexo.mensagem_id = m.id
+    WHERE m.id = @id AND (
+      (c.participante_a = @usuario AND c.participante_b = m.autor_id) OR
+      (c.participante_b = @usuario AND c.participante_a = m.autor_id)
+    )
+  `).get({ id: mensagemId, usuario: usuarioId });
+  if (!mensagem || objetoSobMedida(banco, "mensagem", mensagemId)) {
+    return { ...aviso, titulo: "Mensagem indisponível", mensagem: "", url: "" };
+  }
+  const tipoAnexo = mensagem.mime?.startsWith("image/") ? "Foto"
+    : mensagem.mime?.startsWith("audio/") ? "Áudio"
+    : mensagem.mime?.startsWith("video/") ? "Vídeo" : "Arquivo";
+  const texto = (mensagem.texto || (mensagem.arquivo ? tipoAnexo + " · " + mensagem.arquivo : "Mensagem"))
+    .replace(/\s+/gu, " ").trim();
+  const caracteres = Array.from(texto);
+  const previa = caracteres.length > 160 ? caracteres.slice(0, 159).join("").trimEnd() + "…" : texto;
+  const base = mensagem.tipo_conta === "administrativo" ? "/admin/oportunidades/mensagens" : "/mensagens";
+  return {
+    ...aviso, titulo: mensagem.remetente, mensagem: previa,
+    remetenteFoto: fotoPerfilVisivel(usuarioId, mensagem.autor_id, mensagem.identificador),
+    remetenteIniciais: mensagem.iniciais || iniciaisPublicas(mensagem.remetente),
+    url: base + "/" + encodeURIComponent(mensagem.conversa_id) + "#mensagem-" + encodeURIComponent(mensagemId),
+  };
+}
 export function listarNotificacoesCypher(usuarioId, limite = 8, somenteNaoLidas = false, inicio = 0) {
-  return bancoAtivo()
+  const banco = bancoAtivo();
+  return banco
     .prepare(
       `
-      SELECT id, tipo, titulo, mensagem, url,
+      SELECT id, tipo, titulo, mensagem, url, chave_origem AS chaveOrigem,
              entidade_tipo AS entidadeTipo,
              entidade_id AS entidadeId,
              lida, criada_em AS criadaEm
@@ -1207,7 +1248,10 @@ export function listarNotificacoesCypher(usuarioId, limite = 8, somenteNaoLidas 
       `
     )
     .all(usuarioId, Number(somenteNaoLidas), Math.max(1, Math.min(50, limite)), inicio)
-    .map(linha => linhaNotificacao(linha));
+    .map(linha => {
+      const aviso = linhaNotificacao(linha);
+      return aviso.tipo === "mensagem" ? apresentarNotificacaoMensagem(banco, linha, aviso, usuarioId) : aviso;
+    });
 }
 export function contarNotificacoesNaoLidasCypher(usuarioId) {
   return bancoAtivo()
@@ -1504,11 +1548,40 @@ export function inicializarBancoCypher() {
       conexao.exec(esquemaContas);
       conexao.exec(esquemaBeats);
       conexao.exec(esquemaEventos);
+      if (conexao.pragma("table_info(eventos_configuracoes)").some(c => c.name === "fuso")) {
+        const atualizarAgenda = conexao.prepare("UPDATE eventos SET data_texto=?, horario=? WHERE id=?");
+        for (const registro of conexao.prepare("SELECT evento_id,inicio_em FROM eventos_configuracoes WHERE inicio_em IS NOT NULL AND fuso<>?").all("America/Sao_Paulo")) {
+          const { data, horario } = camposHorarioEvento(registro.inicio_em);
+          atualizarAgenda.run(data, horario, registro.evento_id);
+        }
+        conexao.exec("ALTER TABLE eventos_configuracoes DROP COLUMN fuso");
+      }
+      if (conexao.pragma("table_info(eventos_acompanhamentos)").some(c => c.name === "fuso"))
+        conexao.exec("ALTER TABLE eventos_acompanhamentos DROP COLUMN fuso");
+      if (!conexao.pragma("table_info(eventos_configuracoes)").some(c => c.name === "endereco_mapa_json"))
+        conexao.exec("ALTER TABLE eventos_configuracoes ADD COLUMN endereco_mapa_json TEXT NOT NULL DEFAULT ''");
       conexao.exec(esquemaCena);
       conexao.exec(esquemaInteracoes);
       conexao.exec(esquemaMidiasRepresentacao);
       if (!conexao.pragma("table_info(selos_perfil)").some(c => c.name === "simbolo"))
         conexao.exec("ALTER TABLE selos_perfil ADD COLUMN simbolo TEXT NOT NULL DEFAULT 'pulso'");
+      if (versao < 43)
+        conexao.exec("UPDATE selos_perfil SET forma='gota' WHERE forma='octogono'");
+      if (!conexao.pragma("table_info(selos_perfil)").some(c => c.name === "composicao_json"))
+        conexao.exec("ALTER TABLE selos_perfil ADD COLUMN composicao_json TEXT");
+      if (!conexao.pragma("table_info(pedidos_selo_externo)").some(c => c.name === "objetivo"))
+        conexao.exec("ALTER TABLE pedidos_selo_externo ADD COLUMN objetivo TEXT NOT NULL DEFAULT 'selo' CHECK(objetivo IN ('selo','camada'))");
+      conexao.exec(`CREATE TABLE IF NOT EXISTS recursos_selo_perfil (
+        selo_id TEXT NOT NULL REFERENCES selos_perfil(id) ON DELETE CASCADE,
+        pedido_id TEXT NOT NULL REFERENCES pedidos_selo_externo(id) ON DELETE RESTRICT,
+        PRIMARY KEY(selo_id,pedido_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_recursos_selo_pedido ON recursos_selo_perfil(pedido_id,selo_id);
+      CREATE TABLE IF NOT EXISTS rascunhos_selo_perfil (
+        autor_id TEXT PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,
+        composicao_json TEXT NOT NULL,
+        atualizado_em INTEGER NOT NULL
+      )`);
       if (versao < 39) conexao.exec(`
         DELETE FROM profissionais_seguidos AS s WHERE EXISTS (
           SELECT 1 FROM bloqueios_usuarios b

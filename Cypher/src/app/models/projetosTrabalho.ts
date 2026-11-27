@@ -586,7 +586,7 @@ function itensVisiveis(
       try {
         const m = midiaAutorizada(ator, i.origem_id);
         return [
-          { ...i, nome: m.nome, url: "/work-media/" + m.id, mime: m.mime },
+          { ...i, nome: m.nome, url: "/midias-de-trabalho/" + m.id, mime: m.mime },
         ];
       } catch {
         return [];
@@ -598,7 +598,7 @@ function itensVisiveis(
         {
           ...i,
           nome: dadosProjeto(i.origem_id)!.titulo,
-          url: "/work-projects/" + i.origem_id,
+          url: "/trabalhos-e-galerias/" + i.origem_id,
           mime: "registro",
         },
       ];

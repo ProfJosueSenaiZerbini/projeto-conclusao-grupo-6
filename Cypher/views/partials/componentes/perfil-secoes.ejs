@@ -1,4 +1,4 @@
-<% const a = apresentacao, edit = '/profile?editar=1&secao=';
+<% const a = apresentacao, edit = '/perfil?editar=1&secao=';
 const categorias = a.contexto ? [a.contexto] : pessoa.categories;
 const trajetoria = categorias.map(categoria => {
   const registro = pessoa.atuacoes.find(i => i.categoria === categoria);
@@ -26,7 +26,7 @@ const titulos = {catalogo:'Catálogo', galeria:'Galeria e portfólio', sobre:'So
     <header class="pf-section-head">
       <h2><%= titulos[a.aba] %></h2>
       <% if (a.portfolioUrl) { %><a class="pf-link" href="<%= a.portfolioUrl %>">Abrir portfólio <%- icones.externalLink %></a>
-      <% } else if (a.editavel && a.aba === 'galeria') { %><a class="pf-link" href="/portfolio/edit">Organizar portfólio</a><% } %>
+      <% } else if (a.editavel && a.aba === 'galeria') { %><a class="pf-link" href="/portfolio/editar">Organizar portfólio</a><% } %>
     </header>
     <% if (a.obra) { %><%- include('perfil-ficha-obra',{obra:a.obra}) %><% } %>
     <% if (['catalogo','galeria'].includes(a.aba)) { %>
@@ -46,7 +46,7 @@ const titulos = {catalogo:'Catálogo', galeria:'Galeria e portfólio', sobre:'So
         </nav><% } %>
       <% } else { %>
         <div class="pf-empty"><p><%= a.aba === 'catalogo' ? 'Seu catálogo começa com o primeiro trabalho autoral.' : 'Ainda não há trabalhos nesta seleção.' %></p>
-          <% if (a.editavel) { %><a class="pf-link" href="<%= a.aba === 'galeria' ? '/work-projects/new' : '/espaco-de-trabalho' %>"><%= a.aba === 'galeria' ? 'Adicionar um projeto' : 'Abrir espaço de trabalho' %></a><% } %></div>
+          <% if (a.editavel) { %><a class="pf-link" href="<%= a.aba === 'galeria' ? '/trabalhos-e-galerias/novo' : '/espaco-de-trabalho' %>"><%= a.aba === 'galeria' ? 'Adicionar um projeto' : 'Abrir espaço de trabalho' %></a><% } %></div>
       <% } %>
     <% } else if (a.aba === 'sobre') { %>
       <div class="pf-about">
@@ -60,6 +60,7 @@ const titulos = {catalogo:'Catálogo', galeria:'Galeria e portfólio', sobre:'So
         <% if (a.editavel && !pessoa.biography) { %><a class="pf-link" href="<%= edit %>pessoal#editar-perfil">Adicionar biografia</a><% } %>
       </div>
     <% } else if (a.aba === 'atuacao') { %>
+      <% if (pessoa.skills?.length) { %><dl class="pf-facts"><div><dt>Competências e especializações</dt><dd><%= pessoa.skills.join(' · ') %></dd></div></dl><% } %>
       <div class="pf-experience">
         <% for (const grupo of trajetoria) { %>
           <details class="pf-role-card" <%= trajetoria.length === 1 ? 'open' : '' %>><summary><span class="pf-role-art" aria-hidden="true"><%- icones[grupo.icone] %></span><span class="pf-role-copy"><strong><%= grupo.nome %></strong><small><%= grupo.respostas.find(r => r.campo === 'tempoAtuacao')?.valor || 'Conheça esta atuação' %></small></span><%- icones.chevronDown %></summary>
@@ -80,7 +81,7 @@ const titulos = {catalogo:'Catálogo', galeria:'Galeria e portfólio', sobre:'So
     <% if (a.cena && (a.cena.conexoes.length || a.cena.projetos.length)) { %>
       <details class="pf-network"><summary>Trabalhos em comum <%- icones.chevronDown %></summary>
         <div class="pf-network-links"><% for (const c of a.cena.conexoes) { %><a href="<%= c.url %>"><strong><%= c.nome %></strong><small><%= c.obra %></small></a><% } %>
-        <% for (const p of a.cena.projetos) { %><a href="/work-projects/<%= encodeURIComponent(p.id) %>"><strong><%= p.titulo %></strong><small>Projeto em equipe</small></a><% } %></div>
+        <% for (const p of a.cena.projetos) { %><a href="/trabalhos-e-galerias/<%= encodeURIComponent(p.id) %>"><strong><%= p.titulo %></strong><small>Projeto em equipe</small></a><% } %></div>
       </details>
     <% } %>
   </div>

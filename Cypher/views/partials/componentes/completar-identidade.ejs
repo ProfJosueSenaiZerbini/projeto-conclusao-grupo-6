@@ -1,10 +1,30 @@
 <% if (!usuario.demonstracao && ['consumidor', 'profissional'].includes(usuario.tipoConta)) {
-     const progresso = completudePerfil(usuario);
-     const noPerfil = typeof sempre !== 'undefined' && sempre;
-     if (noPerfil || progresso.pendencias.length) { %>
-  <a class="profile-progress-summary" href="/profile/completar">
-    <span>Progresso do perfil</span>
-    <strong><%= progresso.percentual %>% completo</strong>
-    <span class="profile-progress-arrow" aria-hidden="true"><%- icones.arrowRight %></span>
-  </a>
+     const progresso = typeof progressoAssistente !== 'undefined' ? progressoAssistente : completudePerfil(usuario);
+     if (progresso.pendencias.length) { %>
+  <link rel="stylesheet" href="/css/completar-perfil.css">
+  <div class="cp-assistente" data-completar-perfil data-csrf="<%= csrfToken %>">
+    <a class="profile-progress-summary" href="/perfil/completar" data-cp-abrir aria-haspopup="dialog">
+      <span>Continuar e completar perfil</span>
+      <strong data-cp-percentual><%= progresso.percentual %>% completo</strong>
+      <span class="profile-progress-arrow" aria-hidden="true"><%- icones.arrowRight %></span>
+    </a>
+    <dialog class="cp-dialog" aria-labelledby="cp-titulo">
+      <div class="cp-corpo">
+        <header><div><span class="eyebrow">SUA PRESENÇA NA CYPHER</span><h2 id="cp-titulo">Completar perfil</h2></div><button class="pf-button" type="button" data-cp-fechar aria-label="Fechar assistente">✕</button></header>
+        <div class="cp-progresso"><span data-cp-etapa></span><progress max="100" value="<%= progresso.percentual %>" aria-label="Progresso do perfil"></progress></div>
+        <h3 data-cp-pergunta tabindex="-1"></h3>
+        <div data-cp-foto hidden><%- include('perfil-imagens', { arquivos: typeof midiasUsuario === 'function' ? midiasUsuario('perfil', usuario.id) : [], somenteFoto: true }) %></div>
+        <form data-cp-form>
+          <div data-cp-campo></div>
+          <p data-cp-estado role="status"></p>
+          <footer>
+            <button type="button" class="pf-button" data-cp-pular>Pular por agora</button>
+            <button type="submit" class="pf-button primary" data-cp-salvar>Salvar e continuar</button>
+            <button type="button" class="pf-button primary" data-cp-concluir hidden>Fechar</button>
+          </footer>
+        </form>
+      </div>
+    </dialog>
+  </div>
+  <script type="module" src="/js/completar-perfil.js"></script>
 <% } } %>

@@ -39,37 +39,40 @@ router.use(rotasCreditosSelos);
 router.use(rotasMidiasRepresentacao);
 router.use(rotasInteracoes);
 router.use(rotasSuporte);
+// Cadastros estáticos precisam preceder as fichas por ID.
+router.get("/banco-de-beats/novo", beats.novoBeat);
 router.use(rotasLicenciamentoBeats);
 router.use(rotasCentral);
 router.use(rotasColaboracoes);
 router.use(rotasPortfolio);
 router.use(rotasProjetos);
 router.use(rotasOportunidades);
-// /events/new é uma rota estática, anterior à ficha dinâmica.
-router.get('/events/new', eventos.novoEvento);
+// /eventos/novo é uma rota estática, anterior à ficha dinâmica.
+router.get('/eventos/novo', eventos.novoEvento);
+router.post("/eventos/localizacao", (req,res,next) => eventos.consultarLocalEvento(req,res).catch(next));
 router.use(rotasEventos);
-router.get("/admin/login", administracao.paginaLoginAdministrativo);
-router.post("/admin/login", limitarAutenticacao, administracao.loginAdministrativo);
-router.post("/admin/logout", administracao.logoutAdministrativo);
+router.get("/admin/entrar", administracao.paginaLoginAdministrativo);
+router.post("/admin/entrar", limitarAutenticacao, administracao.loginAdministrativo);
+router.post("/admin/sair", administracao.logoutAdministrativo);
 router.get("/admin", administracao.painelAdministrativo);
 router.post("/admin/equipe", administracao.adicionarAdministrador);
 router.post("/admin/equipe/:id", administracao.editarAdministrador);
-router.get("/login", autenticacao.paginaAutenticacao);
-router.get("/register", identidade.paginaCadastro);
-router.post("/login", limitarAutenticacao, autenticacao.login);
+router.get("/entrar", autenticacao.paginaAutenticacao);
+router.get("/cadastro", identidade.paginaCadastro);
+router.post("/entrar", limitarAutenticacao, autenticacao.login);
 router.get("/recuperar-senha", contas.paginaRecuperacao);
 router.post("/recuperar-senha", limitarAutenticacao, contas.solicitarRecuperacao);
 router.get("/redefinir-senha", contas.paginaRedefinicao);
 router.post("/redefinir-senha", limitarAutenticacao, contas.redefinirSenha);
 router.get(["/termos-de-uso", "/politica-privacidade"], contas.termosConta);
-router.post("/register/validate", identidade.validarCadastro);
-router.post("/register/identificador", identidade.disponibilidadeIdentificador);
-router.post("/register", identidade.registrarConta);
+router.post("/cadastro/validar", identidade.validarCadastro);
+router.post("/cadastro/identificador", identidade.disponibilidadeIdentificador);
+router.post("/cadastro", identidade.registrarConta);
 router.get("/email/pendente", identidade.paginaEmailPendente);
 router.post("/email/reenviar", limitarAutenticacao, identidade.reenviarConfirmacao);
 router.get("/confirmar-email", identidade.paginaConfirmacao);
 router.post("/confirmar-email", identidade.confirmarEmail);
-router.post("/logout", autenticacao.logout);
+router.post("/sair", autenticacao.logout);
 router.get("/notificacoes", notificacoes.notificacoes);
 router.post("/notificacoes/marcar-todas-lidas", notificacoes.marcarTodasLidas);
 router.post("/notificacoes/preferencias", notificacoes.salvarPreferencias);
@@ -77,72 +80,72 @@ router.post("/notificacoes/limpar", notificacoes.limpar);
 router.post("/notificacoes/:id/lida", notificacoes.marcarLida);
 router.post("/notificacoes/:id/nao-lida", notificacoes.marcarNaoLida);
 router.post("/notificacoes/:id/excluir", notificacoes.excluir);
-router.post("/categories/analyze", dashboard.analisarCategoria);
-router.get(["/", "/dashboard"], dashboard.descoberta);
-router.get("/search", buscaGlobal);
-router.get("/search/suggestions", sugestoesBusca);
-router.get("/events", eventos.oportunidades);
-router.get("/events/new", eventos.novoEvento);
-router.post("/events/new", eventos.criarEvento);
-router.post("/events/:id/interest", eventos.demonstrarInteresse);
-router.post("/events/:id/interest/cancel", eventos.cancelarInteresse);
+router.post("/categorias/analisar", dashboard.analisarCategoria);
+router.get(["/", "/descoberta"], dashboard.descoberta);
+router.get("/busca", buscaGlobal);
+router.get("/busca/sugestoes", sugestoesBusca);
+router.get("/eventos", eventos.oportunidades);
+router.post("/eventos/novo", eventos.criarEvento);
+router.post("/eventos/:id/interesse", eventos.demonstrarInteresse);
+router.post("/eventos/:id/interesse/cancelar", eventos.cancelarInteresse);
 router.post(
-  "/events/:id/interests/:usuarioId/status",
+  "/eventos/:id/interesses/:usuarioId/status",
   eventos.atualizarInteresse
 );
-router.get("/events/:id/edit", eventos.editarEvento);
-router.post("/events/:id/edit", eventos.atualizarEvento);
-router.post("/events/:id/delete", eventos.excluirEvento);
+router.get("/eventos/:id/editar", eventos.editarEvento);
+router.post("/eventos/:id/editar", eventos.atualizarEvento);
+router.post("/eventos/:id/excluir", eventos.excluirEvento);
 router.get("/espaco-de-trabalho", espacoTrabalho);
 router.get("/espaco-de-trabalho/creditos/:id", revisarCreditoObra);
 router.post("/espaco-de-trabalho/creditos/:id", aceitarCreditoObra);
 router.get("/espaco-de-trabalho/:modalidade/:id", fichaTrabalho);
-router.get("/works", obras.obras);
-router.post("/works/:id/like", obras.curtirObra);
-router.get("/works/new", obras.novaObra);
-router.post("/works/new", obras.criarObra);
-router.get("/works/:id/edit", obras.editarObra);
-router.post("/works/:id/edit", obras.atualizarObra);
-router.post("/works/:id/delete", obras.excluirObra);
-router.post("/works/:id/evidencia", obras.comprovarLancamento);
+router.get("/obras", obras.obras);
+router.post("/obras/:id/curtir", obras.curtirObra);
+router.get("/obras/novo", obras.novaObra);
+router.post("/obras/novo", obras.criarObra);
+router.get("/obras/:id/editar", obras.editarObra);
+router.post("/obras/:id/editar", obras.atualizarObra);
+router.post("/obras/:id/excluir", obras.excluirObra);
+router.post("/obras/:id/evidencia", obras.comprovarLancamento);
 router.get("/admin/lancamentos", obras.evidenciasLancamentos);
 router.post("/admin/lancamentos/:id", obras.decidirEvidencia);
-router.get("/beats", beats.bancoBeats);
-router.get("/beats/new", beats.novoBeat);
-router.post("/beats/new", beats.criarBeat);
-router.get("/beats/:id/edit", beats.editarBeat);
-router.post("/beats/:id/edit", beats.atualizarBeat);
-router.post("/beats/:id/delete", beats.excluirBeat);
+router.get("/banco-de-beats", beats.bancoBeats);
+router.post("/banco-de-beats/novo", beats.criarBeat);
+router.get("/banco-de-beats/:id/editar", beats.editarBeat);
+router.post("/banco-de-beats/:id/editar", beats.atualizarBeat);
+router.post("/banco-de-beats/:id/excluir", beats.excluirBeat);
 
-router.get("/profile", identidade.meuPerfil);
-router.get("/profile/completar", identidade.completarPerfil);
-router.get("/profile/profissionalizar", identidade.ativarProfissional);
-router.post("/profile/profissionalizar", identidade.confirmarProfissionalizacao);
-router.post("/profile/apresentacao", identidade.salvarApresentacao);
-router.post("/profile", perfis.atualizarPerfil);
-router.post("/profile/secoes/:secao", perfis.atualizarPerfilPorSecao);
+router.get("/perfil", identidade.meuPerfil);
+router.get("/perfil/completar", identidade.completarPerfil);
+router.get("/perfil/completar/dados", identidade.dadosCompletarPerfil);
+router.post("/perfil/completar/dados", identidade.dadosCompletarPerfil);
+router.get("/perfil/profissionalizar", identidade.ativarProfissional);
+router.post("/perfil/profissionalizar", identidade.confirmarProfissionalizacao);
+router.post("/perfil/apresentacao", identidade.salvarApresentacao);
+router.post("/perfil", perfis.atualizarPerfil);
+router.post("/perfil/secoes/:secao", perfis.atualizarPerfilPorSecao);
 router.post(
-  "/profile/categorias/sugerir",
+  "/perfil/categorias/sugerir",
   perfis.solicitarCategoriaProfissional
 );
 router.post(
-  "/profile/categorias/solicitar-excecao",
+  "/perfil/categorias/solicitar-excecao",
   perfis.solicitarExcecaoCategoria
 );
 router.post(
-  "/profile/categorias/solicitacoes/:id/responder",
+  "/perfil/categorias/solicitacoes/:id/responder",
   perfis.responderSolicitacaoCategoria
 );
-router.get("/settings", identidade.configuracoesIdentidade);
-router.post("/settings/identidade", identidade.salvarIdentidade);
-router.post("/settings/identificador", identidade.salvarIdentificador);
-router.post("/settings/preferencias", identidade.salvarPreferencias);
-router.post("/settings/email", identidade.solicitarTrocaEmail);
-router.post("/settings/senha", limitarAutenticacao, contas.alterarSenha);
-router.get("/settings/encerramento", contas.paginaEncerramento);
+router.get("/configuracoes", identidade.configuracoesIdentidade);
+router.post("/configuracoes/identidade", identidade.salvarIdentidade);
+router.post("/configuracoes/identificador", identidade.salvarIdentificador);
+router.post("/configuracoes/preferencias", identidade.salvarPreferencias);
+router.post("/configuracoes/email", identidade.solicitarTrocaEmail);
+router.post("/configuracoes/senha", limitarAutenticacao, contas.alterarSenha);
+router.get("/configuracoes/encerramento", contas.paginaEncerramento);
 router.post("/admin/identificador", identidade.excecaoIdentificador);
-router.post("/settings/privacy", configuracoes.atualizarPrivacidade);
-router.post("/settings/delete-account", limitarAutenticacao, contas.fecharConta);
+router.post("/configuracoes/privacidade", configuracoes.atualizarPrivacidade);
+router.post("/configuracoes/encerrar-conta", limitarAutenticacao, contas.fecharConta);
 router.get("/admin/revisao", configuracoes.revisaoAdministrativa);
 router.get("/admin/revisao/excecoes", configuracoes.revisaoAdministrativa);
 router.get(
@@ -169,6 +172,6 @@ router.post(
   "/admin/revisao/solicitacoes-excecao/:id/esclarecimento",
   configuracoes.solicitarInformacaoSolicitacaoCategoria
 );
-router.get("/p/:identificador", perfis.perfilPublico);
+router.get("/artistas/:identificador", perfis.perfilPublico);
 
 export default router;

@@ -27,16 +27,16 @@ export async function verificarEspacoTrabalho({
   assert.equal((await request(pagina)).status, 302);
   assert.equal((await request(pagina, { cookie: consumidor })).status, 403);
   assert.doesNotMatch(
-    await get("/works", consumidor),
+    await get("/obras", consumidor),
     /href="\/espaco-de-trabalho/
   );
   const vazio = await get(pagina);
   assert.match(vazio, /Você ainda não publicou trabalhos/);
   assert.match(vazio, /Nenhuma participação confirmada/);
-  assert.doesNotMatch(vazio, /\/beats\/new\?origem/);
+  assert.doesNotMatch(vazio, /\/banco-de-beats\/novo\?origem/);
   const espacoLetrista = await get(pagina, letrista);
-  assert.match(espacoLetrista, /href="\/opportunities\/new\?origem=espaco"/);
-  assert.doesNotMatch(espacoLetrista, /href="\/(works|beats|events)\/new/);
+  assert.match(espacoLetrista, /href="\/oportunidades\/novo\?origem=espaco"/);
+  assert.doesNotMatch(espacoLetrista, /href="\/(works|beats|events)\/novo/);
   banco.salvarProfissoesUsuarioCypher("rapper", [
     { profissaoId: "rapper", valorOriginal: "Rapper", origem: "catalogo" },
     {
@@ -50,7 +50,7 @@ export async function verificarEspacoTrabalho({
       origem: "catalogo",
     },
   ]);
-  const tipo = await get("/works/new");
+  const tipo = await get("/obras/novo");
   assert.match(tipo, /Mixtape/);
   const dados = new URLSearchParams({
     ...formulario,
@@ -61,7 +61,7 @@ export async function verificarEspacoTrabalho({
   });
   dados.append("atuacao", "rapper");
   dados.append("atuacao", "beatmaker");
-  const criada = await post("/works/new", rapper, dados);
+  const criada = await post("/obras/novo", rapper, dados);
   assert.equal(criada.status, 303);
   assert.match(
     criada.headers.get("location"),
@@ -78,7 +78,7 @@ export async function verificarEspacoTrabalho({
       pagina + "?profissao=" + profissao + "&q=revisao"
     );
     assert.equal(filtrado.match(titulo)?.length, 1);
-    assert.match(filtrado, /\/events\/new\?origem=espaco/);
+    assert.match(filtrado, /\/eventos\/novo\?origem=espaco/);
   }
   assert.doesNotMatch(
     await get(pagina + "?profissao=organizador-eventos"),
@@ -88,7 +88,7 @@ export async function verificarEspacoTrabalho({
     await get(pagina + "?q=inexistente"),
     /Nenhum resultado para sua pesquisa/
   );
-  assert.doesNotMatch(await get("/works", consumidor), titulo);
+  assert.doesNotMatch(await get("/obras", consumidor), titulo);
   assert.equal((await request(ficha, { cookie: letrista })).status, 404);
   db.prepare("UPDATE creditos SET verificado=1 WHERE obra_id=?").run(obra);
   assert.match(
@@ -97,18 +97,18 @@ export async function verificarEspacoTrabalho({
   );
   const participacao = await get(ficha, letrista);
   assert.match(participacao, /Letra · Escrita/);
-  assert.doesNotMatch(participacao, /Confirmar exclusão|\/edit\?origem=espaco/);
+  assert.doesNotMatch(participacao, /Confirmar exclusão|\/editar\?origem=espaco/);
   assert.equal(
-    (await request("/works/" + obra + "/edit", { cookie: letrista })).status,
+    (await request("/obras/" + obra + "/editar", { cookie: letrista })).status,
     404
   );
   assert.equal(
-    (await post("/works/" + obra + "/delete", letrista, {})).status,
+    (await post("/obras/" + obra + "/excluir", letrista, {})).status,
     404
   );
   dados.set("visibilidade", "publica");
   assert.equal(
-    (await post("/works/" + obra + "/edit", rapper, dados)).status,
+    (await post("/obras/" + obra + "/editar", rapper, dados)).status,
     303
   );
   assert.equal(
@@ -126,7 +126,7 @@ export async function verificarEspacoTrabalho({
     publicada: 1,
     perfil_publico: 1,
   });
-  const catalogo = await get("/works?q=revisao", consumidor);
+  const catalogo = await get("/obras?q=revisao", consumidor);
   assert.ok(
     /Faixa em revisão/.test(catalogo.replace(/<[^>]+>/g," ")),
     catalogo
@@ -136,25 +136,25 @@ export async function verificarEspacoTrabalho({
   );
   dados.set("perfilCreditoPapel", "Composição");
   assert.equal(
-    (await post("/works/" + obra + "/edit", rapper, dados)).status,
+    (await post("/obras/" + obra + "/editar", rapper, dados)).status,
     303
   );
   assert.equal((await request(ficha, { cookie: letrista })).status, 404);
-  const beat = await post("/beats/new", rapper, {
+  const beat = await post("/banco-de-beats/novo", rapper, {
     title: "Beat da suíte",
     license: "Uso gratuito",
     origem: "espaco",
   });
   assert.match(
     beat.headers.get("location"),
-    /^\/beats\/[^/]+\/manage$/
+    /^\/banco-de-beats\/[^/]+\/gestao$/
   );
   const beatId = db
     .prepare("SELECT id FROM beats WHERE produtor_id=?")
     .get("rapper").id;
   assert.match(
     await get(pagina + "/beat/" + beatId),
-    /<h1>Beat da suíte<\/h1>/
+    /<h2 class="cy-work-heading">Beat da suíte<\/h2>/
   );
   assert.doesNotMatch(
     await get(pagina + "?profissao=rapper"),
@@ -183,7 +183,7 @@ export async function verificarEspacoTrabalho({
   };
   const evento = banco.criarEventoCypher("rapper", eventoDados);
   const eventos = await import("../dist/src/app/models/eventos.js");
-  eventos.salvarConfiguracaoEvento("rapper",evento,{data:eventoDados.date,horario:"18:00",fimData:eventoDados.date,fimHorario:"20:00",fuso:"America/Sao_Paulo",criterios:"Participação mediante inscrição e conferência na entrada."});
+  eventos.salvarConfiguracaoEvento("rapper",evento,{data:eventoDados.date,horario:"18:00",fimData:eventoDados.date,fimHorario:"20:00",criterios:"Participação mediante inscrição e conferência na entrada."});
   banco.demonstrarInteresseEventoCypher(evento, "letrista");
   assert.doesNotMatch(await get(pagina, letrista), /Encontro da suíte/);
   eventos.inscreverEvento("letrista",evento,{aceite:"sim"});
@@ -208,14 +208,14 @@ export async function verificarEspacoTrabalho({
     /Encontro da suíte/
   );
   for (const [base, id] of [
-    ["/beats", beatId],
-    ["/events", evento],
-    ["/works", obra],
+    ["/banco-de-beats", beatId],
+    ["/eventos", evento],
+    ["/obras", obra],
   ]) {
-    const excluida = await post(base + "/" + id + "/delete", rapper, {
+    const excluida = await post(base + "/" + id + "/excluir", rapper, {
       origem: "espaco",
     });
-    assert.match(excluida.headers.get("location"),base==="/events" ? /^\/events\/[^/]+#gestao$/ : /^\/espaco-de-trabalho\?resultado=/);
+    assert.match(excluida.headers.get("location"),base==="/eventos" ? /^\/eventos\/[^/]+#gestao$/ : /^\/espaco-de-trabalho\?resultado=/);
   }
   assert.equal(
     db.prepare("SELECT count(*) AS total FROM atuacoes_obra").get().total,

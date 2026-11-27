@@ -1,0 +1,131 @@
+<%
+  const profissionalSidebar = usuario.tipoConta === 'profissional' && !usuario.demonstracao;
+  const principal = [
+    { href: '/descoberta', label: 'Descoberta' },
+    { href: '/busca', label: 'Busca' },
+    { href: '/mensagens', label: 'Mensagens' },
+    { href: '/notificacoes', label: 'Notificações', count: typeof quantidadeNaoLidas !== 'undefined' ? quantidadeNaoLidas : 0 },
+    { href: '/perfil', label: 'Meu perfil', avatar: true },
+  ];
+  const explorar = [
+    { href: '/obras', label: 'Obras' },
+    { href: '/banco-de-beats', label: 'Banco de Beats' },
+    { href: '/trabalhos-e-galerias', label: 'Trabalhos e galerias' },
+    { href: '/eventos', label: 'Eventos' },
+    { href: '/oportunidades', label: 'Oportunidades' },
+  ];
+  const trabalho = profissionalSidebar ? [
+    { href: '/espaco-de-trabalho', label: 'Espaço de Trabalho' },
+    { href: '/colaboracoes', label: 'Colaborações' },
+  ] : [];
+  const gruposMais = [
+    { nome: 'Seu acervo', links: [
+      ...(typeof interacao === 'function' ? [{ href: '/colecoes', label: 'Minha coleção' }] : []),
+      { href: '/compras', label: 'Minhas compras' },
+    ] },
+    { nome: 'Na Cypher', links: [
+      { href: '/central', label: 'Cypher Central' },
+      { href: '/suporte', label: 'Falar com a Cypher' },
+      ...(usuario.ehAdministrador ? [{ href: '/admin/revisao', label: 'Administrador' }] : []),
+    ] },
+    { nome: 'Sua conta', links: [{ href: '/configuracoes', label: 'Configurações' }] },
+  ];
+  const rotaSidebar = (typeof caminhoNavegacao === 'string' ? caminhoNavegacao : path).split('?')[0];
+  const linkAtivoSidebar = href => rotaSidebar === href ||
+    (href === '/descoberta' && rotaSidebar === '/') ||
+    rotaSidebar.startsWith(href + '/') ||
+    (href === '/oportunidades' && ['/minhas-oportunidades', '/minhas-candidaturas'].includes(rotaSidebar));
+  const maisAtivo = gruposMais.some(grupo => grupo.links.some(link => linkAtivoSidebar(link.href)));
+%>
+<% if (modoMenu === 'mobile') {
+  const gruposMobile = [
+    { nome: 'Seu dia a dia', links: principal },
+    { nome: 'Explorar a cena', links: explorar },
+    ...(trabalho.length ? [{ nome: 'Seu trabalho', links: trabalho }] : []),
+    ...gruposMais,
+  ];
+%>
+<dialog class="cy-mobile-menu" id="menu-cypher-mobile" aria-labelledby="menu-cypher-mobile-titulo" data-menu-mobile>
+  <div class="cy-mobile-menu-sheet">
+    <header class="cy-mobile-menu-head">
+      <div><span class="cy-mobile-menu-brand">CYPHER</span><h2 id="menu-cypher-mobile-titulo">Menu</h2></div>
+      <button type="button" class="cy-mobile-menu-close" data-menu-mobile-close aria-label="Fechar menu" autofocus><%- icones.x %></button>
+    </header>
+    <nav class="cy-mobile-menu-body" aria-label="Navegação completa da Cypher">
+      <% gruposMobile.forEach(grupo => { %>
+        <section class="cy-mobile-menu-group" aria-label="<%= grupo.nome %>">
+          <h3><%= grupo.nome %></h3>
+          <div class="cy-mobile-menu-grid">
+            <% grupo.links.forEach(link => { %><%- include("componentes/link-sidebar", { link, ativo: linkAtivoSidebar(link.href) }) %><% }) %>
+          </div>
+        </section>
+      <% }) %>
+    </nav>
+    <footer class="cy-mobile-menu-foot">
+      <div class="cy-mobile-menu-theme"><span>Aparência</span><%- include("componentes/tema-entrada") %></div>
+      <form method="post" action="/sair"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="cy-mobile-menu-exit">Sair da conta</button></form>
+    </footer>
+  </div>
+</dialog>
+<% } else { %>
+<aside class="sidebar sidebar-organized" id="navegacao-principal">
+  <div class="sidebar-scroll">
+    <div class="sidebar-top">
+      <div class="sidebar-brand-row">
+        <a class="logo logo-compact" href="/descoberta" aria-label="Cypher — início">
+          <span class="discovery-rail-mark" hidden aria-hidden="true"><%- icones.crown %></span>
+          <span class="logo-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="logo-word">CYPHER</span>
+        </a>
+        <button class="icon-button mobile-close" type="button" data-sidebar-close aria-label="Fechar menu">
+          <span class="lucide-icon" aria-hidden="true"><%- icones.x %></span>
+        </button>
+      </div>
+    </div>
+    <nav class="side-nav" aria-label="Navegação principal">
+      <div class="sidebar-nav-group" role="group" aria-label="Seu dia a dia">
+        <% principal.forEach(link => { %>
+          <%- include('componentes/link-sidebar', { link, ativo: linkAtivoSidebar(link.href) }) %>
+        <% }) %>
+      </div>
+      <div class="sidebar-nav-group" role="group" aria-labelledby="sidebar-explorar">
+        <h2 class="nav-label" id="sidebar-explorar">Explorar a cena</h2>
+        <% explorar.forEach(link => { %>
+          <%- include('componentes/link-sidebar', { link, ativo: linkAtivoSidebar(link.href) }) %>
+        <% }) %>
+      </div>
+      <% if (profissionalSidebar) { %>
+        <div class="sidebar-nav-group" role="group" aria-labelledby="sidebar-trabalho">
+          <h2 class="nav-label" id="sidebar-trabalho">Seu trabalho</h2>
+          <% trabalho.forEach(link => { %>
+            <%- include('componentes/link-sidebar', { link, ativo: linkAtivoSidebar(link.href) }) %>
+          <% }) %>
+        </div>
+      <% } %>
+    </nav>
+    <div class="sidebar-bottom">
+      <button class="side-link sidebar-more<%= maisAtivo ? ' active' : '' %>" type="button" data-sidebar-more aria-label="Mais opções" aria-controls="recursos-menu" aria-expanded="false">
+        <span class="side-icon sidebar-menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="side-link-label">Mais</span>
+      </button>
+      <div class="resource-links" id="recursos-menu" popover="manual" aria-label="Mais opções da Cypher" hidden>
+        <% gruposMais.forEach(grupo => { %>
+          <section class="sidebar-resource-group" aria-label="<%= grupo.nome %>">
+            <h2 class="sidebar-resource-title"><%= grupo.nome %></h2>
+            <% grupo.links.forEach(link => { %>
+              <%- include('componentes/link-sidebar', { link, ativo: linkAtivoSidebar(link.href) }) %>
+            <% }) %>
+            <% if (grupo.nome === 'Sua conta') { %>
+              <div class="sidebar-appearance"><span>Aparência</span><%- include('componentes/tema-entrada') %></div>
+            <% } %>
+          </section>
+        <% }) %>
+        <form class="sidebar-logout" method="post" action="/sair">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="sidebar-exit" type="submit" aria-label="Sair da conta" title="Sair da conta"><span class="exit-sign" aria-hidden="true"><svg viewBox="0 0 512 512" focusable="false"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path></svg></span><span class="exit-text" aria-hidden="true">Sair da conta</span></button>
+        </form>
+      </div>
+    </div>
+  </div>
+</aside>
+<% } %>

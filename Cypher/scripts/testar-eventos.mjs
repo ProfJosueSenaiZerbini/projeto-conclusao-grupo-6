@@ -71,7 +71,6 @@ try {
     horario: "19:00",
     fimData: "2030-06-15",
     fimHorario: "22:00",
-    fuso: "America/Sao_Paulo",
     capacidade: "1",
     criterios:
       "Entrada gratuita. A inscrição depende da avaliação da organização.",
@@ -101,8 +100,8 @@ try {
   ok(() =>
     assert.equal(new Date(inicio).toISOString(), "2030-06-15T22:00:00.000Z")
   );
-  ok(() => assert.throws(() => m.instanteLocal("2030-02-31", "19:00", "UTC")));
-  ok(() => assert.throws(() => m.instanteLocal("2030-01-01", "25:00", "UTC")));
+  ok(() => assert.throws(() => m.instanteLocal("2030-02-31", "19:00")));
+  ok(() => assert.throws(() => m.instanteLocal("2030-01-01", "25:00")));
   ok(() =>
     assert.throws(() =>
       m.validarConfiguracaoEvento({ ...cfg, fimHorario: "18:00" })
@@ -120,11 +119,6 @@ try {
         localConfirmado: "sim",
         latitude: "",
       })
-    )
-  );
-  ok(() =>
-    assert.throws(() =>
-      m.validarConfiguracaoEvento({ ...cfg, fuso: "Fuso/Inventado" })
     )
   );
   ok(() => assert.throws(() => m.fichaEvento("moderador", e)));
@@ -416,7 +410,6 @@ try {
       acao: "preferencias",
       lembrar24: "sim",
       lembrarDia: "sim",
-      fuso: "America/Sao_Paulo",
     },
     antes
   );
@@ -438,7 +431,7 @@ try {
   m.seguirEvento(
     "carol",
     semLocal,
-    { acao: "preferencias", fuso: "America/Sao_Paulo" },
+    { acao: "preferencias" },
     antes
   );
   m.processarLembretesEventos(inicio - 3600000);
@@ -542,36 +535,67 @@ try {
         headers: { "content-type": "application/json", "x-csrf-token": csrf },
         body: JSON.stringify(body),
       });
-  const ficha = await req("/events/" + aberto);
+  const ficha = await req("/eventos/" + aberto);
   const html = await ficha.text();
   ok(() => assert.equal(ficha.status, 200, html));
   ok(() => assert.match(html, /Sua participação/));
+  ok(() => {
+    assert.match(html, /aria-label="Quando e onde"/);
+    assert.match(html, /class="ev-hero-toolbar"/);
+    assert.doesNotMatch(html, /class="ev-metrics"/);
+    assert.ok(html.indexOf('id="participacao"') < html.indexOf('id="local"'));
+  });
+  const fichaDono = await req("/eventos/" + aberto, "organizador");
+  ok(() => assert.equal(fichaDono.status, 200));
+  const htmlDono = await fichaDono.text();
+  ok(() => assert.match(htmlDono, /class="ev-metrics" aria-label="Resumo da participação"/));
+  ok(() => assert.doesNotMatch(html, /name="fuso"|America\//));
+  ok(() => {
+    const faixaData = html.match(/<div class="ev-date">([\s\S]*?)<\/div>/)?.[1];
+    assert.ok(faixaData);
+    assert.doesNotMatch(faixaData, /America\//);
+    assert.match(faixaData, /Até /);
+  });
   ok(() => assert.ok(!html.includes("Nome conferido na lista de entrada.")));
-  const mapa = await req("/events/map");
+  const datasAnteriores = db.prepare("SELECT inicio_em, fim_em FROM eventos_configuracoes WHERE evento_id=?").get(aberto);
+  const definirDatas = db.prepare("UPDATE eventos_configuracoes SET inicio_em=?,fim_em=? WHERE evento_id=?");
+  try {
+    definirDatas.run(null, null, aberto);
+    const resp = await req("/eventos/" + aberto);
+    const faixa = (await resp.text()).match(/<div class="ev-date">([\s\S]*?)<\/div>/)?.[1];
+    ok(() => {
+      assert.equal(resp.status, 200);
+      assert.match(faixa, /Até Horário a confirmar/);
+      assert.doesNotMatch(faixa, /America\//);
+    });
+  } finally {
+    definirDatas.run(datasAnteriores.inicio_em, datasAnteriores.fim_em, aberto);
+  }
+  const mapa = await req("/eventos/mapa");
   const mapaHtml = await mapa.text();
   ok(() => assert.equal(mapa.status, 200, mapaHtml));
-  ok(() => assert.match(mapaHtml, /openstreetmap.org\/export\/embed/));
-  const edit = await req("/events/new", "organizador");
+  ok(() => assert.match(mapaHtml, /data-event-map/));
+  const edit = await req("/eventos/novo", "organizador");
   ok(() => assert.equal(edit.status, 200));
   const editHtml = await edit.text();
   ok(() => assert.match(editHtml, /Critérios e regras de participação/));
+  ok(() => assert.match(editHtml, /name="local"/));
+  ok(() => assert.doesNotMatch(editHtml, /name="(?:fuso|latitude|longitude|localConfirmado)"/));
   const indevido = await post(
-    "/events/" + e + "/registrations/bruno/attendance",
+    "/eventos/" + e + "/inscricoes/bruno/presenca",
     { evidencia: "Conferência indevida da entrada." },
     "outro-organizador"
   );
   ok(() => assert.equal(indevido.status, 403));
-  const noc = await req("/events/" + e + "/register", "alice", {
+  const noc = await req("/eventos/" + e + "/inscricao", "alice", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: '{"aceite":"sim"}',
   });
   ok(() => assert.equal(noc.status, 403));
-  const anon = await fetch(host + "/events/" + e, { redirect: "manual" });
+  const anon = await fetch(host + "/eventos/" + e, { redirect: "manual" });
   ok(() => assert.equal(anon.status, 302));
-  const create = await post(
-    "/events/new",
-    {
+  const dadosHttp =     {
       titulo: "Evento HTTP seguro",
       categoria: "Cypher",
       categoriaDetalhe: "",
@@ -590,19 +614,123 @@ try {
       tipoParticipacao: "aberta",
       fimData: "2031-01-20",
       fimHorario: "21:00",
-      fuso: "America/Sao_Paulo",
       capacidade: "20",
       criterios: "Entrada por inscrição confirmada, com respeito ao público.",
-    },
-    "organizador"
-  );
+    };
+  const loc = await import("../dist/src/app/models/localEvento.js");
+  const endereco = loc.enderecoEvento({cep:"01310-100",rua:"Avenida Paulista",numero:"1578",bairro:"Bela Vista",cidade:"São Paulo",uf:"SP"});
+  const feature = {
+    properties: {countrycode:"BR", state:"São Paulo", city:"São Paulo", street:"Avenida Paulista", housenumber:"1578"},
+    geometry: {type:"Point", coordinates:[-46.6558,-23.5614]},
+  };
+  ok(() => assert.equal(loc.cepEvento("01310x100"),""));
+  ok(() => assert.equal(loc.selecionarPontoEvento(endereco,{features:[{...feature,properties:{...feature.properties,housenumber:"157"}}]}),null));
+  ok(() => assert.equal(loc.selecionarPontoEvento(endereco,{features:[feature,{...feature,geometry:{type:"Point",coordinates:[-46.67,-23.56]}}]}),null));
+  const passado = novo({title:"Local de evento passado",date:"2017-01-20"},{data:"2017-01-20",fimData:"2017-01-20"});
+  ok(() => assert.ok(!m.pontosMapaEventos("alice").some(p=>p.id===passado)));
+  const diaSemHora = novo({title:"Evento futuro com horário a confirmar"});
+  db.prepare("UPDATE eventos_configuracoes SET inicio_em=NULL,fim_em=NULL WHERE evento_id IN(?,?)").run(diaSemHora,passado);
+  ok(() => assert.ok(m.pontosMapaEventos("alice").some(p=>p.id===diaSemHora)));
+  ok(() => assert.ok(!m.pontosMapaEventos("alice").some(p=>p.id===passado)));
+  let geocode = 0;
+  const fetchOriginal = globalThis.fetch;
+  globalThis.fetch = (input,init) => {
+    const url = String(input);
+    if (url.startsWith("https://viacep.com.br/")) {
+      const dadosCEP = url.includes("01000000") ? {localidade:"São Paulo",uf:"SP",logradouro:"",bairro:""} :
+        url.includes("99999999") ? {erro:true} : {logradouro:"Avenida Paulista",bairro:"Bela Vista",localidade:"São Paulo",uf:"SP"};
+      return Promise.resolve(Response.json(dadosCEP));
+    }
+    if (url.startsWith("https://photon.komoot.io/")) {
+      geocode++;
+      ok(() => assert.equal(new URL(url).searchParams.get("housenumber"),"1578"));
+      return Promise.resolve(Response.json({features:[feature]}));
+    }
+    return fetchOriginal(input,init);
+  };
+  try {
+    const buscaCEP = await post("/eventos/localizacao",{acao:"cep",cep:"01310-100"},"organizador");
+    const postal = await buscaCEP.json();
+    ok(() => assert.equal(buscaCEP.status,200));
+    ok(() => assert.deepEqual(postal.endereco,{...endereco,numero:""}));
+    const generico = await post("/eventos/localizacao",{acao:"cep",cep:"01000-000"},"organizador");
+    const semRua = await generico.json();
+    ok(() => assert.equal(semRua.endereco.rua,""));
+    ok(() => assert.equal(semRua.endereco.cidade,"São Paulo"));
+    ok(() => assert.equal(geocode,0));
+    const cepInexistente = await post("/eventos/localizacao",{acao:"cep",cep:"99999999"},"organizador");
+    ok(() => assert.equal(cepInexistente.status,404));
+    const negada = await post("/eventos/localizacao",{acao:"mapa",...endereco},"alice");
+    ok(() => assert.equal(negada.status,403));
+    const resultado = await post("/eventos/localizacao",{acao:"mapa",...endereco},"organizador");
+    const previa = await resultado.json();
+    ok(() => assert.equal(resultado.status,200,JSON.stringify(previa)));
+    ok(() => assert.match(previa.mapa,/openstreetmap.org\/export\/embed/));
+    ok(() => assert.equal(loc.pontoDaProva("outro-organizador",endereco,previa.prova),null));
+    const comCep = {...dadosHttp,...endereco,modoLocal:"endereco",titulo:"Evento na Paulista",provaLocal:previa.prova};
+    const mudouAntes = await post("/eventos/novo",{...comCep,numero:"1700"},"organizador");
+    ok(() => assert.equal(mudouAntes.status,400));
+    const criado = await post("/eventos/novo",comCep,"organizador");
+    ok(() => assert.equal(criado.status,302));
+    const idCep = db.prepare("SELECT id FROM eventos WHERE titulo=?").get(comCep.titulo).id;
+    ok(() => assert.deepEqual([raw(idCep).local_confirmado,raw(idCep).latitude,raw(idCep).longitude],[1,-23.5614,-46.6558]));
+    const outroPonto = novo({title:"Outro evento na cidade",location:"Rua Augusta, 1500 · São Paulo - SP"}, {
+      latitude:"-23.555",longitude:"-46.656",
+      enderecoMapaJson:JSON.stringify({...endereco,rua:"Rua Augusta",numero:"1500"}),
+    });
+    const cidadeMapa = await req("/eventos/mapa?localizacao=S%C3%A3o+Paulo");
+    const cidadeHtml = await cidadeMapa.text();
+    ok(() => assert.match(cidadeHtml,/value="sao paulo-sp" selected/));
+    ok(() => assert.ok(cidadeHtml.includes('data-marker="'+idCep+'"')));
+    ok(() => assert.ok(cidadeHtml.includes('data-marker="'+outroPonto+'"')));
+    ok(() => assert.ok(!cidadeHtml.includes('data-marker="'+passado+'"')));
+    ok(() => assert.ok(!cidadeHtml.includes('data-marker="'+e+'"')));
+    const detalle = await req("/eventos/"+idCep);
+    const detalheHtml = await detalle.text();
+    ok(() => assert.match(detalheHtml,/Como chegar/));
+    const agenda = await req("/eventos?localizacao=S%C3%A3o+Paulo");
+    const agendaHtml = await agenda.text();
+    ok(() => assert.match(agendaHtml,/class="events-map-link" href="\/eventos\/mapa\?localizacao=/));
+    ok(() => assert.ok(agendaHtml.indexOf('class="events-location-form"') < agendaHtml.indexOf('class="events-map-link"')));
+    const comCepEdit = "/eventos/"+idCep+"/editar";
+    const preserve = await post(comCepEdit,{...comCep,provaLocal:"",versao:raw(idCep).versao},"organizador");
+    ok(() => assert.equal(preserve.status,302));
+    ok(() => assert.equal(raw(idCep).local_confirmado,1));
+    const limpar = await post(comCepEdit,{...comCep,numero:"1700",provaLocal:"",versao:raw(idCep).versao},"organizador");
+    ok(() => assert.equal(limpar.status,302));
+    ok(() => assert.equal(raw(idCep).local_confirmado,0));
+    ok(() => assert.equal(loc.lerEnderecoEvento(raw(idCep).endereco_mapa_json).numero,"1700"));
+    ok(() => assert.ok(!m.pontosMapaEventos("alice").some(p=>p.id===idCep)));
+    const semMapa = await req("/eventos/"+idCep);
+    ok(() => assert.equal(semMapa.status,200));
+    const htmlSemMapa = await semMapa.text();
+    ok(() => assert.doesNotMatch(htmlSemMapa,/Como chegar|openstreetmap.org\/export\/embed/));
+  } finally { globalThis.fetch = fetchOriginal; }
+  const create = await post("/eventos/novo", dadosHttp, "organizador");
   ok(() => assert.equal(create.status, 302));
   const novoHttp = db
     .prepare("SELECT id FROM eventos WHERE titulo='Evento HTTP seguro'")
     .get();
   ok(() => assert.ok(raw(novoHttp.id).fim_em));
+  ok(() => assert.ok(!Object.hasOwn(raw(novoHttp.id), "fuso")));
+  ok(() => assert.equal(raw(novoHttp.id).local_confirmado, 0));
+  const formularioEdicao = "/eventos/" + novoHttp.id + "/editar";
+  m.salvarConfiguracaoEvento("organizador", novoHttp.id, {
+    ...dadosHttp, localConfirmado: "sim", latitude: "-3.11", longitude: "-60.02",
+  });
+  const editado = await post(formularioEdicao, {
+    ...dadosHttp, descricao: "Descrição atualizada sem alterar o local.", versao: String(raw(novoHttp.id).versao),
+  }, "organizador");
+  ok(() => assert.equal(editado.status, 302));
+  ok(() => assert.deepEqual([raw(novoHttp.id).latitude,raw(novoHttp.id).longitude],[-3.11,-60.02]));
+  const mudouLocal = await post(formularioEdicao, {
+    ...dadosHttp, local: "Novo local confirmado por endereço", versao: String(raw(novoHttp.id).versao),
+  }, "organizador");
+  ok(() => assert.equal(mudouLocal.status, 302));
+  ok(() => assert.equal(raw(novoHttp.id).local_confirmado, 0));
+  ok(() => assert.equal(raw(novoHttp.id).latitude, null));
   const bad = await post(
-    "/events/new",
+    "/eventos/novo",
     {
       titulo: "Evento sem fim",
       categoria: "Cypher",
@@ -631,10 +759,10 @@ try {
     const out = path.resolve(process.env.CYPHER_QA_OUTPUT);
     fs.mkdirSync(out, { recursive: true });
     for (const [nome, url, u] of [
-      ["ficha", "/events/" + aberto, "alice"],
-      ["gestao", "/events/" + e, "organizador"],
-      ["formulario", "/events/new", "organizador"],
-      ["mapa", "/events/map", "alice"],
+      ["ficha", "/eventos/" + aberto, "alice"],
+      ["gestao", "/eventos/" + e, "organizador"],
+      ["formulario", "/eventos/novo", "organizador"],
+      ["mapa", "/eventos/mapa", "alice"],
     ]) {
       const response = await req(url, u);
       const content = (await response.text())

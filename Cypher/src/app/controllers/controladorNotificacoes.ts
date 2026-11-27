@@ -39,7 +39,7 @@ function paginaValida(valor: unknown) {
 
 export function notificacoes(req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario) return res.redirect("/login");
+  if (!usuario) return res.redirect("/entrar");
   res.set("Cache-Control", "private, no-store");
 
   const naoLidas = req.query.filtro === "nao-lidas";
@@ -65,6 +65,9 @@ export function notificacoes(req: Request, res: Response) {
     usuario,
     notificacoes: avisos.slice(0, porPagina),
     quantidadeNaoLidas: contarNotificacoesNaoLidasCypher(usuario.id),
+    temNotificacoes: avisos.length > 0 || (naoLidas && Boolean(conexaoInternaCypher()
+      .prepare("SELECT 1 FROM notificacoes WHERE usuario_destino_id = ? AND removida_em IS NULL LIMIT 1")
+      .get(usuario.id))),
     pagina,
     naoLidas,
     urlCaixa,
@@ -81,7 +84,7 @@ export function notificacoes(req: Request, res: Response) {
 function atualizarLeitura(lida: boolean) {
   return (req: Request, res: Response) => {
     const usuario = usuarioAtual(res);
-    if (!usuario) return res.redirect("/login");
+    if (!usuario) return res.redirect("/entrar");
     marcarNotificacaoLidaCypher(req.params.id, usuario.id, lida);
     return res.redirect(
       303,
@@ -95,7 +98,7 @@ export const marcarNaoLida = atualizarLeitura(false);
 
 export function marcarTodasLidas(_req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario) return res.redirect("/login");
+  if (!usuario) return res.redirect("/entrar");
   marcarTodasNotificacoesLidasCypher(usuario.id);
   return res.redirect(303, "/notificacoes");
 }
@@ -115,7 +118,7 @@ function removerAvisos(usuarioId: string, id?: string) {
 
 export function excluir(req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario) return res.redirect("/login");
+  if (!usuario) return res.redirect("/entrar");
   removerAvisos(usuario.id, req.params.id);
   return res.redirect(
     303,
@@ -125,7 +128,7 @@ export function excluir(req: Request, res: Response) {
 
 export function limpar(req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario) return res.redirect("/login");
+  if (!usuario) return res.redirect("/entrar");
   if (req.body.confirmar !== "sim") return res.sendStatus(400);
   removerAvisos(usuario.id);
   return res.redirect(303, "/notificacoes");
@@ -133,7 +136,7 @@ export function limpar(req: Request, res: Response) {
 
 export function salvarPreferencias(req: Request, res: Response) {
   const usuario = usuarioAtual(res);
-  if (!usuario) return res.redirect("/login");
+  if (!usuario) return res.redirect("/entrar");
   if (req.body.salvar !== "sim") return res.sendStatus(400);
   const recebidas: unknown[] = Array.isArray(req.body.ativadas)
     ? req.body.ativadas

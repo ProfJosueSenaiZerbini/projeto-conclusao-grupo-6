@@ -97,7 +97,7 @@ Este documento descreve **como o sistema deve se comportar em termos de qualidad
 
 **RNF-029 — Compatibilidade com navegadores atuais.** A aplicação web deve preservar os fluxos essenciais nas versões estáveis atuais de **Chrome, Firefox, Edge e Safari**, em dispositivos e sistemas que suportem esses navegadores. **Verificação:** testes de cadastro, busca, publicação e leitura em navegadores representativos.
 
-**RNF-030 — Padrão brasileiro de apresentação.** A interface deve utilizar português brasileiro e representar datas, horários e valores monetários de modo coerente com o contexto brasileiro; eventos e lembretes devem respeitar o fuso de sua realização. **Verificação:** comparar datas e preços em diferentes dispositivos e fusos.
+**RNF-030 — Padrão brasileiro de apresentação.** A interface deve utilizar português brasileiro e representar datas, horários e valores monetários de modo coerente com o contexto brasileiro; datas e horários da agenda devem ser consistentes entre dispositivos. **Verificação:** comparar datas, horários e preços em diferentes dispositivos.
 
 **RNF-031 — Representação acessível da mídia.** Imagens informativas e ações por ícones devem possuir descrição textual pertinente; quando a Cypher produzir conteúdo audiovisual institucional, deve oferecer alternativas de acesso adequadas. **Verificação:** inspeção de descrição acessível, conteúdo visual e materiais da Cypher Central.
 

@@ -31,6 +31,7 @@ import {
 import { objetoDisponivel } from "./politicasModeracao.js";
 import { pastaMidias } from "./projetosTrabalho.js";
 import { salvarArtigo, transicionarArtigo } from "./central.js";
+import { producoesDemonstrativas, semearProducoesDemonstrativas } from "./producoesDemonstrativas.js";
 type Linha = Record<string, any>;
 const db = conexaoInternaCypher;
 const um = (sql: string, ...v: any[]) =>
@@ -45,13 +46,41 @@ const run = (sql: string, ...v: any[]) =>
   db()
     .prepare(sql)
     .run(...v);
+// Só atualiza eventos fictícios do catálogo que ainda usam os endereços conhecidos.
+export function atualizarLocaisEventosCena() {
+  return db().transaction(() => {
+    let atualizados = 0;
+    for (const e of eventosCatalogoCena) {
+      const registro = um(`SELECT e.local,e.formato FROM eventos e JOIN catalogo_cena k
+        ON k.tipo='evento' AND k.id=e.id AND k.ficcional=1 WHERE e.id=?`, e.id);
+      if (!registro || !["", e.localOriginal, e.local].includes(registro.local) ||
+          /(?:online|on-line|virtual|remoto)|^\s*https?:/i.test(registro.formato + " " + registro.local)) continue;
+      const { latitude, longitude, ...endereco } = e.endereco;
+      const json = JSON.stringify(endereco);
+      const mudou = run("UPDATE eventos SET local=? WHERE id=? AND local<>?", e.local, e.id, e.local).changes;
+      const ponto = run(`INSERT INTO eventos_configuracoes(evento_id,latitude,longitude,local_confirmado,endereco_mapa_json)
+        VALUES(?,?,?,1,?) ON CONFLICT(evento_id) DO UPDATE SET
+        latitude=excluded.latitude,longitude=excluded.longitude,local_confirmado=1,
+        endereco_mapa_json=excluded.endereco_mapa_json,versao=eventos_configuracoes.versao+1
+        WHERE eventos_configuracoes.latitude IS NOT excluded.latitude
+           OR eventos_configuracoes.longitude IS NOT excluded.longitude
+           OR eventos_configuracoes.local_confirmado<>1 OR eventos_configuracoes.endereco_mapa_json<>excluded.endereco_mapa_json`,
+        e.id, latitude, longitude, json).changes;
+      run(`UPDATE catalogo_cena SET dados_json=json_set(dados_json,'$.localizacao_confirmada',json('true'))
+        WHERE tipo='evento' AND id=? AND json_extract(dados_json,'$.localizacao_confirmada') IS NOT 1`, e.id);
+      if (mudou || ponto) atualizados++;
+    }
+    return atualizados;
+  }).immediate();
+}
+
 export function idPessoaCena(slug: string) {
   const antiga = perfisDemonstrativos.find(
     p => p.slug.replace(/\.demo$/, "") === slug
   );
   return antiga ? "demo-catalogo-" + antiga.slug : "cena-perfil-" + slug;
 }
-export function itemCena(tipo: string, id: string) {
+export function itemCena(tipo: string, id: string): (Linha & { dados: any }) | null {
   const r = um("SELECT * FROM catalogo_cena WHERE tipo=? AND id=?", tipo, id);
   return r ? { ...r, dados: JSON.parse(r.dados_json) } : null;
 }
@@ -80,6 +109,44 @@ const iniciais = (s: string) =>
     .map(p => p[0])
     .join("")
     .toUpperCase();
+/** Carrega só as chamadas do catálogo, sem alterar as oportunidades dos usuários. */
+export function semearOportunidadesCena(agora = Date.now()) {
+  return db().transaction(() => {
+    let inseridas = 0, atualizadas = 0;
+    for (const o of oportunidadesCena) {
+      const autor = idPessoaCena(o.autor);
+      const perfil = itemCena("perfil", autor);
+      if (!perfil?.ficcional || !um("SELECT 1 FROM usuarios WHERE id=? AND tipo_conta='profissional'", autor)) {
+        throw new Error("Perfil do catálogo indisponível: " + o.autor);
+      }
+      const anterior = um("SELECT autor_id, contexto, descricao, condicoes FROM oportunidades_profissionais WHERE id=?", o.id);
+      if (anterior) {
+        if (anterior.autor_id === autor && itemCena("oportunidade", o.id)?.ficcional &&
+            anterior.contexto === "Exemplo fictício para apresentação da Cypher." &&
+            anterior.descricao.startsWith("Chamada demonstrativa para ") &&
+            ["Valor ilustrativo, sem contratação real.", "Colaboração fictícia, sem cachê."].includes(anterior.condicoes)) {
+          atualizadas += run("UPDATE oportunidades_profissionais SET descricao=?,contexto=?,condicoes=? WHERE id=?",
+            o.descricao, o.contexto, o.condicoes, o.id).changes;
+        }
+        continue;
+      }
+      const prazo = new Date(agora + 45 * 86400000).toISOString().slice(0, 10);
+      inseridas += run(
+        `INSERT INTO oportunidades_profissionais(id,autor_id,titulo,tipo,descricao,contexto,modalidade,localizacao,remuneracao,valor_centavos,unidade,condicoes,prazo,estado,publicada_em)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,'aberta',CURRENT_TIMESTAMP)`,
+        o.id, autor, o.titulo, o.tipo, o.descricao, o.contexto, o.modalidade, o.local, o.remuneracao, o.valor,
+        o.unidade ?? "projeto", o.condicoes, prazo
+      ).changes;
+      run(
+        "INSERT INTO funcoes_oportunidade(id,oportunidade_id,profissao_id,vagas,responsabilidades,requisitos) VALUES(?,?,?,?,?,?)",
+        o.id + "-funcao", o.id, o.profissao, o.vagas, o.responsabilidades, o.requisitos
+      );
+      registrar("oportunidade", o.id, "oportunidade:" + o.id);
+    }
+    return { inseridas, atualizadas };
+  }).immediate();
+}
+
 export function semearCatalogoCena(
   opcoes: { audioSintetico?: boolean; gerarArte?: boolean } = {}
 ) {
@@ -442,48 +509,7 @@ export function semearCatalogoCena(
           titulo,
         });
       }
-      for (const o of oportunidadesCena) {
-        const autor = idPessoaCena(o.autor);
-        run(
-          `INSERT INTO oportunidades_profissionais(id,autor_id,titulo,tipo,descricao,contexto,modalidade,localizacao,remuneracao,valor_centavos,condicoes,prazo,projeto_id,estado,publicada_em) VALUES(?,?,?,'projeto',?,?,'hibrido','São Paulo, SP','remunerada',?,?,?,?,'aberta',CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING`,
-          o.id,
-          autor,
-          o.titulo,
-          o.descricao,
-          "Projeto com equipe definida e espaço para novas contribuições.",
-          o.valor,
-          "Escopo, prazos e direitos combinados por proposta bilateral.",
-          new Date(agora + 45 * 86400000).toISOString().slice(0, 10),
-          o.projeto
-        );
-        run(
-          "INSERT INTO funcoes_oportunidade(id,oportunidade_id,profissao_id,vagas,responsabilidades,requisitos,desejaveis) VALUES(?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
-          o.id + "-funcao",
-          o.id,
-          o.profissao,
-          o.vagas,
-          "Desenvolver as entregas descritas na chamada em diálogo com a direção do projeto.",
-          "Portfólio com trabalhos pertinentes e disponibilidade para alinhar o cronograma.",
-          "Experiência com projetos musicais e criação em equipe."
-        );
-        registrar("oportunidade", o.id, "oportunidade:" + o.id, {
-          projeto: o.projeto,
-        });
-        const candidatas = pessoasCena
-          .filter(p => p.profissoes.includes(o.profissao) && p.slug !== o.autor)
-          .slice(0, 2);
-        candidatas.forEach((p, i) =>
-          run(
-            "INSERT INTO candidaturas_oportunidade(id,oportunidade_id,funcao_id,candidato_id,apresentacao,estado) VALUES(?,?,?,?,?,?) ON CONFLICT DO NOTHING",
-            o.id + "-candidatura-" + p.slug,
-            o.id,
-            o.id + "-funcao",
-            idPessoaCena(p.slug),
-            "Conheço a linguagem do projeto e gostaria de conversar sobre a entrega. Meu portfólio reúne trabalhos relacionados à proposta.",
-            i === 0 ? "analise" : "enviada"
-          )
-        );
-      }
+      semearOportunidadesCena(agora);
       // Preserva os eventos anteriores, com organizadores que possuem perfil público.
       const eventosAnteriores: [string, string][] = [
         ["demo-evento-batalha", "jay"],
@@ -535,7 +561,7 @@ export function semearCatalogoCena(
             ":00-03:00"
         );
         run(
-          "INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,fuso,inicio_em,fim_em) VALUES(?,80,'Respeite os horários e as orientações da organização.','America/Sao_Paulo',?,?) ON CONFLICT DO NOTHING",
+          "INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,inicio_em,fim_em) VALUES(?,80,'Respeite os horários e as orientações da organização.',?,?) ON CONFLICT DO NOTHING",
           id,
           Number.isFinite(inicio) ? inicio : null,
           Number.isFinite(inicio) ? inicio + 7200000 : null
@@ -567,7 +593,7 @@ export function semearCatalogoCena(
           e.tema
         );
         run(
-          "INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,fuso,inicio_em,fim_em) VALUES(?,?,?,'America/Sao_Paulo',?,?) ON CONFLICT DO NOTHING",
+          "INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,inicio_em,fim_em) VALUES(?,?,?,?,?) ON CONFLICT DO NOTHING",
           e.id,
           80,
           "Participação mediante inscrição e confirmação da organização. Respeite o horário e os combinados do encontro.",
@@ -598,6 +624,7 @@ export function semearCatalogoCena(
           localizacao_confirmada: false,
         });
       }
+      atualizarLocaisEventosCena();
       // Interações persistidas, restritas aos personagens; não invadem contas existentes.
       for (const [i, e] of encontrosCena.entries()) {
         for (const p of pessoasCena
@@ -794,6 +821,7 @@ export function semearCatalogoCena(
       );
     }
   }
+  semearProducoesDemonstrativas();
   const editor = um(
     "SELECT usuario_id FROM administradores WHERE papel='super_admin' AND ativo=1 ORDER BY criado_em LIMIT 1"
   )?.usuario_id;
@@ -841,7 +869,7 @@ export function semearCatalogoCena(
   return {
     perfis: pessoasCena.length,
     obras: encontrosCena.length,
-    projetos: projetosCena.length,
+    projetos: projetosCena.length + producoesDemonstrativas.length,
     oportunidades: oportunidadesCena.length,
     beats: beatsDemonstrativos.length,
   };
@@ -930,7 +958,7 @@ export function conexoesCena(visitante: string, titular: string) {
         ...perfil,
         total: 1,
         obra: origem.titulo,
-        url: "/p/" + encodeURIComponent(perfil.identificador.slice(1)),
+        url: "/artistas/" + encodeURIComponent(perfil.identificador.slice(1)),
       });
     }
   }
@@ -957,7 +985,7 @@ export function conexoesCena(visitante: string, titular: string) {
         ...p,
         total: 1,
         obra: projeto.titulo,
-        url: "/p/" + encodeURIComponent(p.identificador.slice(1)),
+        url: "/artistas/" + encodeURIComponent(p.identificador.slice(1)),
       });
     }
   const destaques = obras
@@ -988,7 +1016,7 @@ export function conexoesCena(visitante: string, titular: string) {
         id: p.id,
         titulo: p.titulo,
         autor: pessoasCena.find(v => v.slug === p.autor)!.nome,
-        url: "/work-projects/" + p.id,
+        url: "/trabalhos-e-galerias/" + p.id,
       } as any);
   return {
     nucleo: info.dados.nucleo,

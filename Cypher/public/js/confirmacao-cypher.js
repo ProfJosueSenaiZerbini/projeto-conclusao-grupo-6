@@ -32,4 +32,7 @@
     aprovados.add(form);
     try { form.requestSubmit(submitter || undefined); } finally { aprovados.delete(form); }
   }, true);
+  document.querySelectorAll("form[data-confirm] [data-submit-com-confirmacao]").forEach(botao => {
+    botao.disabled = false;
+  });
 })();

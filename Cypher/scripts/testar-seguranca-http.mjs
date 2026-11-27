@@ -85,7 +85,7 @@ try {
   let pronto;
   for (let n = 0; n < 80; n++) {
     try {
-      const r = await fetch(`${base}/login`);
+      const r = await fetch(`${base}/entrar`);
       if (r.ok) {
         pronto = r;
         break;
@@ -121,7 +121,7 @@ try {
       body: body ? new URLSearchParams(body) : undefined,
     });
   const login = async (email, interno = false) => {
-    const r = await request(interno ? "/admin/login" : "/login", {
+    const r = await request(interno ? "/admin/entrar" : "/entrar", {
       method: "POST",
       body: { email, password: senha },
     });
@@ -136,7 +136,7 @@ try {
   };
   assert.equal(
     (
-      await request("/login", {
+      await request("/entrar", {
         method: "POST",
         body: { email: "rapper@teste.local", password: senha },
         proteger: false,
@@ -146,7 +146,7 @@ try {
   );
   assert.equal(
     (
-      await request("/login", {
+      await request("/entrar", {
         method: "POST",
         body: {},
         extra: { origin: "https://terceiro.invalid" },
@@ -156,7 +156,7 @@ try {
   );
   assert.equal(
     (
-      await request("/login", {
+      await request("/entrar", {
         method: "POST",
         body: {},
         extra: { "x-csrf-token": "é".repeat(64) },
@@ -174,7 +174,7 @@ try {
   );
   assert.equal(
     (
-      await request("/admin/login", {
+      await request("/admin/entrar", {
         method: "POST",
         body: { email: "rapper@teste.local", password: senha },
       })
@@ -183,7 +183,7 @@ try {
   );
   assert.equal(
     (
-      await request("/login", {
+      await request("/entrar", {
         method: "POST",
         body: { email: "super@teste.local", password: senha },
       })
@@ -192,7 +192,7 @@ try {
   );
   assert.equal(
     (
-      await request("/register", {
+      await request("/cadastro", {
         method: "POST",
         body: {
           tipoConta: "administrativo",
@@ -205,43 +205,43 @@ try {
     400
   );
   assert.equal(
-    (await request("/works/new?tipo=Instrumental", { cookie: rapper })).status,
+    (await request("/obras/novo?tipo=Instrumental", { cookie: rapper })).status,
     403
   );
   for (const categoria of ["Muralista", "Artista digital", "Manager", "Produtor(a) executivo(a)", "Crítico(a) musical", "Social media", "Educador(a)", "Pesquisador(a) cultural", "Articulador(a) cultural", "Diretor(a) audiovisual", "Freestyler"]) {
-    const rejeitada = await request("/register", {method:"POST", body:{name:"Conta de teste",email:"retirada@teste.local",password:senha,categorias:categoria}});
+    const rejeitada = await request("/cadastro", {method:"POST", body:{name:"Conta de teste",email:"retirada@teste.local",password:senha,categorias:categoria}});
     assert.equal(rejeitada.status,400,`${categoria} não pode entrar por POST manual`);
   }
   assert.equal(
-    (await request("/works/new?tipo=Música", { cookie: rapper })).status,
+    (await request("/obras/novo?tipo=Música", { cookie: rapper })).status,
     200
   );
   for (const cookie of [letrista, consumidor]) {
-    const catalogo = await request("/works", { cookie });
+    const catalogo = await request("/obras", { cookie });
     assert.equal(catalogo.status, 200);
     assert.doesNotMatch(await catalogo.text(), /data-work-type-open/);
-    const proibido = await request("/works/new", {
+    const proibido = await request("/obras/novo", {
       cookie,
       method: "POST",
       body: { tipo: "Música", titulo: "Forjada" },
     });
     assert.ok([303, 403].includes(proibido.status));
-    const beat = await request("/beats/new", {
+    const beat = await request("/banco-de-beats/novo", {
       cookie,
       method: "POST",
       body: { titulo: "Forjado" },
     });
     assert.ok([302, 303, 403].includes(beat.status));
-    const evento = await request("/events/new", {
+    const evento = await request("/eventos/novo", {
       cookie,
       method: "POST",
       body: { titulo: "Forjado" },
     });
     assert.ok([302, 303, 403].includes(evento.status));
   }
-  assert.equal((await request("/p/consumidor")).status, 302);
-  assert.equal((await request("/p/consumidor", { cookie: rapper })).status, 404);
-  const busca = await request("/search", { cookie: rapper });
+  assert.equal((await request("/artistas/consumidor")).status, 302);
+  assert.equal((await request("/artistas/consumidor", { cookie: rapper })).status, 404);
+  const busca = await request("/busca", { cookie: rapper });
   const buscaHtml = await busca.text();
   assert.doesNotMatch(
     buscaHtml,
@@ -255,9 +255,9 @@ try {
     assert.equal(painel.status, 200);
     assert.doesNotMatch(
       await painel.text(),
-      /href="\/profile"|REPUTAÇÃO|workspace-chip/
+      /href="\/perfil"|REPUTAÇÃO|workspace-chip/
     );
-    assert.equal((await request("/profile", { cookie })).status, 302);
+    assert.equal((await request("/perfil", { cookie })).status, 302);
   }
   assert.equal(
     (await request("/admin/revisao", { cookie: superiorCookie })).status,
@@ -315,7 +315,7 @@ try {
   assert.equal(revogar.status, 303);
   assert.equal((await request("/admin", { cookie: editorCookie })).status, 302);
   for (let i = 0; i < 31; i++) {
-    const r = await request("/login", {
+    const r = await request("/entrar", {
       method: "POST",
       body: { email: "inexistente@teste.local", password: senha },
     });
@@ -350,7 +350,7 @@ try {
   await verificarEspacoTrabalho({ request, banco:b, rapper, letrista, consumidor });
   const emitir = (usuarioDestinoId, tipo, titulo, chaveOrigem = titulo) =>
     b.criarNotificacaoCypher({ usuarioDestinoId, tipo, titulo, chaveOrigem, mensagem: "", url: "" });
-  emitir("consumidor", "mensagem", "Aviso antes da preferência");
+  emitir("consumidor", "evento_lembrete", "Aviso antes da preferência");
   emitir("letrista", "suporte", "Aviso reservado de outra conta");
   const aviso = b.listarNotificacoesCypher("consumidor", 50)
     .find(n => n.titulo === "Aviso antes da preferência");
@@ -372,7 +372,7 @@ try {
   assert.ok(b.listarNotificacoesCypher("letrista", 50).some(n => n.id === outraConta.id));
   assert.equal((await postAviso(aviso.id + "/excluir", {}, consumidor, false)).status, 403);
   assert.equal((await postAviso(aviso.id + "/excluir")).status, 303);
-  emitir("consumidor", "mensagem", "Aviso antes da preferência");
+  emitir("consumidor", "evento_lembrete", "Aviso antes da preferência");
   assert.doesNotMatch(await caixa(), /Aviso antes da preferência/);
   assert.equal((await postAviso("preferencias", { salvar: "sim", ativadas: "publicacoes" })).status, 303);
   emitir("consumidor", "mensagem", "Mensagem opcional desativada");
@@ -389,7 +389,7 @@ try {
   assert.equal((await postAviso("limpar")).status, 400);
   assert.equal((await postAviso("limpar", { confirmar: "sim" })).status, 303);
   assert.equal(b.contarNotificacoesNaoLidasCypher("consumidor"), 0);
-  assert.match(await caixa(), /Sua caixa de notificações está vazia/);
+  assert.match(await caixa(), /Nenhuma notificação por enquanto/);
   assert.ok(b.listarNotificacoesCypher("letrista", 50).some(n => n.id === outraConta.id));
   b.fecharBancoCypher();
   console.log(

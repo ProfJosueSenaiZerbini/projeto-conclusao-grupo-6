@@ -26,8 +26,8 @@ function render(
     title: "Beats e licenças",
     stylesheet: "beats-licencas",
     path: ["compras", "pedido", "confirmar"].includes(tela)
-      ? "/purchases"
-      : "/beats",
+      ? "/compras"
+      : "/banco-de-beats",
     tela,
     preco,
     data,
@@ -81,7 +81,7 @@ export const oferta: Acao = (req, res) => {
     }
     throw e;
   }
-  return res.redirect(303, `/beats/${req.params.id}/manage?salvo=sim`);
+  return res.redirect(303, `/banco-de-beats/${req.params.id}/gestao?salvo=sim`);
 };
 export const retirarOferta: Acao = (req, res) => {
   m.retirarOfertaBeat(
@@ -90,7 +90,7 @@ export const retirarOferta: Acao = (req, res) => {
     req.params.ofertaId,
     req.body.versao
   );
-  return res.redirect(303, `/beats/${req.params.id}/manage`);
+  return res.redirect(303, `/banco-de-beats/${req.params.id}/gestao`);
 };
 export const disponibilidade: Acao = (req, res) => {
   m.disponibilidadeBeat(
@@ -99,7 +99,7 @@ export const disponibilidade: Acao = (req, res) => {
     req.body.disponivel === "sim",
     req.body.versao
   );
-  return res.redirect(303, `/beats/${req.params.id}/manage`);
+  return res.redirect(303, `/banco-de-beats/${req.params.id}/gestao`);
 };
 export const upload: Acao = (req, res) => {
   let nome: string;
@@ -141,7 +141,7 @@ export const adquirir: Acao = (req, res) => {
     req.params.ofertaId,
     req.body
   );
-  return res.redirect(303, "/purchases/" + id);
+  return res.redirect(303, "/compras/" + id);
 };
 export const compras: Acao = (_req, res) =>
   render(res, "compras", { itens: m.comprasBeats(uid(res)) });
@@ -153,7 +153,7 @@ export const pedido: Acao = (req, res) =>
 export const checkout: Acao = async (req, res) => {
   const p = m.pedidoBeat(uid(res), req.params.id);
   if (p.checkoutCatalogo)
-    return res.redirect(303, "/purchases/" + p.id + "/checkout");
+    return res.redirect(303, "/compras/" + p.id + "/finalizar");
   return res.redirect(
     303,
     await m.iniciarCheckoutBeat(uid(res), req.params.id)
@@ -174,11 +174,11 @@ export const confirmarCompra: Acao = (req, res) => {
       "Confirme a aquisição e as condições da oferta antes de continuar."
     );
   m.confirmarLicencaCatalogo(uid(res), req.params.id);
-  return res.redirect(303, "/purchases/" + req.params.id);
+  return res.redirect(303, "/compras/" + req.params.id);
 };
 export const atualizar: Acao = async (req, res) => {
   await m.atualizarPedidoBeat(uid(res), req.params.id);
-  return res.redirect(303, "/purchases/" + req.params.id);
+  return res.redirect(303, "/compras/" + req.params.id);
 };
 export const download: Acao = (req, res) =>
   enviar(

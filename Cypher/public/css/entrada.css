@@ -953,14 +953,6 @@
   outline-color: var(--dc-accent);
 }
 
-.entrada-cypher .entry-theme .theme-switch,
-.dark .entrada-cypher .entry-theme .theme-switch {
-  --switch-track: var(--dc-surface);
-  --switch-border: var(--dc-olive);
-  --switch-mark: var(--dc-yellow);
-  --switch-icon: var(--dc-accent);
-}
-
 :root .entrada-cypher .register-steps li {
   color: var(--dc-muted);
 }

@@ -3,12 +3,12 @@ import type { Request, Response, NextFunction } from "express";
 import * as m from "../models/midiasPublicacoes.js";
 import * as r from "../models/representacoes.js";
 import { ErroInteracao } from "../models/interacoesConteudo.js";
-import { salvarSeloPerfil } from "../models/seloPerfil.js";
+import { carregarEstudio, gravarEstudio, salvarSeloPerfil } from "../models/seloPerfil.js";
 const ator = (res: Response) => res.locals.usuario.id as string;
 const render = (res: Response, dados: object) =>
   res.render("pages/midias-representacao", {
     title: "Mídias e representação",
-    path: "/profile",
+    path: "/perfil",
     stylesheet: "midias-representacao",
     erro: "",
     ...dados,
@@ -21,7 +21,7 @@ export const seguro =
     } catch (e) {
       if (e instanceof ErroInteracao) {
         res.status(e.status);
-        if (req.is("application/octet-stream"))
+        if (req.is("application/octet-stream") || req.get("Accept") === "application/json")
           return res.json({ erro: e.message });
         return render(res, { tela: "erro", erro: e.message });
       }
@@ -33,7 +33,7 @@ export function preparar(req: Request, res: Response, next: NextFunction) {
     res.locals.capaUsuario = (tipo: string, id: string) => {
       try {
         const mid = m.capaPublicacao(ator(res), tipo, id);
-        return mid ? "/publication-media/" + mid : "";
+        return mid ? "/midias-de-publicacao/" + mid : "";
       } catch {
         return "";
       }
@@ -65,15 +65,26 @@ export function salvarSelo(req: Request, res: Response) {
   try {
     salvarSeloPerfil(ator(res), req.body);
     const resultado = req.body.acao === "retirar" ? "retirado" : "salvo";
-    return res.redirect(303, `/profile?editar=1&secao=identidade&selo=${resultado}#profile-editor-selo`);
+    return res.redirect(303, `/perfil?editar=1&secao=selo&selo=${resultado}#profile-editor-selo`);
   } catch (erro) {
     if (erro instanceof ErroInteracao && erro.status !== 403)
-      return res.redirect(303, "/profile?editar=1&secao=identidade&erro=selo_invalido#profile-editor-selo");
+      return res.redirect(303, "/perfil?editar=1&secao=selo&erro=selo_invalido#profile-editor-selo");
     throw erro;
   }
 }
+export function estudioSelo(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  try {
+    if (req.method === "GET") return res.json(carregarEstudio(ator(res)));
+    gravarEstudio(ator(res), req.body?.acao, req.body?.composicao);
+    return res.json({ sucesso: true });
+  } catch (e) {
+    if (e instanceof ErroInteracao) return res.status(e.status).json({ erro: e.message });
+    throw e;
+  }
+}
 export function upload(req: Request, res: Response) {
-  if (req.get("X-Midia-Autorizada") !== "sim")
+  if (req.params.tipo !== "perfil" && req.get("X-Midia-Autorizada") !== "sim")
     throw new ErroInteracao(
       "Confirme que você tem autorização para compartilhar este arquivo."
     );
@@ -106,6 +117,7 @@ export function arquivo(req: Request, res: Response) {
 export function retirar(req: Request, res: Response) {
   const mid = m.arquivoPublicacao(ator(res), req.params.id);
   m.retirarMidiaPublicacao(ator(res), req.params.id);
+  if (req.get("Accept") === "application/json") return res.status(204).end();
   return res.redirect(
     303,
     "/publicacoes/" +

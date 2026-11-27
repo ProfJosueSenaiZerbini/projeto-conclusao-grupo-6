@@ -1,4 +1,4 @@
-<% const audioEnviado=typeof midiasUsuario==='function'?midiasUsuario('obra',o.id).find(m=>m.finalidade==='audio'):null; const previaObra=audioEnviado?'/publication-media/'+audioEnviado.id:o.previa; %>
+<% const audioEnviado=typeof midiasUsuario==='function'?midiasUsuario('obra',o.id).find(m=>m.finalidade==='audio'):null; const previaObra=audioEnviado?'/midias-de-publicacao/'+audioEnviado.id:o.previa; %>
 <article class="ob-card<%= o.colecao ? ' ob-card-record' : '' %><%= o.tipo === 'Single' ? ' ob-card-single' : '' %><%= o.tipo === 'Letra' ? ' ob-card-lyrics' : '' %>" data-ob-card data-ob-id="<%= o.id %>" data-ob-liked="<%= o.curtida %>" data-ob-likes="<%= o.curtidas %>" data-ob-title="<%= o.titulo %>" aria-labelledby="acervo-titulo-<%= o.id %>">
   <div class="ob-artwork">
     <a class="ob-cover" href="<%= o.url %>" aria-label="Abrir <%= o.titulo %>">

@@ -515,6 +515,7 @@ try {
 
   // Servidor e sessões reais: suporte continua disponível após suspensão da própria conta.
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   app.locals.icones = new Proxy({}, { get: () => "<svg></svg>" });
@@ -674,18 +675,18 @@ try {
     );
     const vitrine =
       tipo === "perfil"
-        ? "/p/criador"
+        ? "/artistas/criador"
         : tipo === "obra"
-          ? "/works"
+          ? "/obras"
           : tipo === "beat"
-            ? "/beats/" + id
-            : "/events/" + id;
+            ? "/banco-de-beats/" + id
+            : "/eventos/" + id;
     const paginaMidia = await request(vitrine),
       htmlMidia = await paginaMidia.text();
     ok(() => assert.equal(paginaMidia.status, 200, htmlMidia.slice(0, 300)));
     ok(() =>
       assert.ok(
-        htmlMidia.includes("/publication-media/" + mid),
+        htmlMidia.includes("/midias-de-publicacao/" + mid),
         "A mídia enviada precisa aparecer na publicação: " + vitrine
       )
     );
@@ -713,12 +714,12 @@ try {
   );
   ok(() => assert.equal(videoObra.status, 201));
   const idMidia = (await envioMidia.json()).id;
-  const anonMidia = await fetch(host + "/publication-media/" + idMidia, {
+  const anonMidia = await fetch(host + "/midias-de-publicacao/" + idMidia, {
     redirect: "manual",
   });
   ok(() => assert.ok([302, 303].includes(anonMidia.status)));
   await (async () => {
-    assert.equal((await request("/publication-media/" + idMidia)).status, 200);
+    assert.equal((await request("/midias-de-publicacao/" + idMidia)).status, 200);
     checks++;
   })();
   const estranho = await enviarMidia(
@@ -748,15 +749,15 @@ try {
   ok(() => assert.equal(textoEnviado.status, 201));
   const idTexto = (await textoEnviado.json()).id;
   db.prepare("UPDATE projetos_trabalho SET publico=0 WHERE id=?").run(projeto);
-  const privadoMidia = await request("/publication-media/" + idTexto);
+  const privadoMidia = await request("/midias-de-publicacao/" + idTexto);
   ok(() => assert.equal(privadoMidia.status, 404));
   const proprioPrivado = await request(
-    "/publication-media/" + idTexto,
+    "/midias-de-publicacao/" + idTexto,
     "criador"
   );
   ok(() => assert.equal(proprioPrivado.status, 200));
   db.prepare("UPDATE projetos_trabalho SET publico=1 WHERE id=?").run(projeto);
-  const textoBaixado = await request("/publication-media/" + idTexto);
+  const textoBaixado = await request("/midias-de-publicacao/" + idTexto);
   ok(() =>
     assert.match(textoBaixado.headers.get("content-disposition"), /attachment/)
   );
@@ -771,7 +772,7 @@ try {
   );
   ok(() => assert.equal(substituicao.status, 201));
   await (async () => {
-    assert.equal((await request("/publication-media/" + idMidia)).status, 404);
+    assert.equal((await request("/midias-de-publicacao/" + idMidia)).status, 404);
     checks++;
   })();
   const fotoConsumidor = await enviarMidia(
@@ -786,14 +787,14 @@ try {
   const idFoto = (await fotoConsumidor.json()).id;
   await (async () => {
     assert.equal(
-      (await request("/publication-media/" + idFoto, "consumidor")).status,
+      (await request("/midias-de-publicacao/" + idFoto, "consumidor")).status,
       200
     );
     checks++;
   })();
   await (async () => {
     assert.equal(
-      (await request("/publication-media/" + idFoto, "terceiro")).status,
+      (await request("/midias-de-publicacao/" + idFoto, "terceiro")).status,
       404
     );
     checks++;
@@ -910,7 +911,7 @@ try {
   contatos.bloquear("criador", "solicitante", true);
   const conviteBloqueado = await post("/representacoes", novaProposta);
   ok(() => assert.equal(conviteBloqueado.status, 403));
-  const midiaBloqueada = await request("/publication-media/" + idTexto);
+  const midiaBloqueada = await request("/midias-de-publicacao/" + idTexto);
   ok(() => assert.equal(midiaBloqueada.status, 404));
   contatos.bloquear("criador", "solicitante", false);
   for (const [nome, rota, autor] of [
@@ -1093,7 +1094,7 @@ try {
   });
   for (const [url, ator] of [
     ["/suporte", "solicitante"],
-    ["/suporte/new", "consumidor"],
+    ["/suporte/novo", "consumidor"],
     ["/suporte/" + pedido, "solicitante"],
     ["/suporte/" + perfilCaso, "criador"],
     ["/suporte", "suspenso"],
@@ -1114,7 +1115,7 @@ try {
           ? ator === "suspenso"
             ? "restricao"
             : "lista"
-          : url === "/suporte/new"
+          : url === "/suporte/novo"
             ? "novo"
             : url === "/admin/moderacao"
               ? "fila"
@@ -1165,11 +1166,11 @@ try {
     body: JSON.stringify(ajuda()),
   });
   ok(() => assert.equal(noCsrf.status, 403));
-  const negadoGet = await request("/dashboard", "suspenso");
+  const negadoGet = await request("/descoberta", "suspenso");
   ok(() => assert.ok([302, 303].includes(negadoGet.status)));
   ok(() => assert.match(negadoGet.headers.get("location"), /^\/suporte/));
   const negadoPost = await post(
-    "/works/new",
+    "/obras/novo",
     { titulo: "Não pode publicar durante suspensão" },
     "suspenso"
   );
@@ -1181,7 +1182,7 @@ try {
   );
   ok(() => assert.equal(suspensoHttp.status, 303));
   const evidenciaSemJustificativa = await post(
-    "/admin/moderacao/" + mensagemCaso + "/evidence",
+    "/admin/moderacao/" + mensagemCaso + "/evidencia",
     { motivo: "curto" },
     "moderador"
   );

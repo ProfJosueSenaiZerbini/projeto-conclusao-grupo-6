@@ -132,10 +132,10 @@ function trabalhosDoPerfil(
           ? "/espaco-de-trabalho/obra/" + id
           : enderecoObra(o.identificador, o.id)
         : o.tipo === "projeto"
-          ? "/work-projects/" + id
+          ? "/trabalhos-e-galerias/" + id
           : o.tipo === "evento"
-            ? "/events/" + id
-            : "/beats/" + id;
+            ? "/eventos/" + id
+            : "/banco-de-beats/" + id;
     saida.push({
       id: o.id,
       tipo: o.tipo,
@@ -205,7 +205,10 @@ export function montarApresentacao(
     .filter(
       a =>
         ({
-          catalogo: catalogo.length > 0 || (editavel && podeCatalogo),
+          catalogo:
+            catalogo.length > 0 ||
+            participacoes.length > 0 ||
+            (editavel && podeCatalogo),
           galeria: galeria.length > 0 || editavel || (!!portfolio && !contexto),
           sobre: true,
           atuacao: p.categorias.length > 0,
@@ -231,7 +234,7 @@ export function montarApresentacao(
     );
     const acervo = imagemPublicacaoDemo(i.id);
     const capa = imagem
-      ? "/publication-media/" + imagem.id
+      ? "/midias-de-publicacao/" + imagem.id
       : i.capa || (acervo ? "/img/" + acervo : "");
     if (capa || i.tipo !== "projeto") return { ...i, capa };
     const foto = projetoTrabalho(visitante.id, i.id).itens.find(
@@ -286,7 +289,7 @@ export function montarApresentacao(
       const enviada = capaPublicacao(visitante.id, item.tipo, item.id);
       const original = imagemPublicacaoDemo(item.id);
       const imagem = enviada
-        ? "/publication-media/" + enviada
+        ? "/midias-de-publicacao/" + enviada
         : original
           ? "/img/" + original
           : "";
@@ -315,7 +318,7 @@ export function montarApresentacao(
         .get(visitante.id, p.id, p.id, visitante.id) as
         { id: string } | undefined)
     : null;
-  const base = proprio ? "/profile" : "/p/" + slug;
+  const base = proprio ? "/perfil" : "/artistas/" + slug;
   const url = (secao: Aba, pag = 1, atuacao = contexto) => {
     const query = new URLSearchParams({ aba: secao });
     if (atuacao) query.set("atuacao", atuacao);
@@ -341,11 +344,11 @@ export function montarApresentacao(
     conversa: conversa?.id,
     iniciarConversa: contato && podeIniciarConversa(visitante.id, p.id),
     foto: foto
-      ? "/publication-media/" + foto.id
+      ? "/midias-de-publicacao/" + foto.id
       : fotoCatalogo
         ? "/img/" + fotoCatalogo
         : "",
-    capa: capa ? "/publication-media/" + capa.id : "",
+    capa: capa ? "/midias-de-publicacao/" + capa.id : "",
     destaque,
     itens: visiveis,
     quantidade: itens.length,

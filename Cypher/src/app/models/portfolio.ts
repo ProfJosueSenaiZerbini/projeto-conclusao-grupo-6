@@ -333,7 +333,7 @@ export function montarPortfolio(
     )
     .map(i => {
       const enviada = capaPublicacao(visitanteId, i.tipo, i.id);
-      let capa = enviada ? "/publication-media/" + enviada : "";
+      let capa = enviada ? "/midias-de-publicacao/" + enviada : "";
       if (!capa && i.tipo === "projeto" && podeVerProjeto(visitanteId, i.id)) {
         const p = projetoTrabalho(visitanteId, i.id);
         capa =

@@ -8,18 +8,18 @@ import { rotuloProfissional } from "./tratamentoProfissional.js";
 
 export const rotaEspaco = "/espaco-de-trabalho";
 export const modalidades = [
-  {modalidade:"projeto",nome:"Criar trabalho / galeria",base:"/work-projects",icone:"brush"},
-  { modalidade: "obra", nome: "Criar obra", base: "/works", icone: "music" },
+  {modalidade:"projeto",nome:"Criar trabalho / galeria",base:"/trabalhos-e-galerias",icone:"brush"},
+  { modalidade: "obra", nome: "Criar obra", base: "/obras", icone: "music" },
   {
     modalidade: "beat",
     nome: "Cadastrar beat",
-    base: "/beats",
+    base: "/banco-de-beats",
     icone: "audioLines",
   },
   {
     modalidade: "evento",
     nome: "Criar evento",
-    base: "/events",
+    base: "/eventos",
     icone: "calendarDays",
   },
 ] as const;
@@ -29,7 +29,7 @@ export function acoesCriacao(usuario: UsuarioDaSessao) {
   const acoes: {modalidade:string;nome:string;base:string;icone:string}[] = modalidades.filter(
     acao => !usuario.demonstracao && (acao.modalidade === "projeto" ? usuario.tipoConta === "profissional" && profissoesAtivas(usuario.id).length > 0 : podePublicar(usuario, acao.modalidade))
   );
-  if (!usuario.demonstracao && usuario.tipoConta === "profissional" && profissoesAtivas(usuario.id).length) acoes.push({modalidade:"oportunidade",nome:"Criar oportunidade",base:"/opportunities",icone:"briefcase"});
+  if (!usuario.demonstracao && usuario.tipoConta === "profissional" && profissoesAtivas(usuario.id).length) acoes.push({modalidade:"oportunidade",nome:"Criar oportunidade",base:"/oportunidades",icone:"briefcase"});
   return acoes;
 }
 
@@ -216,7 +216,7 @@ export function trabalhosDaConta(usuario: UsuarioDaSessao) {
     id:p.id as string,modalidade:'projeto' as const,titulo:p.titulo as string,autor:p.autor as string,
     tipo:formatosTrabalho.find(f=>f.id===p.modalidade)?.nome??'Projeto',metadados:p.publico?'Visível na Cypher':'Privado',
     descricao:p.descricao as string,link:'',proprio:true,papeis:'[]',papel:p.papel||'Atuação declarada',atuacoes:p.profissoes,
-    ficha:'{}',fatos:[] as [string,string|number][],icone:'briefcase',detalhes:'/work-projects/'+p.id,base:'/work-projects/'+p.id
+    ficha:'{}',fatos:[] as [string,string|number][],icone:'briefcase',detalhes:'/trabalhos-e-galerias/'+p.id,base:'/trabalhos-e-galerias/'+p.id
   }))];
 }
 

@@ -86,6 +86,14 @@ export function iniciaisPublicas(nome: string): string {
     .toLocaleUpperCase("pt-BR");
 }
 
+export function validarGenero(tratamento = "", generoPersonalizado = ""): string | null {
+  if (tratamento && !["masculino", "feminino", "outro"].includes(tratamento))
+    return "Escolha uma opção válida de gênero.";
+  if (tratamento === "outro" && generoPersonalizado.trim().length > 80)
+    return "Descreva seu gênero em até 80 caracteres.";
+  return null;
+}
+
 export function validarDadosIdentidade(dados: {
   nomeInformado: string;
   vulgo: string;
@@ -103,16 +111,8 @@ export function validarDadosIdentidade(dados: {
     (dados.vulgo.trim().length === 1)
   )
     return "Informe um vulgo entre 2 e 80 caracteres ou deixe o campo em branco.";
-  if (
-    dados.tratamento &&
-    !["masculino", "feminino", "outro"].includes(dados.tratamento)
-  )
-    return "Escolha uma opção válida de gênero.";
-  if (
-    dados.tratamento === "outro" &&
-    (dados.generoPersonalizado?.trim().length ?? 0) > 80
-  )
-    return "Descreva seu gênero em até 80 caracteres.";
+  const erroGenero = validarGenero(dados.tratamento, dados.generoPersonalizado);
+  if (erroGenero) return erroGenero;
   const erroNascimento = validarNascimento(dados.nascimento);
   if (erroNascimento) return erroNascimento;
   if (idadeNaData(dados.nascimento) < 16)

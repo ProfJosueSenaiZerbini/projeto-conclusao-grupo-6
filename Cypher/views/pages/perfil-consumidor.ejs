@@ -7,20 +7,20 @@ const nomeCompleto = usuario.nomeInformado || usuario.name; %>
 <main class="pf-page" id="perfil">
   <% if (erro || salvo) { %><p class="pf-notice" role="<%= erro ? 'alert' : 'status' %>"><%= erro || 'Apresentação salva.' %></p><% } %>
   <article class="pf-identity"><div class="pf-cover <%= capa ? 'has-art' : '' %>">
-    <% if (capa) { %><img class="pf-cover-art" src="/publication-media/<%= capa.id %>" alt=""><% } %>
-    <div class="pf-signature"><div class="pf-portrait" aria-hidden="true"><% if (foto) { %><img src="/publication-media/<%= foto.id %>" alt=""><% } else { %><span><%= usuario.initials %></span><% } %></div>
+    <% if (capa) { %><img class="pf-cover-art" src="/midias-de-publicacao/<%= capa.id %>" alt=""><% } %>
+    <div class="pf-signature"><div class="pf-portrait" aria-hidden="true"><% if (foto) { %><img src="/midias-de-publicacao/<%= foto.id %>" alt=""><% } else { %><span><%= usuario.initials %></span><% } %></div>
     <div class="pf-names"><p class="pf-handle"><%= usuario.handle %></p><h2><%= usuario.vulgo || nomeCompleto %></h2>
     <% if (usuario.vulgo && usuario.vulgo !== nomeCompleto) { %><p class="pf-fullname"><%= nomeCompleto %></p><% } %><p class="pf-roles">Espaço privado</p></div></div></div>
     <div class="pf-identity-foot"><div class="pf-intro"><% if (usuario.biography) { %><p><%= usuario.biography %></p><% } %>
     <% if (usuario.city) { %><div class="pf-meta"><span><%- icones.mapPin %><%= usuario.city %></span></div><% } %></div>
-    <div class="pf-actions"><a class="pf-button primary" href="/settings#identidade">Editar identidade</a><a class="pf-button" href="/publicacoes/perfil/<%= encodeURIComponent(usuario.id) %>/midias">Foto e capa</a></div></div>
+    <div class="pf-actions"><a class="pf-button primary" href="/configuracoes#identidade">Editar identidade</a><a class="pf-button" href="/publicacoes/perfil/<%= encodeURIComponent(usuario.id) %>/midias">Foto e capa</a></div></div>
   </article>
   <%- include("../partials/componentes/completar-identidade", { usuario, sempre: true }) %>
   <section class="pf-panel pf-private">
     <header class="pf-section-head"><h2>Minha apresentação</h2><a class="pf-link" href="/colecoes">Minha coleção</a></header>
     <p>Somente você pode ver esta página.</p>
     <details class="pf-expand"<%= editarApresentacao ? " open" : "" %>><summary>Editar apresentação <%- icones.chevronDown %></summary>
-      <form method="post" action="/profile/apresentacao" class="pf-private-form">
+      <form method="post" action="/perfil/apresentacao" class="pf-private-form">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <label>Cidade e estado<input id="perfil-localizacao" name="cidade" maxlength="100" value="<%= usuario.city %>" autocomplete="address-level2" placeholder="Ex.: São Paulo, SP"></label>
         <label>Biografia<textarea id="perfil-biografia" name="biografia" maxlength="500" rows="4"><%= usuario.biography %></textarea></label>
@@ -28,7 +28,7 @@ const nomeCompleto = usuario.nomeInformado || usuario.name; %>
       </form>
     </details>
     <details class="pf-expand"><summary>Ativar perfil profissional <%- icones.chevronDown %></summary>
-      <p>A ativação é irreversível e preserva sua identidade e seu histórico.</p><a class="pf-link" href="/profile/profissionalizar">Tornar-me Profissional</a>
+      <p>A ativação é irreversível e preserva sua identidade e seu histórico.</p><a class="pf-link" href="/perfil/profissionalizar">Tornar-me Profissional</a>
     </details>
   </section>
 </main><%- include('../partials/navegacao-mobile',{rotaAtual:path}) %></div></div><%- include('../partials/fim-pagina') %>

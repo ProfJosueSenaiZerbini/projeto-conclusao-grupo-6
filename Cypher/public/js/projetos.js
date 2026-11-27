@@ -46,7 +46,7 @@
       row.append(cab);
       if (item.tipo === "midia" && info?.mime?.startsWith("image/")) {
         const img = el("img");
-        img.src = "/work-media/" + item.origem_id;
+        img.src = "/midias-de-trabalho/" + item.origem_id;
         img.alt = info.nome;
         img.loading = "lazy";
         row.append(img);
@@ -135,7 +135,7 @@
     uploading = true;
     estado("Enviando arquivo…");
     try {
-      const r = await fetch("/work-media", {
+      const r = await fetch("/midias-de-trabalho", {
         method: "POST",
         headers: {
           "content-type": "application/octet-stream",
@@ -183,6 +183,7 @@
   form.addEventListener("submit", e => {
     if (uploading) {
       e.preventDefault();
+      $("#pt-upload").dispatchEvent(new Event("cypher:mostrar-campo", { bubbles: true }));
       estado("Aguarde o envio do arquivo.");
     } else if (
       ![...form.querySelectorAll("[name=profissoes]:checked")].some(
@@ -191,6 +192,7 @@
     ) {
       e.preventDefault();
       estado("Selecione uma atuação compatível.");
+      $("#pt-modalidade").dispatchEvent(new CustomEvent("cypher:mostrar-campo", { bubbles: true, detail: { mensagem: "Selecione uma atuação compatível." } }));
       $("#pt-modalidade").focus();
     }
   });

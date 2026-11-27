@@ -1,42 +1,27 @@
 (() => {
-  const navegacaoMobile = document.querySelector(".dc-bottom");
-  const indicadorMobile = navegacaoMobile?.querySelector(".dc-nav-glider");
-  if (
-    indicadorMobile?.animate &&
-    document.referrer &&
-    matchMedia("(max-width: 900px)").matches &&
-    !matchMedia("(prefers-reduced-motion: reduce)").matches
-  ) {
-    const origem = new URL(document.referrer);
-    const destinos = Array.from(navegacaoMobile.querySelectorAll("a"));
-    const anterior = destinos.findIndex(
-      link => link.pathname === origem.pathname
-    );
-    const atual = destinos.findIndex(link => link.hasAttribute("aria-current"));
-    if (
-      origem.origin === location.origin &&
-      anterior >= 0 &&
-      atual >= 0 &&
-      anterior !== atual
-    ) {
-      indicadorMobile.animate(
-        [
-          { transform: `translateX(${anterior * 100}%)` },
-          { transform: `translateX(${atual * 100}%)` },
-        ],
-        { duration: 220, easing: "cubic-bezier(0.2, 0.75, 0.25, 1)" }
-      );
+  const faixaAviso = document.querySelector("[data-cy-feedback]");
+  const textoAviso = document.querySelector("[data-cy-feedback-live]");
+  let expirarAviso;
+  let anunciarAviso;
+  const criarAviso = (mensagem, tipo = "normal") => {
+    if (!mensagem || !faixaAviso || !textoAviso) return;
+    window.clearTimeout(expirarAviso);
+    window.cancelAnimationFrame(anunciarAviso);
+    textoAviso.textContent = "";
+    anunciarAviso = window.requestAnimationFrame(() => { textoAviso.textContent = mensagem; });
+    faixaAviso.dataset.tipo = tipo;
+    faixaAviso.textContent = mensagem;
+    faixaAviso.hidden = false;
+    if (typeof faixaAviso.showPopover === "function" && faixaAviso.hasAttribute("popover") && !faixaAviso.matches(":popover-open")) {
+      try { faixaAviso.showPopover(); } catch { faixaAviso.removeAttribute("popover"); }
     }
-  }
-
-  const criarAviso = mensagem => {
-    const aviso = document.createElement("div");
-    aviso.className = "mvc-toast";
-    aviso.setAttribute("role", "status");
-    aviso.textContent = mensagem;
-    document.body.appendChild(aviso);
-    window.setTimeout(() => aviso.remove(), 2800);
+    expirarAviso = window.setTimeout(() => {
+      if (faixaAviso.hasAttribute("popover") && faixaAviso.matches(":popover-open")) faixaAviso.hidePopover();
+      faixaAviso.hidden = true;
+      faixaAviso.textContent = "";
+    }, 1500);
   };
+  window.cypherAvisar = criarAviso;
 
   document.addEventListener("click", evento => {
     const botaoAviso = evento.target.closest("[data-toast]");
@@ -55,7 +40,7 @@
     const titulo = dialogo
       .querySelector("[data-event-title-detail]")
       ?.textContent?.trim();
-    const ficha = new URL("/events?localizacao=", window.location.href);
+    const ficha = new URL("/eventos?localizacao=", window.location.href);
     ficha.hash = `evento-${encodeURIComponent(eventoId)}`;
     const url = ficha.href;
     try {
@@ -66,7 +51,7 @@
         criarAviso("Link do evento copiado.");
       }
     } catch {
-      criarAviso("Não foi possível compartilhar o evento.");
+      criarAviso("Não foi possível compartilhar o evento.", "erro");
     }
   });
 
@@ -223,7 +208,7 @@
         }
       } catch (erro) {
         if (erro.name !== "AbortError")
-          criarAviso("Não foi possível buscar as contas. Tente novamente.");
+          criarAviso("Não foi possível buscar as contas. Tente novamente.", "erro");
       }
     };
     buscaExcecoesAdmin.addEventListener("input", () => {
@@ -389,7 +374,7 @@
       if (
         destino.origin !== location.origin ||
         destino.hash ||
-        !["/", "/dashboard", "/espaco-de-trabalho"].includes(destino.pathname)
+        !["/", "/descoberta", "/espaco-de-trabalho"].includes(destino.pathname)
       )
         return;
       try {
@@ -397,7 +382,7 @@
           chaveSidebar,
           JSON.stringify({
             destino:
-              (destino.pathname === "/" ? "/dashboard" : destino.pathname) +
+              (destino.pathname === "/" ? "/descoberta" : destino.pathname) +
               destino.search,
             instante: Date.now(),
           })
@@ -429,6 +414,30 @@
   } else {
     limparContinuidadeSidebar();
   }
+  const menuMobile = document.querySelector("[data-menu-mobile]");
+  const abrirMenuMobile = document.querySelector("[data-menu-mobile-open]");
+  if (menuMobile && abrirMenuMobile && typeof menuMobile.showModal === "function") {
+    const viewportMobile = matchMedia("(max-width: 900px)");
+    abrirMenuMobile.addEventListener("click", () => {
+      if (!viewportMobile.matches || menuMobile.open) return;
+      menuMobile.showModal();
+      document.body.classList.add("cy-mobile-menu-open");
+      abrirMenuMobile.setAttribute("aria-expanded", "true");
+    });
+    menuMobile.querySelector("[data-menu-mobile-close]").addEventListener("click", () => menuMobile.close());
+    menuMobile.addEventListener("click", evento => {
+      if (evento.target === menuMobile) menuMobile.close();
+    });
+    menuMobile.addEventListener("close", () => {
+      document.body.classList.remove("cy-mobile-menu-open");
+      abrirMenuMobile.setAttribute("aria-expanded", "false");
+      if (viewportMobile.matches) abrirMenuMobile.focus({ preventScroll: true });
+    });
+    viewportMobile.addEventListener("change", evento => {
+      if (!evento.matches && menuMobile.open) menuMobile.close();
+    });
+  }
+
   const camadaMenu = document.querySelector(
     "[data-sidebar-close].mobile-overlay"
   );
@@ -440,11 +449,12 @@
     barraLateral?.classList.remove("sidebar-open");
     document.body.classList.remove("sidebar-visible");
     if (camadaMenu) camadaMenu.hidden = true;
-    acionadorMenu?.focus();
+    if (acionadorMenu?.getClientRects().length) acionadorMenu.focus({ preventScroll: true });
     acionadorMenu = null;
   };
   botoesAbrirMenu.forEach(botao => {
     botao.addEventListener("click", () => {
+      if (!barraLateral) return;
       acionadorMenu = botao;
       botoesAbrirMenu.forEach(item => item.setAttribute("aria-expanded", "true"));
       barraLateral?.classList.add("sidebar-open");
@@ -515,8 +525,8 @@
       formulario.hidden = demonstracao;
       if (eventoId && !demonstracao) {
         formulario.action = ativo
-          ? `/events/${encodeURIComponent(eventoId)}/interest/cancel`
-          : `/events/${encodeURIComponent(eventoId)}/interest`;
+          ? `/eventos/${encodeURIComponent(eventoId)}/interesse/cancelar`
+          : `/eventos/${encodeURIComponent(eventoId)}/interesse`;
       } else {
         formulario.removeAttribute("action");
       }
@@ -590,8 +600,8 @@
     abaGestao.hidden = !proprietario;
     selecionarAbaEvento(dialogo, "geral");
     if (!proprietario) return;
-    editora.href = `/events/${encodeURIComponent(dados.detailId)}/edit`;
-    exclusao.action = `/events/${encodeURIComponent(dados.detailId)}/delete`;
+    editora.href = `/eventos/${encodeURIComponent(dados.detailId)}/editar`;
+    exclusao.action = `/eventos/${encodeURIComponent(dados.detailId)}/excluir`;
     lista.replaceChildren();
     let interessados = [];
     try {
@@ -632,7 +642,7 @@
       if (dados.detailParticipationType === "aprovacao") {
         const formulario = document.createElement("form");
         formulario.method = "post";
-        formulario.action = `/events/${encodeURIComponent(dados.detailId)}/interests/${encodeURIComponent(interesse.usuarioId)}/status`;
+        formulario.action = `/eventos/${encodeURIComponent(dados.detailId)}/interesses/${encodeURIComponent(interesse.usuarioId)}/status`;
         const seletor = document.createElement("select");
         seletor.name = "status";
         seletor.setAttribute("aria-label", `Status de ${interesse.nome}`);
@@ -688,7 +698,7 @@
       dialogo.dataset.eventId = dados.detailId || "";
       const denunciar = dialogo.querySelector("[data-event-report-link]");
       if (denunciar) {
-        denunciar.href = `/suporte/new?objeto_tipo=evento&objeto_id=${encodeURIComponent(dados.detailId || "")}`;
+        denunciar.href = `/suporte/novo?objeto_tipo=evento&objeto_id=${encodeURIComponent(dados.detailId || "")}`;
         denunciar.hidden = !dados.detailId || dados.detailDemonstracao === "true";
       }
       definirTexto(dialogo, "[data-event-title-detail]", dados.detailTitle);
@@ -836,12 +846,12 @@
       const obraDoUsuario = dados.workOwned === "true";
       const editar = dialogo.querySelector("[data-work-edit]");
       if (editar) {
-        editar.href = `/works/${id}/edit`;
+        editar.href = `/obras/${id}/editar`;
         editar.hidden = !obraDoUsuario;
       }
       const excluir = dialogo.querySelector("[data-work-delete]");
       if (excluir) {
-        excluir.action = `/works/${id}/delete`;
+        excluir.action = `/obras/${id}/excluir`;
         excluir.hidden = !obraDoUsuario;
         excluir.dataset.confirm = "Excluir esta obra e os créditos associados?";
         excluir.dataset.confirmDestrutiva = "true";
@@ -968,7 +978,7 @@
       const destino = escuro ? "claro" : "escuro";
       controle.checked = escuro;
       controle.title = `Ativar tema ${destino}`;
-      controle.setAttribute("aria-label", `Tema escuro ${escuro ? "ativado" : "desativado"}`);
+
     });
     document.querySelectorAll("[data-theme-mode]").forEach(botao => {
       botao.setAttribute(
@@ -977,7 +987,7 @@
       );
     });
     document
-      .querySelectorAll('form[action="/settings/preferencias"] [name="tema"]')
+      .querySelectorAll('form[action="/configuracoes/preferencias"] [name="tema"]')
       .forEach(campo => {
         campo.value = tema;
       });
@@ -985,21 +995,10 @@
   // O cabeçalho já resolveu a preferência antes dos estilos; não a sobrescreve.
   aplicarTema(document.documentElement.classList.contains("dark") ? "dark" : "light");
   document.querySelectorAll("[data-theme-toggle]").forEach(controle => {
-    let alternando = false;
-    controle.addEventListener("change", async () => {
-      if (alternando) {
-        controle.checked = document.documentElement.classList.contains("dark");
-        return;
-      }
+    controle.addEventListener("change", () => {
       const temaSolicitado = controle.checked ? "dark" : "light";
       salvarTema(temaSolicitado);
-      const trocar = () => aplicarTema(temaSolicitado);
-      if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        alternando = true;
-        try { await document.startViewTransition(trocar).finished; }
-        catch { trocar(); }
-        finally { alternando = false; }
-      } else trocar();
+      aplicarTema(temaSolicitado);
     });
   });
   document.querySelectorAll("[data-theme-mode]").forEach(botao => {
@@ -1009,7 +1008,7 @@
     });
   });
   document
-    .querySelectorAll('form[action="/settings/preferencias"]')
+    .querySelectorAll('form[action="/configuracoes/preferencias"]')
     .forEach(formulario => {
       formulario.addEventListener("submit", () => {
         const tema = formulario.elements.tema?.value;
@@ -1313,6 +1312,7 @@
     ) {
       evento.preventDefault();
       if (erroTiposWorkshop) erroTiposWorkshop.hidden = false;
+      opcoesTiposWorkshop[0]?.dispatchEvent(new Event("cypher:mostrar-campo", { bubbles: true }));
       opcoesTiposWorkshop[0]?.focus();
     }
   });

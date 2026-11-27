@@ -8,7 +8,7 @@
       <section class="pf-panel profile-progress-details" aria-labelledby="progresso-essencial">
         <header class="pf-section-head">
           <h2 id="progresso-essencial">Informações essenciais</h2>
-          <a class="pf-link" href="/profile">Voltar ao perfil</a>
+          <a class="pf-link" href="/perfil">Voltar ao perfil</a>
         </header>
         <div class="profile-progress-value">
           <strong><%= completude.percentual %>% completo</strong>
@@ -17,9 +17,10 @@
         <% if (completude.pendencias.length) { %>
           <ul class="profile-progress-links">
             <% completude.pendencias.forEach(item => { %>
-              <li><a href="<%= item.url %>"><%= item.rotulo %> <%- icones.arrowRight %></a></li>
+              <li><%= item.rotulo %></li>
             <% }); %>
           </ul>
+          <%- include("../partials/componentes/completar-identidade", { usuario, progressoAssistente: completude }) %>
         <% } else { %>
           <p>Você preencheu as informações essenciais do seu perfil.</p>
         <% } %>

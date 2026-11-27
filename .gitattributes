@@ -1,0 +1,3 @@
+# The demo seed verifies these source files byte for byte.
+Cypher/public/img/cena/producoes/*.svg -text whitespace=cr-at-eol
+Cypher/public/audio/** -text

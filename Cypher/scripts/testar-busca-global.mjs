@@ -212,7 +212,7 @@ try {
   let pronto;
   for (let n = 0; n < 80; n++) {
     try {
-      if ((await get("/login")).ok) {
+      if ((await get("/entrar")).ok) {
         pronto = true;
         break;
       }
@@ -220,7 +220,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   assert.ok(pronto, log);
-  for (const rota of ["/search", "/search/suggestions?q=conexao"])
+  for (const rota of ["/busca", "/busca/sugestoes?q=conexao"])
     assert.equal(
       (await get(rota, false)).status,
       302,
@@ -228,7 +228,7 @@ try {
     );
   for (const tipo of ["tudo", "pessoas", "obras", "beats", "eventos"]) {
     const r = await get(
-      "/search?" + new URLSearchParams({ q: "conexão", tipo })
+      "/busca?" + new URLSearchParams({ q: "conexão", tipo })
     );
     assert.equal(r.status, 200, log);
     const html = await r.text();
@@ -238,9 +238,9 @@ try {
       html,
       /Cidade Oculta|Segredo Privado|Segredo Pendente|Segredo Rascunho/
     );
-    assert.doesNotMatch(
+    assert.match(
       html.match(/<nav class="side-nav"[\s\S]*?<\/nav>/)?.[0] || "",
-      /href="\/search/
+      /href="\/busca"[^>]*aria-current="page"/
     );
     if (tipo === "pessoas") {
       assert.equal((html.match(/class="cy-profile-card"/g) || []).length, 1);
@@ -261,46 +261,46 @@ try {
       assert.doesNotMatch(html, /id="search-genero"|id="search-ordem"/);
   }
   const filtered = await (
-    await get("/search?q=conex%C3%A3o&tipo=pessoas&genero=Trap")
+    await get("/busca?q=conex%C3%A3o&tipo=pessoas&genero=Trap")
   ).text();
   assert.match(filtered, /Essa conexão ainda não apareceu/);
   assert.match(
     filtered,
-    /href="\/search\?q=conex%C3%A3o&amp;tipo=pessoas" data-search-navigation>Limpar filtros/
+    /href="\/busca\?q=conex%C3%A3o&amp;tipo=pessoas" data-search-navigation>Limpar filtros/
   );
   for (const rota of [
-    "/dashboard",
-    "/works",
-    "/beats",
-    "/events?localizacao=",
-    "/settings",
+    "/descoberta",
+    "/obras",
+    "/banco-de-beats",
+    "/eventos?localizacao=",
+    "/configuracoes",
   ]) {
     const r = await get(rota);
     assert.equal(r.status, 200, rota + log);
-    assert.match(await r.text(), /action="\/search"[\s\S]*?data-global-search/);
+    assert.match(await r.text(), /action="\/busca"[\s\S]*?data-global-search/);
   }
-  const r = await get("/search/suggestions?q=conexao");
+  const r = await get("/busca/sugestoes?q=conexao");
   assert.equal(r.headers.get("cache-control"), "no-store");
   const suggestions = await r.json();
   assert.equal(suggestions.itens.length, 4);
   assert.ok(suggestions.itens.every(i => i.url.startsWith("/")));
   assert.doesNotMatch(JSON.stringify(suggestions), /Cidade Oculta|Segredo/);
   assert.equal(
-    (await (await get("/search/suggestions?q=x")).json()).itens.length,
+    (await (await get("/busca/sugestoes?q=x")).json()).itens.length,
     0
   );
   assert.equal(
-    (await (await get("/search/suggestions?q=segredo")).json()).itens.length,
+    (await (await get("/busca/sugestoes?q=segredo")).json()).itens.length,
     0
   );
   const paginada = await (
-    await get("/search?q=Profissional&tipo=pessoas&pagina=2")
+    await get("/busca?q=Profissional&tipo=pessoas&pagina=2")
   ).text();
   assert.equal((paginada.match(/class="cy-profile-card"/g) || []).length, 1);
   assert.match(paginada, /Página 2 de 2/);
   assert.match(paginada, /q=Profissional&amp;tipo=pessoas&amp;pagina=1/);
   const escaped = await (
-    await get("/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
+    await get("/busca?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E")
   ).text();
   assert.doesNotMatch(escaped, /<script>alert\(1\)<\/script>/);
   // Ocultar uma atuação também deve removê-la dos resultados e sugestões.
@@ -311,7 +311,7 @@ try {
     pesquisarGlobal({ tipo: "pessoas", q: "Beatmaker" }, "visitante").total,
     0
   );
-  const oculto = await (await get("/search/suggestions?q=conexao")).json();
+  const oculto = await (await get("/busca/sugestoes?q=conexao")).json();
   assert.ok(
     !oculto.itens
       .find(i => i.categoria === "Pessoas")

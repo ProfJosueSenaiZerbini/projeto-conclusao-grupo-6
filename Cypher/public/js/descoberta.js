@@ -1,19 +1,14 @@
 const movimentoReduzido = window.matchMedia("(prefers-reduced-motion: reduce)");
-document.querySelectorAll(".dc-guide").forEach(panel => {
-  const guides = [...panel.querySelectorAll(".dc-central-guide")];
-  const previous = panel.querySelector(".dc-central-prev");
-  const next = panel.querySelector(".dc-central-next");
-  if (!previous || !next) return;
-  let current = 0;
-  function show(index) {
-    guides[current].hidden = true;
-    current = index;
-    guides[current].hidden = false;
-    previous.hidden = current === 0;
-    next.hidden = current === guides.length - 1;
-  }
-  previous.addEventListener("click", () => show(current - 1));
-  next.addEventListener("click", () => show(current + 1));
+// CSS hover may stick after a tap on hybrid devices. Track mouse input explicitly.
+document.querySelectorAll(".dc-rail, .dc-feature").forEach(carrossel => {
+  const mostrarSetas = event =>
+    carrossel.classList.toggle("dc-mouse-over", event.pointerType === "mouse");
+  carrossel.addEventListener("pointerenter", mostrarSetas);
+  carrossel.addEventListener("pointermove", mostrarSetas, { passive: true });
+  carrossel.addEventListener("pointerdown", mostrarSetas, { passive: true });
+  carrossel.addEventListener("pointerleave", () =>
+    carrossel.classList.remove("dc-mouse-over")
+  );
 });
 const contagemSempreVisivel = window.matchMedia(
   "(max-width: 900px) and (hover: none)"
@@ -156,7 +151,13 @@ if (conteudoDestaques && navegacao) {
     function mostrar(indice) {
       const antigo = atual;
       const focoNoSlide = slides[antigo].contains(document.activeElement);
-      atual = indice;
+      atual = Math.max(0, Math.min(slides.length - 1, indice));
+      indice = atual;
+      const foco = document.activeElement;
+      anterior.disabled = indice === 0;
+      proximo.disabled = indice === slides.length - 1;
+      if (foco === anterior && anterior.disabled) proximo.focus({ preventScroll: true });
+      if (foco === proximo && proximo.disabled) anterior.focus({ preventScroll: true });
       slides.forEach((slide, posicao) => {
         slide.hidden = posicao !== indice;
       });
@@ -187,7 +188,7 @@ if (conteudoDestaques && navegacao) {
       )
     );
     function trocar(direcao) {
-      mostrar((atual + direcao + radios.length) % radios.length);
+      mostrar(atual + direcao);
     }
 
     anterior.addEventListener("click", () => trocar(-1));
@@ -206,7 +207,11 @@ if (conteudoDestaques && navegacao) {
       if (inicioDeslize?.pointerId !== evento.pointerId) return;
       const dx = evento.clientX - inicioDeslize.clientX,
         dy = evento.clientY - inicioDeslize.clientY;
-      if (Math.abs(dx) > 12 && Math.abs(dx) > 1.4 * Math.abs(dy)) {
+      if (!cancelouAbertura && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
+        inicioDeslize = undefined;
+        return;
+      }
+      if (!cancelouAbertura && Math.abs(dx) > 12 && Math.abs(dx) > 1.4 * Math.abs(dy)) {
         cancelouAbertura = true;
         conteudoDestaques.setPointerCapture(evento.pointerId);
       }
@@ -220,6 +225,9 @@ if (conteudoDestaques && navegacao) {
       else trocar(evento.key === "ArrowRight" ? 1 : -1);
     });
     conteudoDestaques.addEventListener("pointercancel", () => {
+      inicioDeslize = undefined;
+    });
+    conteudoDestaques.addEventListener("lostpointercapture", () => {
       inicioDeslize = undefined;
     });
     conteudoDestaques.addEventListener("pointerup", evento => {
@@ -263,38 +271,96 @@ document.querySelectorAll(".dc-rail").forEach(rail => {
   const previous = nav?.querySelector(".dc-rail-prev");
   const next = nav?.querySelector(".dc-rail-next");
   const track = previous && document.getElementById(previous.getAttribute("aria-controls"));
-  if (!track || !next) return;
+  const progress = nav?.querySelector(".dc-rail-progress > span");
+  if (!track || !previous || !next || !rail.contains(track)) return;
+
+  const tolerance = 2;
+  let queuedTarget;
+  let settleTimer;
+  let frame;
+  const limit = () => Math.max(0, track.scrollWidth - track.clientWidth);
+  const clamp = value => Math.min(limit(), Math.max(0, value));
+  const resetTarget = () => {
+    queuedTarget = undefined;
+    clearTimeout(settleTimer);
+  };
 
   function update() {
-    const limit = Math.max(0, track.scrollWidth - track.clientWidth);
-    const position = Math.min(limit, Math.max(0, track.scrollLeft));
-    nav.hidden = limit <= 1;
-    previous.disabled = position <= 1;
-    next.disabled = position >= limit - 1;
+    const max = limit();
+    const position = clamp(track.scrollLeft);
+    const canGoBack = position > tolerance;
+    const canGoOn = position < max - tolerance;
+    const focused = document.activeElement;
+    nav.hidden = max <= tolerance;
+    if (nav.hidden) track.removeAttribute("aria-description");
+    else track.setAttribute("aria-description", "Use as setas do teclado para navegar pelos itens.");
+    // Preserve keyboard focus before a control becomes unavailable at either end.
+    if (focused === previous && !canGoBack) {
+      if (canGoOn) next.disabled = false;
+      (canGoOn ? next : track).focus({ preventScroll: true });
+    } else if (focused === next && !canGoOn) {
+      if (canGoBack) previous.disabled = false;
+      (canGoBack ? previous : track).focus({ preventScroll: true });
+    }
+    previous.disabled = !canGoBack;
+    next.disabled = !canGoOn;
+    if (!progress || nav.hidden) return;
+    const visible = track.clientWidth / track.scrollWidth;
+    progress.style.width = (visible * 100) + "%";
+    progress.style.left = (position / max * (1 - visible) * 100) + "%";
   }
-
-  function move(direction) {
-    const items = Array.from(track.children);
-    const position = track.scrollLeft;
-    const targetPosition = Math.max(0, Math.min(track.scrollWidth - track.clientWidth, position + direction * track.clientWidth));
-    const starts = items.map(item => item.getBoundingClientRect().left - track.getBoundingClientRect().left + position);
-    const target = direction > 0
-      ? starts.find(start => start >= targetPosition - 2 && start > position + 2)
-      : starts.filter(start => start <= targetPosition + 2 && start < position - 2).at(-1);
-    track.scrollTo({ left: target ?? targetPosition, behavior: movimentoReduzido.matches ? "instant" : "smooth" });
+  function scheduleUpdate() {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      update();
+    });
+  }
+  function scrollTo(target) {
+    queuedTarget = clamp(target);
+    clearTimeout(settleTimer);
+    const reduced = movimentoReduzido.matches;
+    track.scrollTo({ left: queuedTarget, behavior: reduced ? "instant" : "smooth" });
+    if (reduced) {
+      resetTarget();
+      update();
+    } else {
+      settleTimer = setTimeout(resetTarget, 650);
+    }
+  }
+  function move(direction, byItem = false) {
+    const position = queuedTarget ?? clamp(track.scrollLeft);
+    const rect = track.getBoundingClientRect();
+    const padding = parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0;
+    const starts = [0, ...Array.from(track.children, item =>
+      clamp(item.getBoundingClientRect().left - rect.left + track.scrollLeft - track.clientLeft - padding)
+    ), limit()];
+    const ahead = starts.filter(start => direction * (start - position) > tolerance);
+    if (!ahead.length) return;
+    const candidates = direction > 0 ? ahead : ahead.reverse();
+    const onePage = Math.max(0, track.clientWidth - padding * 2);
+    scrollTo(byItem ? candidates[0] : (
+      candidates.filter(start => Math.abs(start - position) <= onePage + tolerance).at(-1) ?? candidates[0]
+    ));
   }
 
   previous.addEventListener("click", () => move(-1));
   next.addEventListener("click", () => move(1));
-  track.addEventListener("keydown", event => {
-    if (event.target !== track || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  rail.addEventListener("keydown", event => {
+    if (![track, previous, next].includes(event.target) ||
+        event.altKey || event.ctrlKey || event.metaKey || event.shiftKey ||
+        !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key) ||
+        limit() <= tolerance) return;
     event.preventDefault();
-    if (event.key === "Home" || event.key === "End") track.scrollTo({ left: event.key === "Home" ? 0 : track.scrollWidth, behavior: movimentoReduzido.matches ? "instant" : "smooth" });
-    else move(event.key === "ArrowRight" ? 1 : -1);
+    if (event.key === "Home" || event.key === "End") scrollTo(event.key === "Home" ? 0 : limit());
+    else move(event.key === "ArrowRight" ? 1 : -1, true);
   });
-  track.addEventListener("scroll", update, { passive: true });
-  if (window.ResizeObserver) new ResizeObserver(update).observe(track);
-  window.addEventListener("resize", update);
+  track.addEventListener("scroll", scheduleUpdate, { passive: true });
+  track.addEventListener("scrollend", () => { resetTarget(); update(); });
+  track.addEventListener("pointerdown", resetTarget, { passive: true });
+  track.addEventListener("wheel", resetTarget, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(scheduleUpdate).observe(track);
+  window.addEventListener("resize", () => { resetTarget(); scheduleUpdate(); }, { passive: true });
   update();
 });
 

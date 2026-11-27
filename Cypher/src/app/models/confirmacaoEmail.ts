@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { entregarEmail, configurarEmail } from "./entregaEmail.js";
+import { entregarEmail, entregarAvisoEmail, configurarEmail } from "./entregaEmail.js";
 
 import { conexaoInternaCypher } from "./bancoDados.js";
 import { validarEmail } from "../validators/validarAutenticacao.js";
@@ -69,11 +69,7 @@ export async function emitirConfirmacaoEmail(
     );
   })();
   try {
-    await entregarEmail(
-      destino,
-      "Confirme seu e-mail na Cypher",
-      `Confirme seu endereço pelo link abaixo. Ele expira em 30 minutos e pode ser usado uma única vez.\n\n${url.href}\n\nSe você não solicitou esta ação, ignore esta mensagem.`
-    );
+    await entregarEmail(destino, "confirmacao", url.href);
   } catch (erro) {
     db.prepare(
       "UPDATE tokens_confirmacao_email SET usado_em=? WHERE token_hash=?"
@@ -86,8 +82,7 @@ export async function confirmarEmailUsuario(token: string) {
   if (!/^[a-f0-9]{64}$/.test(token))
     throw new Error("Link de confirmação inválido ou expirado.");
   const db = conexaoInternaCypher();
-  let emailAnterior: string | undefined;
-  const usuarioId = db.transaction(() => {
+  const { usuarioId, aviso } = db.transaction(() => {
     const registro = db
       .prepare(
         "SELECT usuario_id AS usuarioId,email_destino AS email,finalidade FROM tokens_confirmacao_email WHERE token_hash=? AND usado_em IS NULL AND expira_em>?"
@@ -96,8 +91,8 @@ export async function confirmarEmailUsuario(token: string) {
       { usuarioId: string; email: string; finalidade: string } | undefined;
     if (!registro) throw new Error("Link de confirmação inválido ou expirado.");
     const atual = db
-      .prepare("SELECT email FROM usuarios WHERE id=?")
-      .get(registro.usuarioId) as { email: string };
+      .prepare("SELECT email,tipo_conta,email_confirmado_em,demonstracao FROM usuarios WHERE id=?")
+      .get(registro.usuarioId) as { email: string; tipo_conta: string; email_confirmado_em: string | null; demonstracao: number };
     if (registro.finalidade === "cadastro" && registro.email !== atual.email)
       throw new Error("Link de confirmação inválido ou expirado.");
     const ocupado = db
@@ -114,22 +109,23 @@ export async function confirmarEmailUsuario(token: string) {
       db.prepare("DELETE FROM sessoes WHERE usuario_id=?").run(
         registro.usuarioId
       );
-      emailAnterior = atual.email;
+      return { usuarioId: registro.usuarioId, aviso: { destino: atual.email, tipo: "emailAlterado" as const } };
     }
-    return registro.usuarioId;
+    const tipo = atual.tipo_conta === "consumidor" ? "boasVindasPublico" as const
+      : atual.tipo_conta === "profissional" ? "boasVindasProfissional" as const : undefined;
+    // A primeira confirmação e o consumo do token são gravados no mesmo commit.
+    const aviso = tipo && !atual.email_confirmado_em && !atual.demonstracao && registro.finalidade === "cadastro"
+      ? { destino: registro.email, tipo } : undefined;
+    return { usuarioId: registro.usuarioId, aviso };
   })();
-  if (emailAnterior) {
+  if (aviso?.tipo === "emailAlterado") {
     try {
-      await entregarEmail(
-        emailAnterior,
-        "E-mail alterado na Cypher",
-        "O e-mail de acesso da sua conta foi alterado após confirmação do novo endereço. Se você não reconhece a alteração, entre em contato com a equipe."
-      );
+      await entregarEmail(aviso.destino, aviso.tipo);
     } catch {
-      console.error(
-        "Não foi possível entregar o aviso de alteração de e-mail."
-      );
+      console.error("Não foi possível entregar o aviso de alteração de e-mail.");
     }
+  } else if (aviso) {
+    await entregarAvisoEmail(aviso.destino, aviso.tipo);
   }
   return usuarioId;
 }

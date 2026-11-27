@@ -1,6 +1,6 @@
 <%- include('../partials/cabecalho', { title, stylesheet }) %>
 <link rel="stylesheet" href="/css/entrada.css">
-<main class="tag-page entrada-cypher access-page"><a class="tag-brand" href="/login" aria-label="Cypher, entrar">CYPHER</a><%- include('../partials/componentes/tema-entrada') %><div class="tag-content"><div class="tag-shell"><section class="tag-panel auth-panel">
+<main class="tag-page entrada-cypher access-page"><a class="tag-brand" href="/entrar" aria-label="Cypher, entrar">CYPHER</a><%- include('../partials/componentes/tema-entrada') %><div class="tag-content"><div class="tag-shell"><section class="tag-panel auth-panel">
 <span class="eyebrow">SEU ESPAÇO, SEU ACESSO</span>
 <h1><%= etapa === 'encerrada' ? 'Conta encerrada' : etapa === 'sucesso' ? 'Tudo certo com sua senha' : etapa === 'solicitado' ? 'Confira seu e-mail' : etapa === 'invalido' ? 'Vamos tentar de novo' : etapa === 'redefinir' ? 'Uma nova senha' : 'Volte pra cena' %></h1>
 <% if(erro){ %><p class="auth-message auth-message-error" role="alert"><%= erro %></p><% } %>
@@ -14,5 +14,5 @@
 <% }else if(etapa === 'invalido'){ %><p role="alert">Este link não está disponível. Ele pode ter expirado, já ter sido usado ou ter sido substituído por uma nova solicitação.</p><a class="button button-lime full" href="/recuperar-senha">Receber um novo link</a>
 <% }else if(etapa === 'encerrada'){ %><p role="status">Seu acesso foi revogado e seu perfil foi desativado. Os dados pessoais de apresentação foram removidos.</p><p>Seu identificador continua reservado. Créditos, compras, acordos e outros registros compartilhados necessários aos direitos de terceiros são preservados, sem manter seu perfil ativo.</p><a class="button button-outline full" href="/politica-privacidade">Entenda a preservação de dados</a>
 <% }else{ %><p role="status"><%= mensagem %></p><% } %>
-<p class="auth-switch"><a href="/login">Voltar para entrar</a></p>
+<p class="auth-switch"><a href="/entrar">Voltar para entrar</a></p>
 </section></div></div></main><%- include('../partials/fim-pagina') %>

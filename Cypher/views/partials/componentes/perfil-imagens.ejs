@@ -1,0 +1,60 @@
+<link rel="stylesheet" href="/css/perfil-imagens.css">
+<% const apenasFoto = typeof somenteFoto !== "undefined" && somenteFoto; %>
+<div class="pi-imagens<%= apenasFoto ? " pi-somente-foto" : "" %>" data-perfil-imagens data-envio="/publicacoes/perfil/<%= encodeURIComponent(usuario.id) %>/midias" data-csrf="<%= csrfToken %>">
+  <div class="pi-grade">
+    <% for (const [posicao, finalidade, tituloImagem, dica] of [
+      ['principal', 'imagem', 'Foto de perfil', 'Seu retrato na Cypher'],
+      ['capa', 'capa', 'Capa do perfil', 'A imagem de abertura do seu perfil']
+    ]) { if (apenasFoto && posicao === 'capa') continue; const atual = arquivos.find(a => a.finalidade === 'imagem' && a.posicao === posicao); %>
+      <section class="pi-cartao" data-pi-campo="<%= finalidade %>" data-pi-id="<%= atual?.id || '' %>" aria-labelledby="pi-titulo-<%= finalidade %>">
+        <button class="pi-amostra" type="button" data-pi-escolher aria-label="Selecionar <%= tituloImagem.toLowerCase() %>">
+          <span class="pi-etiqueta" aria-hidden="true"><%= finalidade === 'imagem' ? 'RETRATO' : 'PANORAMA' %></span>
+          <img <% if (atual) { %>src="/midias-de-publicacao/<%= encodeURIComponent(atual.id) %>"<% } else { %>hidden<% } %> alt="Imagem atual: <%= tituloImagem.toLowerCase() %>">
+          <span class="pi-vazio" data-pi-vazio aria-hidden="true"<%= atual ? ' hidden' : '' %>><% if (finalidade === 'imagem') { %><%= usuario.initials %><% } else { %><%- icones.camera %><% } %></span>
+          <span class="pi-amostra-acao" aria-hidden="true"><%- icones.camera %><span data-pi-legenda><%= atual ? 'Trocar imagem' : 'Escolher imagem' %></span></span>
+        </button>
+        <div class="pi-cartao-rodape">
+          <div class="pi-cartao-texto"><h4 id="pi-titulo-<%= finalidade %>"><%= tituloImagem %></h4><p><%= dica %></p></div>
+          <div class="pi-acoes">
+          <button type="button" class="pi-botao pi-secundario" data-pi-remover<%= atual ? '' : ' hidden' %>>Remover</button>
+            <input type="file" aria-label="<%= tituloImagem %>" accept="image/png,image/jpeg,.png,.jpg,.jpeg" hidden>
+          </div>
+        </div>
+      </section>
+    <% } %>
+  </div>
+  <p class="pi-formatos">PNG ou JPEG · até 8 MB<span class="pi-dica-arraste"> · ou arraste a imagem para o cartão</span></p>
+  <p class="pi-status" data-pi-status role="status"></p>
+  <noscript>Ative o JavaScript para ajustar e salvar imagens.</noscript>
+  <dialog class="pi-dialog" aria-labelledby="pi-dialog-titulo" aria-describedby="pi-dialog-ajuda">
+    <div class="pi-dialog-corpo">
+      <header><div><span>ENQUADRAMENTO</span><h3 id="pi-dialog-titulo">Ajustar imagem</h3></div><button type="button" class="pi-botao pi-secundario" data-pi-fechar aria-label="Fechar edição da imagem">✕</button></header>
+      <p id="pi-dialog-ajuda">Arraste a imagem ou use as setas do teclado para ajustar o enquadramento.</p>
+      <div class="pi-palco">
+        <div class="pi-janela">
+          <canvas data-pi-recorte tabindex="0" aria-label="Prévia do recorte. Use as setas para mover a imagem."></canvas>
+          <span class="pi-guia" aria-hidden="true"></span>
+        </div>
+      </div>
+      <p data-pi-capa-dica hidden>Em telas estreitas, o centro da capa ganha mais destaque.</p>
+      <div class="pi-ajustes">
+        <div class="pi-zoom">
+          <label>Zoom <output data-pi-ampliacao>100%</output><input type="range" min="1" max="3" step="0.01" value="1"></label>
+          <button type="button" class="pi-botao" data-pi-zoom="-1" aria-label="Diminuir zoom">−</button>
+          <button type="button" class="pi-botao" data-pi-zoom="1" aria-label="Aumentar zoom">+</button>
+        </div>
+        <div class="pi-acoes">
+          <button type="button" class="pi-botao" data-pi-girar="-1" aria-label="Girar 90 graus à esquerda">↶</button>
+          <button type="button" class="pi-botao" data-pi-girar="1" aria-label="Girar 90 graus à direita">↷</button>
+          <button type="button" class="pi-botao pi-secundario" data-pi-redefinir>Redefinir</button>
+        </div>
+      </div>
+      <p class="pi-status" data-pi-dialog-status role="status"></p>
+      <footer class="pi-acoes">
+        <button type="button" class="pi-botao pi-secundario" data-pi-cancelar>Cancelar</button>
+        <button type="button" class="pi-botao pi-principal" data-pi-salvar>Salvar imagem</button>
+      </footer>
+    </div>
+  </dialog>
+</div>
+<script type="module" src="/js/perfil-imagens.js"></script>

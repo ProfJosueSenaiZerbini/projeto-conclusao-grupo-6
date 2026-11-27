@@ -1,4 +1,4 @@
-<form class="work-form" method="post" action="/works/<%= encodeURIComponent(id) %>/evidencia">
+<form class="work-form" data-cy-fields method="post" action="/obras/<%= encodeURIComponent(id) %>/evidencia">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="form-grid">
     <label>Tipo de evidência

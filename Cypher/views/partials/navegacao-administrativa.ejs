@@ -14,7 +14,7 @@
     </nav>
     <div class="sidebar-bottom admin-account">
       <div class="user-mini"><div class="avatar avatar-yellow"><%= usuario.initials || 'AD' %></div><div><strong><%= usuario.name %></strong><span><%= {super_admin:'Administrador Geral',moderador:'Moderador',editor:'Editor'}[usuario.papelAdministrativo] %></span></div></div>
-      <form method="post" action="/admin/logout"><button class="side-link admin-logout" type="submit"><span class="side-icon lucide-icon" aria-hidden="true"><%- icones.arrowLeft %></span><span class="side-link-label">Sair da equipe</span></button><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
+      <form method="post" action="/admin/sair"><button class="side-link admin-logout" type="submit"><span class="side-icon lucide-icon" aria-hidden="true"><%- icones.arrowLeft %></span><span class="side-link-label">Sair da equipe</span></button><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
     </div>
   </div>
 </aside>

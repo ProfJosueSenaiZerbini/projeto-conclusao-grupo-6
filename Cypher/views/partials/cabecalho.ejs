@@ -25,7 +25,7 @@
           const chave = "cypher-sidebar-percurso";
           const percurso = JSON.parse(sessionStorage.getItem(chave) || "null");
           sessionStorage.removeItem(chave);
-          const destino = (location.pathname === "/" ? "/dashboard" : location.pathname) + location.search;
+          const destino = (location.pathname === "/" ? "/descoberta" : location.pathname) + location.search;
           if (
             percurso &&
             window.matchMedia("(min-width: 901px) and (hover: hover) and (pointer: fine)").matches &&
@@ -64,6 +64,14 @@
       <% if (typeof usuario !== "undefined" && usuario && usuario.tipoConta === "administrativo") { %><link rel="stylesheet" href="/css/admin.css"><% } %>
       <link rel="stylesheet" href="/css/botao-salvar.css">
       <link rel="stylesheet" href="/css/navegacao.css">
+      <% if (stylesheet === "evento" || stylesheet === "cadastro-evento") { %><link rel="stylesheet" href="/css/mapa-eventos.css"><% } %>
+      <% if (typeof mapaInterativo !== "undefined" && mapaInterativo) { %>
+        <script src="/js/mapa-eventos.js" defer></script>
+      <% } %>
       <link rel="stylesheet" href="/css/filtros-cypher.css">
+      <% if (typeof etapasCriacao !== "undefined" && etapasCriacao) { %>
+        <link rel="stylesheet" href="/css/etapas-criacao.css">
+        <script src="/js/etapas-criacao.js" defer></script>
+      <% } %>
     </head>
     <body<% if (typeof usuario !== "undefined" && usuario && usuario.tipoConta === "administrativo") { %> class="admin-context"<% } %>>

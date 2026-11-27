@@ -196,6 +196,7 @@
 .event-detail-actions > * {
   flex: 1 1 165px;
 }
+.event-detail-actions > .cy-report-link { flex: none; order: 1; margin-inline-start: auto; }
 
 .dc-shell .ficha-evento .button {
   min-height: 44px;

@@ -17,7 +17,7 @@
     <% if (cartazUsuario || item.fotoDestaque) { const fotoCartaz = cartazUsuario || '/img/'+(item.fotoDestaque.includes('/') ? item.fotoDestaque : 'descoberta/'+item.fotoDestaque); %>data-event-cover data-event-cover-src="<%= fotoCartaz %>" style="--dc-event-photo: url('<%= fotoCartaz %>')"<% } %>
     <% if (ficha && !ficha.demonstracao) { %>
       id="evento-<%= ficha.id %>"
-      href="/events/<%= encodeURIComponent(ficha.id) %>"
+      href="/eventos/<%= encodeURIComponent(ficha.id) %>"
     <% } else if (ficha) { %>
       type="button"
       id="evento-<%= ficha.id %>"

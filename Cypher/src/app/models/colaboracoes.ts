@@ -377,7 +377,7 @@ export function criarColaboracao(
   });
 }
 function verificarLancamento(c: Linha) {
-  const local = /^\/work-media\/([a-f0-9-]{36})$/.exec(c.evidencia_url);
+  const local = /^\/midias-de-trabalho\/([a-f0-9-]{36})$/.exec(c.evidencia_url);
   let audio = false;
   if (local) {
     try {

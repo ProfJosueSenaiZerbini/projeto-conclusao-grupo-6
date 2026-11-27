@@ -302,7 +302,7 @@ export function catalogoObras(req: Request, res: Response) {
   res.render("pages/obras", {
     title: "Obras",
     stylesheet: "catalogo-obras",
-    path: "/works",
+    path: "/obras",
     q,
     formato,
     genero,

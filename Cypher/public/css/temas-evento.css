@@ -12,13 +12,16 @@
 }
 
 .dc-shell .dc-event-card[data-event-theme="classico"] {
-  --dc-event-copy-bg: rgb(0 0 0 / 30%);
-  --dc-event-text-halo: transparent;
-  --dc-event-copy-color: #fff;
+  --dc-event-heading-bg: color-mix(in srgb, var(--dc-surface) 94%, transparent);
+  --dc-event-date-bg: var(--dc-surface);
+  --dc-event-date-ink: var(--dc-ink);
+  --dc-event-date-line: var(--dc-olive);
+  --dc-event-inset: clamp(14px, 2vw, 24px);
   padding-top: 0;
   overflow: hidden;
-  background-color: var(--dc-event-dark);
-  background-image: none;
+  border-color: var(--dc-line);
+  background: var(--dc-surface);
+  text-align: left;
 }
 
 .dc-event-card[data-event-theme="classico"] .dc-event-poster {
@@ -36,10 +39,21 @@
   pointer-events: none;
 }
 
+.dc-event-card.events-card-placeholder[data-event-theme="classico"] .dc-event-poster::before {
+  background:
+    url("marcas-acrilico.svg") top left / 160px auto no-repeat,
+    linear-gradient(150deg, var(--dc-art), var(--dc-hover));
+}
+
+.dc-event-card[data-event-theme="classico"] .events-cover-icon {
+  z-index: 1;
+}
+
 .dark .dc-shell .dc-event-card[data-event-theme="classico"] {
-  --dc-event-copy-bg: color-mix(in srgb, var(--dc-surface) 38%, transparent);
-  --dc-event-text-halo: #080a07db;
-  --dc-event-copy-color: var(--dc-ink);
+  --dc-event-heading-bg: color-mix(in srgb, var(--dc-surface) 82%, transparent);
+  --dc-event-date-bg: var(--dc-event-dark);
+  --dc-event-date-ink: var(--dc-paper);
+  --dc-event-date-line: var(--dc-paper);
 }
 
 .dc-event-copy {
@@ -49,15 +63,32 @@
 .dc-shell .dc-event-card[data-event-theme="classico"] .dc-event-body {
   position: relative;
   z-index: 1;
-  margin-top: 0;
   gap: 0;
-  padding: 8px 0 0;
-  border-top: 0;
-  background: transparent;
+  padding: 12px var(--dc-event-inset) 18px;
+  border-top: 1px solid var(--dc-line);
+  border-radius: 0;
+  background: linear-gradient(
+    155deg,
+    var(--dc-surface) 38%,
+    color-mix(in srgb, var(--dc-surface) 82%, var(--dc-hover))
+  );
 }
 
 .dc-shell .dc-event-card[data-event-theme="classico"] .dc-event-date {
   z-index: 3;
+  border-color: var(--dc-event-date-line);
+  color: var(--dc-event-date-ink);
+  background: var(--dc-event-date-bg);
+}
+
+.dc-event-card[data-event-theme="classico"] .dc-event-countdown:not([hidden]) {
+  border-color: var(--dc-event-date-line);
+  color: var(--dc-event-date-ink);
+  background: var(--dc-event-date-bg);
+}
+
+.dc-event-card[data-event-theme="classico"] .dc-event-countdown::after {
+  border-color: var(--dc-event-date-line);
 }
 
 .dc-event-card[data-event-theme="classico"] .dc-event-copy {
@@ -67,12 +98,7 @@
   align-items: flex-start;
   align-self: stretch;
   gap: 8px;
-  margin-top: 0;
-  padding: 0 clamp(14px, 2vw, 24px) 18px;
-  border-top: 0;
-  border-radius: inherit;
-  background: transparent;
-  backdrop-filter: none;
+
 }
 
 .dc-event-card[data-event-theme="classico"] .dc-event-heading {
@@ -82,28 +108,26 @@
   justify-items: start;
   gap: 7px;
   min-width: 0;
-  padding: 11px clamp(14px, 2vw, 24px) 12px;
+  padding: 11px var(--dc-event-inset) 12px;
   border-top: 1px solid var(--dc-line);
-  background: var(--dc-event-copy-bg);
-  backdrop-filter: blur(3px);
+  background: var(--dc-event-heading-bg);
+  backdrop-filter: blur(5px);
 }
 
 .dc-event-card[data-event-theme="classico"] .dc-event-copy .dc-event-action {
   margin-top: 0;
 }
 
-.dc-shell .dc-event-card[data-event-theme="classico"]
-  :is(
-    .dc-event-type,
-    .dc-event-title,
-    .dc-event-meta,
-    .dc-event-description,
-    .dc-event-action
-  ) {
-  color: var(--dc-event-copy-color);
-  text-shadow:
-    0 1px 1px var(--dc-event-text-halo),
-    0 0 5px var(--dc-event-text-halo);
+.dc-shell .dc-event-card[data-event-theme="classico"] .dc-event-type {
+  color: var(--dc-accent);
+}
+
+.dc-shell .dc-event-card[data-event-theme="classico"] :is(.dc-event-title, .dc-event-description) {
+  color: var(--dc-ink);
+}
+
+.dc-shell .dc-event-card[data-event-theme="classico"] .dc-event-meta {
+  color: var(--dc-muted);
 }
 
 .dc-event-card[data-event-theme="classico"] .dc-event-heading::before {

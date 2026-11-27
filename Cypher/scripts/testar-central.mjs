@@ -466,11 +466,11 @@ try {
     ["/central?q=galeria", "consumidor"],
     ["/central/" + slugAtual, "leitor"],
     ["/admin/central", "editor"],
-    ["/admin/central/new", "editor"],
-    ["/admin/central/" + id + "/edit", "editor"],
-    ["/admin/central/quality", "editor"],
-    ["/admin/central/searches", "editor"],
-    ["/admin/central/reviews", "admin"],
+    ["/admin/central/novo", "editor"],
+    ["/admin/central/" + id + "/editar", "editor"],
+    ["/admin/central/qualidade", "editor"],
+    ["/admin/central/pesquisas", "editor"],
+    ["/admin/central/revisoes", "admin"],
   ]) {
     const r = await request(url, ator),
       html = await r.text();
@@ -507,7 +507,7 @@ try {
   ok(() => assert.equal(editorForjado.status, 403));
   ok(() => assert.equal(arquivadoHttp.status, 404));
   const noCsrf = await request(
-    "/central/" + slugAtual + "/feedback",
+    "/central/" + slugAtual + "/avaliacao",
     "leitor",
     {
       method: "POST",
@@ -516,11 +516,11 @@ try {
     }
   );
   ok(() => assert.equal(noCsrf.status, 403));
-  const feedbackErrado = await post("/central/" + slugAtual + "/feedback", {
+  const feedbackErrado = await post("/central/" + slugAtual + "/avaliacao", {
     util: "nao",
   });
   ok(() => assert.equal(feedbackErrado.status, 400));
-  const feedbackCerto = await post("/central/" + slugAtual + "/feedback", {
+  const feedbackCerto = await post("/central/" + slugAtual + "/avaliacao", {
     util: "nao",
     motivo: "desatualizada",
   });

@@ -50,7 +50,7 @@ try {
   let pagina;
   for (let n = 0; n < 80; n++) {
     try {
-      const r = await fetch(`${base}/register`);
+      const r = await fetch(`${base}/cadastro`);
       if (r.ok) {
         pagina = r;
         break;
@@ -125,11 +125,11 @@ try {
     return m.match(/token=([a-f0-9]{64})/)[1];
   };
   const login = async (nome, senha = "SenhaOriginal2026") => {
-    const r = await req("/login", {
+    const r = await req("/entrar", {
       body: { identificador: `${nome}@teste.local`, password: senha },
     });
     assert.equal(r.status, 302, log);
-    assert.equal(r.headers.get("location"), "/dashboard");
+    assert.equal(r.headers.get("location"), "/descoberta");
     return r.headers
       .getSetCookie()
       .find(c => c.startsWith("cypher_session="))
@@ -143,7 +143,7 @@ try {
     { nascimento: nascimento(15) },
   ]) {
     assert.equal(
-      (await req("/register", { body: { ...dados("invalida"), ...alteracao } }))
+      (await req("/cadastro", { body: { ...dados("invalida"), ...alteracao } }))
         .status,
       400
     );
@@ -155,12 +155,12 @@ try {
     ["jovem17", 17, "profissional"],
   ]) {
     assert.equal(
-      (await req("/register", { body: dados(nome, idade, tipo) })).status,
+      (await req("/cadastro", { body: dados(nome, idade, tipo) })).status,
       303
     );
     assert.equal(
       (
-        await req("/login", {
+        await req("/entrar", {
           body: { email: `${nome}@teste.local`, password: "SenhaOriginal2026" },
         })
       ).status,
@@ -199,7 +199,7 @@ try {
       .get(jovem17.id).perfil_publico,
     0
   );
-  await req("/settings/privacy", {
+  await req("/configuracoes/privacidade", {
     body: {
       perfilPublico: "on",
       localizacaoPublica: "on",
@@ -225,7 +225,7 @@ try {
   };
   assert.equal(
     (
-      await req("/profile/profissionalizar", {
+      await req("/perfil/profissionalizar", {
         body: ativacao,
         cookie: cookieJovem,
       })
@@ -238,10 +238,10 @@ try {
       .get(jovem.id).perfil_publico,
     0
   );
-  assert.equal((await req("/p/jovem17", { cookie })).status, 404);
-  assert.equal((await req("/p/adulta")).status, 302);
+  assert.equal((await req("/artistas/jovem17", { cookie })).status, 404);
+  assert.equal((await req("/artistas/adulta")).status, 302);
   assert.match(
-    await (await req("/settings", { cookie: cookie17 })).text(),
+    await (await req("/configuracoes", { cookie: cookie17 })).text(),
     /Até os 18 anos/
   );
   assert.equal(
@@ -260,7 +260,7 @@ try {
     false,
     "Política central impede exposição mesmo com flag antiga"
   );
-  const forjada = await req("/settings/identidade", {
+  const forjada = await req("/configuracoes/identidade", {
     body: {
       nomeInformado: "Pessoa jovem16",
       vulgo: "",
@@ -343,11 +343,11 @@ try {
       .get(adulta.id).n,
     0
   );
-  assert.equal((await req("/settings", { cookie })).status, 302);
-  assert.equal((await req("/settings", { cookie: segundaSessao })).status, 302);
+  assert.equal((await req("/configuracoes", { cookie })).status, 302);
+  assert.equal((await req("/configuracoes", { cookie: segundaSessao })).status, 302);
   assert.equal(
     (
-      await req("/login", {
+      await req("/entrar", {
         body: { email: adulta.email, password: "SenhaOriginal2026" },
       })
     ).status,
@@ -357,7 +357,7 @@ try {
   const hashAntes = conta("adulta").senha_hash;
   assert.match(
     (
-      await req("/settings/senha", {
+      await req("/configuracoes/senha", {
         cookie,
         body: {
           senhaAtual: "errada",
@@ -371,7 +371,7 @@ try {
   assert.equal(conta("adulta").senha_hash, hashAntes);
   assert.equal(
     (
-      await req("/settings/senha", {
+      await req("/configuracoes/senha", {
         cookie,
         body: {
           senhaAtual: nova.password,
@@ -382,7 +382,7 @@ try {
     ).status,
     200
   );
-  assert.equal((await req("/settings", { cookie })).status, 302);
+  assert.equal((await req("/configuracoes", { cookie })).status, 302);
   cookie = await login("adulta", "SenhaAlterada2026");
   db.prepare(
     "UPDATE tokens_recuperacao_senha SET criado_em=criado_em-61000 WHERE usuario_id=?"
@@ -419,7 +419,7 @@ try {
   ).run(adulta.id);
   assert.match(
     (
-      await req("/settings/delete-account", {
+      await req("/configuracoes/encerrar-conta", {
         cookie,
         body: { senha: "SenhaAlterada2026", confirmacao: "NÃO" },
       })
@@ -433,20 +433,31 @@ try {
     undefined
   );
   db.prepare("INSERT INTO restricoes_contas(usuario_id,motivo,administrador_id) VALUES(?,?,?)").run(adulta.id,'Suspensão isolada para testar o direito de encerramento',administradorId);
-  const acessoRestrito = await req('/settings',{cookie});
+  const acessoRestrito = await req('/configuracoes',{cookie});
   assert.equal(acessoRestrito.status,303);
   assert.match(acessoRestrito.headers.get('location'),/^\/suporte/);
-  assert.equal((await req('/settings/encerramento',{cookie})).status,200);
+  assert.equal((await req('/configuracoes/encerramento',{cookie})).status,200);
   assert.equal(
     (
-      await req("/settings/delete-account", {
+      await req("/configuracoes/encerrar-conta", {
         cookie,
         body: { senha: "SenhaAlterada2026", confirmacao: "ENCERRAR" },
       })
     ).status,
     200
   );
-  assert.equal((await req("/settings", { cookie })).status, 302);
+  assert.equal((await req("/configuracoes", { cookie })).status, 302);
+  const emls = fs.readdirSync(caixa).filter(n => n.endsWith(".eml"))
+    .map(n => fs.readFileSync(path.join(caixa, n), "utf8"))
+    .filter(m => m.startsWith(`To: ${adulta.email}\n`));
+  const aviso = emls.filter(m => m.includes("<h1") && m.includes("Sua senha foi atualizada."));
+  assert.equal(aviso.length, 2, "Alteração e redefinição notificam pelo mesmo modelo");
+  for (const m of aviso) {
+    assert.match(m, /multipart\/alternative/);
+    assert.match(m, /Recuperar meu acesso/);
+    assert.doesNotMatch(m, /token=/);
+  }
+  assert.equal(emls.filter(m => m.includes("Seu ciclo na Cypher foi encerrado.")).length, 1);
   const encerrada = db
     .prepare("SELECT email,senha_hash FROM usuarios WHERE id=?")
     .get(adulta.id);
@@ -478,7 +489,7 @@ try {
   );
   assert.equal(
     (
-      await req("/login", {
+      await req("/entrar", {
         body: { email: adulta.email, password: "SenhaAlterada2026" },
       })
     ).status,

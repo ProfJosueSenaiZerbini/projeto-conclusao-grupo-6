@@ -1,0 +1,113 @@
+[data-completar-perfil][hidden],
+[data-completar-perfil] [hidden] {
+  display: none !important;
+}
+.cp-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  inline-size: min(560px, calc(100vw - 24px));
+  max-block-size: calc(100dvh - 24px);
+  background: var(--dc-surface);
+  color: var(--dc-ink);
+  border: 1px solid var(--dc-line);
+  border-radius: 4px 14px 4px 4px;
+}
+.cp-dialog::backdrop {
+  background: #0e140dc4;
+}
+.cp-corpo {
+  display: grid;
+  gap: 0.8rem;
+  padding: clamp(14px, 4vw, 26px);
+}
+.cp-corpo header,
+.cp-corpo footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 0.5rem;
+}
+.cp-corpo header button {
+  flex: none;
+}
+.cp-corpo :is(h2, h3, p) {
+  margin: 0;
+}
+.cp-corpo h2 {
+  font:
+    700 1.65rem/1.1 Oswald,
+    sans-serif;
+}
+.cp-corpo h3 {
+  font-size: clamp(1rem, 4vw, 1.28rem);
+}
+.cp-progresso {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--dc-muted);
+  font-size: 0.8rem;
+}
+.cp-progresso progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--dc-olive);
+}
+.cp-dialog form,
+[data-cp-campo],
+[data-cp-campo] label {
+  display: grid;
+  gap: 0.58rem;
+  min-width: 0;
+}
+[data-cp-campo] :is(textarea, input:not([type="checkbox"]), select) {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--dc-line);
+  border-radius: 5px;
+  background: var(--dc-field);
+  color: var(--dc-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+.dark .cp-dialog {
+  color-scheme: dark;
+}
+[data-cp-campo] .cp-escolhas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 165px), 1fr));
+  gap: 0.45rem;
+}
+[data-cp-campo] .cp-escolhas label {
+  display: flex;
+  align-items: center;
+  padding: 0.55rem;
+  border: 1px solid var(--dc-line);
+  border-radius: 5px;
+  background: var(--dc-field);
+  min-height: 44px;
+  cursor: pointer;
+}
+.cp-escolhas input {
+  accent-color: var(--dc-olive);
+}
+.cp-dialog form footer {
+  justify-content: end;
+  flex-wrap: wrap;
+  border-block-start: 1px solid var(--dc-line);
+  padding-block-start: 0.65rem;
+}
+.cp-dialog .pf-button {
+  min-height: 44px;
+}
+.pi-somente-foto .pi-grade {
+  grid-template-columns: minmax(0, 1fr);
+}
+.profile-progress-links > li:not(:has(a)) {
+  padding-block: 0.65rem;
+}
+.profile-progress-details .cp-assistente {
+  margin-block-start: 1rem;
+}

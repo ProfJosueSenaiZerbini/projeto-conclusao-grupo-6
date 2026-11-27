@@ -46,6 +46,7 @@ export type ValoresFormularioEvento = {
   data: string;
   horario: string;
   local: string;
+  modoLocal?: string;
   organizador: string;
   situacao: string;
   cor: string;
@@ -101,8 +102,8 @@ export function validarFormularioEvento(
     return "Informe uma data válida para o evento.";
   if (valores.horario.length > 20)
     return "O horário deve ter no máximo 20 caracteres.";
-  if (valores.local.length < 2 || valores.local.length > 160)
-    return "Informe um local entre 2 e 160 caracteres.";
+  if (valores.local.length < 2 || valores.local.length > (valores.modoLocal === "endereco" ? 205 : 160))
+    return "Confira o local informado. Para local ou link em texto, use de 2 a 160 caracteres.";
   if (valores.organizador.length < 2 || valores.organizador.length > 120)
     return "Informe um organizador entre 2 e 120 caracteres.";
   if (
@@ -120,7 +121,7 @@ export function validarFormularioEvento(
   if (valores.descricao.length > 1000)
     return "A descrição deve ter no máximo 1.000 caracteres.";
   if (valores.formato.length < 2 || valores.formato.length > 120)
-    return "Informe um formato entre 2 e 120 caracteres.";
+    return "Descreva como o evento vai funcionar (de 2 a 120 caracteres).";
   if (valores.inscricao.length > 240)
     return "As informações de inscrição devem ter no máximo 240 caracteres.";
   if (valores.premio.length > 240)

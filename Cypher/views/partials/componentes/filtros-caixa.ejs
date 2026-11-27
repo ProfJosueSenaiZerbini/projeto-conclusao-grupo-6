@@ -1,0 +1,8 @@
+<% const amigos = typeof abaAmigos !== "undefined" ? abaAmigos : null; %>
+<nav class="dc-tabs cy-inbox-tabs" aria-label="<%= rotulo %>">
+  <a href="<%= urlTudo %>"<% if (buscaDinamica) { %> data-msg-filter<% } %><% if (!somenteNaoLidas && !amigos?.ativa) { %> aria-current="page"<% } %>>Tudo</a>
+  <a href="<%= urlNaoLidas %>"<% if (buscaDinamica) { %> data-msg-filter<% } %><% if (somenteNaoLidas) { %> aria-current="page"<% } %>>
+    Não lidas<% if (totalNaoLidas > 0) { %><span class="cy-inbox-tab-count"><%= totalNaoLidas %></span><% } %>
+  </a>
+  <% if (amigos) { %><a href="<%= amigos.url %>"<% if (buscaDinamica) { %> data-msg-filter<% } %><% if (amigos.ativa) { %> aria-current="page"<% } %>>Amigos</a><% } %>
+</nav>

@@ -9,7 +9,7 @@
       <div class="ci-message-body"><header><strong><% if(c.perfil){ %><a href="<%= c.perfil %>"><%= c.autor %></a><% }else{ %><%= c.autor %><% } %></strong><time><%= data(c.criadoEm) %><%= c.editado?' · Editado':'' %></time></header><p><%= c.texto %></p>
       <% if(c.proprio){ %><details class="ci-message-edit"><summary>Editar</summary><form method="post" action="<%= base %>/comentarios/<%= c.id %>/editar" data-ci-comment="editar"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="versao" value="<%= c.versao %>"><label class="sr-only" for="ci-edit-<%= c.id %>">Editar comentário</label><textarea id="ci-edit-<%= c.id %>" name="texto" maxlength="1500" required rows="2"><%= c.texto %></textarea><button class="ci-text-action" type="submit">Salvar edição</button></form></details><form method="post" action="<%= base %>/comentarios/<%= c.id %>/excluir" data-ci-comment="excluir"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="versao" value="<%= c.versao %>"><button class="ci-text-action" type="submit">Excluir</button></form><% } %>
       </div>
-      <% if(!c.proprio){ %><details class="ci-message-menu"><summary aria-label="Opções do comentário" title="Opções">•••</summary><a href="/suporte/new?objeto_tipo=comentario&amp;objeto_id=<%= c.id %>">Denunciar</a></details><% } %>
+      <% if(!c.proprio){ %><%- include("denunciar-item", { tipo:"comentario", id:c.id, rotulo:"Denunciar este comentário" }) %><% } %>
     </article><% } %>
   </div>
   <form method="post" action="<%= base %>/comentarios" class="ci-composer" data-ci-comment="publicar">

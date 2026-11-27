@@ -1,0 +1,94 @@
+/* Editor de criação: os passos não alteram a estrutura nem o envio do formulário. */
+[data-cy-wizard] [data-cy-step][hidden],
+[data-cy-wizard] [data-cy-finish][hidden],
+[data-cy-wizard] .cy-steps-actions[hidden],
+[data-cy-wizard] .cy-steps-actions [hidden],
+[data-cy-wizard] .cy-steps [hidden],
+[data-cy-show-with][hidden],
+[data-cy-wizard]:not(.cy-wizard-ready) [data-cy-js-only] {
+  display: none !important;
+}
+.cy-steps {
+  --steps-ink: var(--dc-ink, #22291e);
+  --steps-muted: var(--dc-muted, #56604d);
+  --steps-line: var(--dc-line, #8b9474);
+  --steps-surface: var(--dc-surface, #e5e8d8);
+  min-width: 0;
+  margin-bottom: 10px;
+}
+.dark .cy-steps {
+  --steps-ink: var(--dc-ink, #f0efd9);
+  --steps-muted: var(--dc-muted, #bdc3ac);
+  --steps-line: var(--dc-line, #667353);
+  --steps-surface: var(--dc-surface, #22291e);
+}
+.cy-steps-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 14px;
+  margin-bottom: 8px;
+}
+.cy-steps-header [data-cy-step-mode] { width: auto; margin-inline-start: auto; }
+.cy-steps .cy-steps-header p { margin: 0; }
+.cy-steps p {
+  margin: 0 0 8px;
+  color: var(--steps-muted);
+  font: 700 12px/1.4 "Space Grotesk", sans-serif;
+  letter-spacing: .05em;
+}
+.cy-steps ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cy-steps li { min-width: 0; max-width: 100%; }
+.cy-steps button, .cy-steps-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid var(--dc-line, #7a8664);
+  border-radius: 3px 8px 2px 5px;
+  background: var(--dc-surface, #eff1e4);
+  color: var(--dc-ink, #22291e);
+  text-align: left;
+  font: 700 13px/1.25 "Space Grotesk", sans-serif;
+  cursor: pointer;
+}
+.dark .cy-steps button, .dark .cy-steps-actions button {
+  background: var(--dc-surface, #22291e);
+  color: var(--dc-ink, #f0efd9);
+}
+.cy-steps button:is(:hover, :focus-visible),
+.cy-steps-actions button:is(:hover, :focus-visible) { border-color: var(--dc-accent, #617943); }
+.cy-steps button:focus-visible, .cy-steps-actions button:focus-visible {
+  outline: 2px solid var(--dc-accent, #617943);
+  outline-offset: 2px;
+}
+.cy-steps button span { font-variant-numeric: tabular-nums; opacity: .75; }
+.cy-steps button[aria-current="step"],
+.cy-steps-actions [data-cy-next] {
+  background: var(--dc-yellow, #ead078);
+  border-color: var(--dc-yellow, #ead078);
+  color: #202516;
+}
+.cy-steps-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 4px 12px;
+}
+.cy-steps-actions [data-cy-next] { margin-inline-start: auto; }
+[data-cy-step] :is(h2, h3, legend) { scroll-margin-top: 95px; }
+@media (max-width: 580px) {
+  .cy-steps ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cy-steps button { width: 100%; height: 100%; overflow-wrap: anywhere; }
+}

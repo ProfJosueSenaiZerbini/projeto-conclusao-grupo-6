@@ -63,7 +63,7 @@ try {
   let pagina;
   for (let n = 0; n < 80; n++) {
     try {
-      const r = await fetch(`${origem}/register`);
+      const r = await fetch(`${origem}/cadastro`);
       if (r.ok) {
         pagina = r;
         break;
@@ -88,7 +88,7 @@ try {
       body: new URLSearchParams(body),
     });
   const senha = randomBytes(20).toString("base64url");
-  const cadastro = await post("/register", {
+  const cadastro = await post("/cadastro", {
     name: "Cypher Teste de Entrega",
     email: destino,
     identificador: "teste.email.real",
@@ -155,7 +155,7 @@ try {
     400,
     "Token usado não pode ser reutilizado."
   );
-  const login = await post("/login", { email: destino, password: senha });
+  const login = await post("/entrar", { email: destino, password: senha });
   assert.equal(login.status, 302);
   assert.ok(
     login.headers.getSetCookie().some(c => c.startsWith("cypher_session="))

@@ -1,4 +1,5 @@
-<%- include('../partials/cabecalho',{title,stylesheet}) %>
+<%- include('../partials/cabecalho',{title,stylesheet,etapasCriacao:tela==='formulario'}) %>
+<% const elementoConteudo = !administrativo && tela === 'mensagens' ? 'main' : 'div'; %>
 <% if (administrativo) { %>
 <div class="app-shell dc-shell admin-shell">
  <%- include('../partials/navegacao-administrativa',{path,usuario}) %>
@@ -12,17 +13,17 @@
  <div class="dc-page">
  <%- include('../partials/componentes/cabecalho-descoberta',{titulo: tela==='mensagens'?'Mensagens':'Oportunidades',tituloId:'op-titulo',descricao: tela==='mensagens'?'':'Encontros profissionais que fazem a cena acontecer.'}) %>
 <% } %>
- <div class="<%= administrativo ? 'op-content' : 'dc-content op-content' %>" id="op-conteudo" tabindex="-1">
+ <<%= elementoConteudo %> class="<%= administrativo ? 'op-content' : 'dc-content op-content' %>" id="op-conteudo" tabindex="-1">
  <% if (tela !== 'mensagens') { %><nav class="op-tabs" aria-label="Navegação de oportunidades">
  <% if(!administrativo){ %>
- <a href="/opportunities" <%- tela==='lista'&&contexto==='explorar'?'aria-current="page"':'' %>>Explorar</a>
- <% if(profissional){ %><a href="/my-applications" <%- tela==='lista'&&contexto==='candidaturas'?'aria-current="page"':'' %>>Minhas candidaturas</a><a href="/my-opportunities" <%- tela==='lista'&&contexto==='minhas'?'aria-current="page"':'' %>>Minhas oportunidades</a><% }else{ %><a href="/service-requests">Minhas solicitações</a><% } %>
- <a href="/messages">Mensagens</a><% } %>
+ <a href="/oportunidades" <%- tela==='lista'&&contexto==='explorar'?'aria-current="page"':'' %>>Explorar</a>
+ <% if(profissional){ %><a href="/minhas-candidaturas" <%- tela==='lista'&&contexto==='candidaturas'?'aria-current="page"':'' %>>Minhas candidaturas</a><a href="/minhas-oportunidades" <%- tela==='lista'&&contexto==='minhas'?'aria-current="page"':'' %>>Minhas oportunidades</a><% }else{ %><a href="/solicitacoes-de-servico">Minhas solicitações</a><% } %>
+ <a href="/mensagens">Mensagens</a><% } %>
  </nav><% } %>
  <% if(sucesso && tela!=='mensagens'){ %><p class="op-feedback" role="status"><%- icones.check %> Atualização registrada.</p><% } %>
  <% if(erro){ %><p class="op-feedback op-error" role="alert"><%= erro %></p><% } %>
  <%- include('../partials/chamadas/'+tela) %>
- </div>
+ </<%= elementoConteudo %>>
  <% if (!administrativo) { %><%- include('../partials/navegacao-mobile',{rotaAtual:path}) %><% } %>
  </div>
 <% if (administrativo) { %></main><% } %>

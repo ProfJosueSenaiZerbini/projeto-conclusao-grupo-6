@@ -400,6 +400,7 @@ try {
   verificar(() => assert.ok(!tem("obra:propria")));
   // Servidor isolado com o router real, sessão, CSRF e views reais.
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   app.locals.icones = new Proxy({}, { get: () => "<svg></svg>" });
@@ -448,8 +449,8 @@ try {
       body: new URLSearchParams(body),
     });
   for (const [url, id] of [
-    ["/portfolio/edit", "autor"],
-    ["/p/autor_novo", "visitante"],
+    ["/portfolio/editar", "autor"],
+    ["/artistas/autor_novo", "visitante"],
     ["/portfolio/autor_novo", "visitante"],
     ["/portfolio/autor_novo/item/obra/participacao", "visitante"],
   ]) {
@@ -459,23 +460,23 @@ try {
       assert.equal(r.status, 200, url + ": " + html.slice(0, 500))
     );
     verificar(() => assert.ok(!html.includes("[object Object]")));
-    if(url==="/p/autor_novo") verificar(()=>assert.ok(html.includes('href="/portfolio/autor_novo"')));
+    if(url==="/artistas/autor_novo") verificar(()=>assert.ok(html.includes('href="/portfolio/autor_novo"')));
   }
   const anon = await fetch(host + "/portfolio/autor_novo", {
     redirect: "manual",
   });
   verificar(() => assert.equal(anon.status, 302));
-  const anonEditor = await fetch(host + "/portfolio/edit", {
+  const anonEditor = await fetch(host + "/portfolio/editar", {
     redirect: "manual",
   });
   verificar(() => assert.equal(anonEditor.status, 302));
   const consumerPublic = await request("/portfolio/autor_novo", "consumidor");
   verificar(() => assert.equal(consumerPublic.status, 200));
-  const consumerEditor = await request("/portfolio/edit", "consumidor");
+  const consumerEditor = await request("/portfolio/editar", "consumidor");
   verificar(() => assert.equal(consumerEditor.status, 403));
-  const adminInternal = await request("/portfolio/edit", "admin");
+  const adminInternal = await request("/portfolio/editar", "admin");
   verificar(() => assert.equal(adminInternal.status, 302));
-  const adminEditor = await request("/portfolio/edit", "admin", {
+  const adminEditor = await request("/portfolio/editar", "admin", {
     headers: {
       cookie:
         "cypher_csrf=" +
@@ -485,14 +486,14 @@ try {
     },
   });
   verificar(() => assert.equal(adminEditor.status, 403));
-  const noCsrf = await request("/portfolio/edit", "autor", {
+  const noCsrf = await request("/portfolio/editar", "autor", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(dados([])),
   });
   verificar(() => assert.equal(noCsrf.status, 403));
   const idor = await post(
-    "/portfolio/edit",
+    "/portfolio/editar",
     dados([
       {
         chave: "obra:alheia",
@@ -522,7 +523,7 @@ try {
   );
   const beforeHttpPreview = JSON.stringify(m.configuracaoPortfolio("autor"));
   const httpPreview = await post(
-    "/portfolio/preview",
+    "/portfolio/previa",
     dados(escolhas({ "obra:nova": { selecionado: true } }), {
       modo: "manual",
       molde: "editorial",
@@ -536,7 +537,7 @@ try {
     )
   );
   const sucesso = await post(
-    "/portfolio/edit",
+    "/portfolio/editar",
     dados(
       escolhas({
         "obra:participacao": { selecionado: true },
@@ -587,7 +588,7 @@ try {
     perfilCreditoPapel: "Mixagem",
     perfilCreditoParticipacao: "Mixagem da faixa",
   };
-  const criada = await post("/works/new", formularioDemo, "visitante");
+  const criada = await post("/obras/novo", formularioDemo, "visitante");
   verificar(() => assert.equal(criada.status, 303));
   const convite = db.prepare(`
     SELECT c.id, c.obra_id AS obraId FROM creditos c JOIN obras o ON o.id=c.obra_id
@@ -595,7 +596,7 @@ try {
   `).get(tituloDemo);
   const urlConvite = "/espaco-de-trabalho/creditos/" + convite.id;
   const urlFicha = "/espaco-de-trabalho/obra/" + convite.obraId;
-  const urlPublica = "/p/visitante?obra=" + convite.obraId;
+  const urlPublica = "/artistas/visitante?obra=" + convite.obraId;
   const ler = async (url, conta) => {
     const resposta = await request(url, conta);
     const html = await resposta.text();
@@ -605,7 +606,7 @@ try {
   verificar(() => assert.equal(db.prepare("SELECT count(*) n FROM notificacoes WHERE url=?").get(urlConvite).n, 0));
   const indisponivel = await request(urlConvite, "autor");
   verificar(() => assert.equal(indisponivel.status, 404));
-  const publicar = () => post("/works/" + convite.obraId + "/edit", {
+  const publicar = () => post("/obras/" + convite.obraId + "/editar", {
     ...formularioDemo,
     visibilidade: "publica",
   }, "visitante");
@@ -613,11 +614,11 @@ try {
     const publicada = await publicar();
     verificar(() => assert.equal(publicada.status, 303));
   }
-  const descoberta = await ler("/dashboard?q=visitante", "autor");
-  verificar(() => assert.ok(descoberta.includes("/p/visitante")));
-  const perfilDescoberto = await ler("/p/visitante", "autor");
+  const descoberta = await ler("/descoberta?q=visitante", "autor");
+  verificar(() => assert.ok(descoberta.includes("/artistas/visitante")));
+  const perfilDescoberto = await ler("/artistas/visitante?aba=catalogo", "autor");
   verificar(() => assert.ok(perfilDescoberto.includes(tituloDemo)));
-  verificar(() => assert.ok(perfilDescoberto.includes('action="/messages/start"')));
+  verificar(() => assert.ok(perfilDescoberto.includes('action="/mensagens/iniciar"')));
 
   const seguir = await post("/interacoes/perfil/visitante/seguir", { ativo: "sim" });
   verificar(() => assert.equal(seguir.status, 303));
@@ -634,7 +635,7 @@ try {
   verificar(() => assert.ok(pendente.includes(tituloDemo) && pendente.includes("Mixagem da faixa")));
   const fichaPendente = await ler(urlFicha, "visitante");
   verificar(() => assert.match(fichaPendente, /Aguardando confirmação/));
-  const portfolioAntesDoCredito = await ler("/portfolio/edit", "autor");
+  const portfolioAntesDoCredito = await ler("/portfolio/editar", "autor");
   verificar(() => assert.ok(!portfolioAntesDoCredito.includes(tituloDemo)));
   const indevida = await post(urlConvite, {}, "visitante");
   verificar(() => assert.equal(indevida.status, 404));
@@ -654,9 +655,18 @@ try {
   verificar(() => assert.match(ficha, /Mixagem da faixa · Confirmado/));
   const fichaPublica = await ler(urlPublica, "consumidor");
   verificar(() => assert.match(fichaPublica, /Créditos confirmados[\s\S]*Mixagem/));
-  const portfolioComCredito = await ler("/portfolio/edit", "autor");
+  seed("somente_credito");
+  const catalogoDeCredito = "/artistas/somente_credito?aba=catalogo";
+  db.prepare("INSERT INTO creditos(id,obra_id,usuario_creditado_id,nome_creditado,funcao,verificado) VALUES('credito-isolado',?,'somente_credito','somente_credito','Mixagem',0)").run(convite.obraId);
+  const catalogoPendente = await ler(catalogoDeCredito, "consumidor");
+  verificar(() => assert.doesNotMatch(catalogoPendente, /<h2>Catálogo<\/h2>|Batida da Madrugada/));
+  db.prepare("UPDATE creditos SET verificado=1 WHERE id='credito-isolado'").run();
+  const catalogoConfirmado = await ler(catalogoDeCredito, "consumidor");
+  verificar(() => assert.match(catalogoConfirmado, /<h2>Catálogo<\/h2>[\s\S]*<h3>Batida da Madrugada<\/h3>/));
+  db.prepare("DELETE FROM creditos WHERE id='credito-isolado'").run();
+  const portfolioComCredito = await ler("/portfolio/editar", "autor");
   verificar(() => assert.ok(portfolioComCredito.includes(tituloDemo)));
-  const portfolioPublicado = await post("/portfolio/edit", dados([{
+  const portfolioPublicado = await post("/portfolio/editar", dados([{
     chave: "obra:" + convite.obraId,
     selecionado: true,
     oculto: false,
@@ -672,46 +682,46 @@ try {
   verificar(() => assert.equal(db.prepare("SELECT count(*) n FROM notificacoes WHERE tipo='credito_confirmado' AND entidade_id=?").get(convite.obraId).n, 1));
 
   // A chegada de uma nova mensagem reabre o item na caixa da pessoa que o ocultou.
-  const novoContato = await post("/messages/start", { alvo_id: "visitante" });
+  const novoContato = await post("/mensagens/iniciar", { alvo_id: "visitante" });
   verificar(() => assert.equal(novoContato.status, 303));
   const conversa = novoContato.headers.get("location");
-  const perfilComConversa = await ler("/p/visitante", "autor");
+  const perfilComConversa = await ler("/artistas/visitante", "autor");
   verificar(() => assert.ok(perfilComConversa.includes('href="' + conversa + '"')));
-  const contatoInverso = await post("/messages/start", { alvo_id: "autor" }, "visitante");
+  const contatoInverso = await post("/mensagens/iniciar", { alvo_id: "autor" }, "visitante");
   verificar(() => assert.equal(contatoInverso.headers.get("location"), conversa));
   verificar(() => assert.equal((db.prepare("SELECT count(*) n FROM conversas WHERE contexto='Conversa direta'").get()).n, 1));
   const negado = await request(conversa, "consumidor");
   verificar(() => assert.equal(negado.status, 403));
-  const contatoConsumidor = await post("/messages/start", { alvo_id: "visitante" }, "consumidor");
+  const contatoConsumidor = await post("/mensagens/iniciar", { alvo_id: "visitante" }, "consumidor");
   verificar(() => assert.equal(contatoConsumidor.status, 403));
   const enviada = await post(conversa, { texto: "Vamos organizar a próxima sessão?", chave: "mensagem-teste-0001" });
   verificar(() => assert.equal(enviada.status, 303));
   const caixaAntesDaLeitura = await ler(conversa, "autor");
-  verificar(() => assert.match(caixaAntesDaLeitura, /· Enviada/));
+  verificar(() => assert.match(caixaAntesDaLeitura, /class="msg-delivery" aria-label="Enviada"/));
   const ladoVisitante = await ler(conversa, "visitante");
   verificar(() => assert.match(ladoVisitante, /próxima sessão/));
   const caixaDepoisDaLeitura = await ler(conversa, "autor");
-  verificar(() => assert.match(caixaDepoisDaLeitura, /· Lida/));
-  const ocultada = await post(conversa + "/hide", {}, "autor");
+  verificar(() => assert.match(caixaDepoisDaLeitura, /class="msg-delivery is-read" aria-label="Lida"/));
+  const ocultada = await post(conversa + "/ocultar", {}, "autor");
   verificar(() => assert.equal(ocultada.status, 303));
-  const caixaOcultada = await ler("/messages", "autor");
-  const caixaDoOutroLado = await ler("/messages", "visitante");
+  const caixaOcultada = await ler("/mensagens", "autor");
+  const caixaDoOutroLado = await ler("/mensagens", "visitante");
   verificar(() => assert.ok(!caixaOcultada.includes('href="' + conversa + '"')));
   verificar(() => assert.ok(caixaDoOutroLado.includes('href="' + conversa + '"')));
   const resposta = await post(conversa, { texto: "Na sexta funciona.", chave: "mensagem-teste-0002" }, "visitante");
   verificar(() => assert.equal(resposta.status, 303));
-  const reaberta = await ler("/messages", "autor");
+  const reaberta = await ler("/mensagens", "autor");
   verificar(() => assert.ok(reaberta.includes('href="' + conversa + '"')));
-  const bloqueio = await post("/messages/block", { alvo_id: "visitante", acao: "bloquear" });
+  const bloqueio = await post("/mensagens/bloquear", { alvo_id: "visitante", acao: "bloquear" });
   verificar(() => assert.equal(bloqueio.status, 303));
   const envioBloqueado = await post(conversa, { texto: "Olá", chave: "mensagem-teste-0003" }, "visitante");
   verificar(() => assert.equal(envioBloqueado.status, 403));
-  await post("/messages/block", { alvo_id: "visitante", acao: "desbloquear" });
+  await post("/mensagens/bloquear", { alvo_id: "visitante", acao: "desbloquear" });
   verificar(() => assert.equal(db.prepare("SELECT count(*) n FROM profissionais_seguidos WHERE seguidor_id='autor' AND profissional_id='visitante'").get().n, 0));
   const seguirNaDescoberta = await post("/interacoes/perfil/visitante/seguir", { ativo: "sim" }, "consumidor");
   verificar(() => assert.equal(seguirNaDescoberta.status, 303));
-  const recomendados = await ler("/dashboard?tipo=profissionais", "consumidor");
-  const linksPerfis = [...recomendados.matchAll(/href="\/p\/([^"#?]+)"/g)];
+  const recomendados = await ler("/descoberta?tipo=profissionais", "consumidor");
+  const linksPerfis = [...recomendados.matchAll(/href="\/artistas\/([^"#?]+)"/g)];
   verificar(() => assert.equal(linksPerfis[0]?.[1], "visitante"));
 
   const creditoObra = "/creditos/obra/" + convite.id;
@@ -734,7 +744,7 @@ try {
   const idCreditoBeat = db.prepare("SELECT id FROM creditos_publicacoes WHERE objeto_id='beat-mix'").get().id;
   const recusado = await post("/creditos/beat/" + idCreditoBeat, { acao: "recusado" });
   verificar(() => assert.equal(recusado.status, 303));
-  const fichaBeatSemCredito = await ler("/beats/beat-mix", "consumidor");
+  const fichaBeatSemCredito = await ler("/banco-de-beats/beat-mix", "consumidor");
   verificar(() => assert.doesNotMatch(fichaBeatSemCredito, /Créditos confirmados/));
   const conviteEvento = await post("/creditos/gerir/evento/convidado", { perfil: "@autor_novo", funcao: "Operação de som", categoria: "equipe" }, "fonte");
   verificar(() => assert.equal(conviteEvento.status, 303));
@@ -761,7 +771,7 @@ try {
   const seloPublicado = await request(caminhoSelo, "consumidor");
   verificar(() => assert.equal(seloPublicado.headers.get("content-type"), "image/png"));
   verificar(() => assert.equal((db.prepare("SELECT count(*) n FROM selos_perfil WHERE autor_id='autor' AND retirado_em IS NULL").get()).n, 1));
-  const fichaEvento = await ler("/events/convidado", "consumidor");
+  const fichaEvento = await ler("/eventos/convidado", "consumidor");
   verificar(() => assert.match(fichaEvento, /Equipe · Operação de som/));
   verificar(() => assert.ok(fichaEvento.includes(caminhoSelo)));
   const fichaComMarca = await ler(urlPublica, "consumidor");

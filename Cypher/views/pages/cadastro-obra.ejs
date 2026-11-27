@@ -1,4 +1,4 @@
-<%- include('../partials/cabecalho', { title, stylesheet }) %>
+<%- include('../partials/cabecalho', { title, stylesheet, etapasCriacao: true }) %>
 <link rel="stylesheet" href="/css/descoberta.css"><div class="dc-shell">
 <%- include('../partials/barra-lateral', { path }) %>
 <div class="dc-page">
@@ -54,7 +54,7 @@
     </p>
   </div>
 </div>
-<form class="work-form" method="post" action="<%= editando ? `/works/${encodeURIComponent(obraId)}/edit` : '/works/new' %>" data-work-form data-work-categories="<%= (usuario.categories ?? []).join('|') %>" data-type-other-legacy-empty="<%= tipoOutroLegadoVazio %>" data-genre-other-legacy-empty="<%= generoOutroLegadoVazio %>" data-role-other-legacy-empty="<%= papelOutroLegadoVazio %>">
+<form class="work-form" method="post" action="<%= editando ? `/obras/${encodeURIComponent(obraId)}/editar` : '/obras/novo' %>" data-work-form data-cy-wizard data-work-categories="<%= (usuario.categories ?? []).join('|') %>" data-type-other-legacy-empty="<%= tipoOutroLegadoVazio %>" data-genre-other-legacy-empty="<%= generoOutroLegadoVazio %>" data-role-other-legacy-empty="<%= papelOutroLegadoVazio %>">
   <section class="work-selected-type" aria-labelledby="work-selected-type-title">
     <div class="work-selected-type-icon lucide-icon" aria-hidden="true">
       <%- valores.tipo === 'Instrumental' ? icones.headphones : valores.tipo === 'Outro' ? icones.sparkles : valores.tipo === 'Letra' ? icones.pen : icones.fileMusic %>
@@ -68,14 +68,14 @@
       </h2>
     </div>
     <% if (!editando) { %>
-      <a class="button button-outline work-change-type" href="/works/new">
+      <a class="button button-outline work-change-type" href="/obras/novo">
         Trocar tipo
       </a>
     <% } %>
   </section>
   <input type="hidden" name="tipo" value="<%= valores.tipo %>" data-work-type-value>
   <input type="hidden" name="acervo" value="1">
-  <section class="form-section">
+  <section class="form-section" data-cy-step="Obra">
     <div class="form-section-heading">
       <span class="form-step">
         01
@@ -160,7 +160,7 @@
     </label><% } %>
   </div>
 </section>
-<section class="form-section" data-work-section="credits">
+<section class="form-section" data-cy-step="Créditos" data-work-section="credits">
   <div class="form-section-heading">
     <span class="form-step">
       02
@@ -308,7 +308,7 @@
     </button>
   </div>
 </section>
-<section class="form-section" data-work-section="release">
+<section class="form-section" data-cy-step="Detalhes e lançamento" data-work-section="release">
   <div class="form-section-heading">
     <span class="form-step">
       03
@@ -351,7 +351,7 @@
   %>
     <fieldset class="form-grid" data-vinculos-musicais data-limite="<%= max %>">
       <legend><%= faixa ? 'Faixas na ordem de reprodução' : 'Composições da gravação' %></legend>
-      <% if (!opcoes.length) { %><p class="field-full"><a href="/works/new?tipo=<%= faixa ? 'Fonograma' : encodeURIComponent('Composição') %>">Cadastrar <%= faixa ? 'um fonograma' : 'uma composição' %></a></p><% } else { %>
+      <% if (!opcoes.length) { %><p class="field-full"><a href="/obras/novo?tipo=<%= faixa ? 'Fonograma' : encodeURIComponent('Composição') %>">Cadastrar <%= faixa ? 'um fonograma' : 'uma composição' %></a></p><% } else { %>
       <div class="form-grid field-full" data-lista-vinculos>
         <% for (let i = 0; i < Math.min(max, escolhidas.length + 1); i++) { %>
           <label><%= faixa ? 'Faixa' : 'Composição' %> <%= i + 1 %>
@@ -367,7 +367,7 @@
     </fieldset>
   <% } %>
 </section>
-<div class="work-form-actions">
+<div class="work-form-actions" data-cy-finish>
   <a class="button button-outline" href="/espaco-de-trabalho">
     Cancelar
   </a>
@@ -379,7 +379,9 @@
 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 </form>
 </div>
-</main></div>
+</main>
+<%- include("../partials/navegacao-mobile", { rotaAtual: path }) %>
+</div>
 </div>
 <script src="/js/acervo-musical.js" defer></script>
 <%- include('../partials/fim-pagina') %>

@@ -5,9 +5,9 @@
 <a class="button button-outline" href="<%= voltar %>">← Voltar ao portfólio</a>
 <article class="pf-detail"><p class="eyebrow"><%= item.nomeTipo %></p><h1><%= item.titulo %></h1><p><strong><%= titular.nome %></strong> · <%= item.proprio?'Trabalho próprio':'Participação confirmada' %></p><p><%= item.papel %></p><p>Responsável pelo registro: <%= item.autor %></p>
 <%- include('../partials/componentes/midias-publicacao',{tipo:item.tipo,id:item.id}) %>
-<% if(item.capa && !item.capa.startsWith('/publication-media/')){ %><img class="pf-detail-cover" src="<%= item.capa %>" alt="<%= item.titulo %>"><% } %>
+<% if(item.capa && !item.capa.startsWith('/midias-de-publicacao/')){ %><img class="pf-detail-cover" src="<%= item.capa %>" alt="<%= item.titulo %>"><% } %>
 <p class="pf-detail-prose"><%= item.descricao %></p><dl class="pf-detail-facts"><% fatos.forEach(([nome,valor])=>{ %><div><dt><%= nome %></dt><dd><%= valor %></dd></div><% }) %></dl>
-<% if(origem){ %><a class="button button-lime" href="<%= origem %>">Abrir trabalho e materiais</a><% } %>
-<a class="button button-outline" href="/suporte/new?objeto_tipo=<%= item.tipo %>&amp;objeto_id=<%= encodeURIComponent(item.id) %>">Denunciar este registro</a>
+<div class="cy-report-actions"><% if(origem){ %><a class="button button-lime" href="<%= origem %>">Abrir trabalho e materiais</a><% } %>
+<%- include("../partials/componentes/denunciar-item", { tipo: item.tipo, id: item.id, rotulo: "Denunciar este registro" }) %></div>
 <p class="pf-note">A apresentação no portfólio identifica uma atuação. Não representa certificação de autoria, contratação ou reputação.</p>
 </article></main><%- include('../partials/navegacao-mobile',{rotaAtual:path}) %></div></div><%- include('../partials/fim-pagina') %>

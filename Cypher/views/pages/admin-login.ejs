@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="/css/entrada.css">
 <link rel="stylesheet" href="/css/admin-login.css">
 <main class="tag-page entrada-cypher admin-access">
-  <a class="tag-brand" href="/admin/login" aria-label="Cypher, acesso da administração">CYPHER <span>/ ADMIN</span></a>
+  <a class="tag-brand" href="/admin/entrar" aria-label="Cypher, acesso da administração">CYPHER <span>/ ADMIN</span></a>
   <div class="tag-content">
     <div class="tag-shell">
       <section class="tag-panel auth-panel" aria-labelledby="admin-login-title">
@@ -13,7 +13,7 @@
         <% if (erro) { %>
           <p class="auth-message auth-message-error" role="alert"><%= erro %></p>
         <% } %>
-        <form method="post" action="/admin/login">
+        <form method="post" action="/admin/entrar">
           <label>E-mail da equipe
             <input type="email" name="email" value="<%= email %>" placeholder="voce@equipe.com" maxlength="254" autocomplete="username" autocapitalize="none" spellcheck="false" required>
           </label>
@@ -26,7 +26,7 @@
           </button>
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         </form>
-        <p class="join-cypher">Quer entrar na Cypher? <a href="/login">Acesse sua conta pessoal <span aria-hidden="true"><%- icones.arrowUpRight %></span></a></p>
+        <p class="join-cypher">Quer entrar na Cypher? <a href="/entrar">Acesse sua conta pessoal <span aria-hidden="true"><%- icones.arrowUpRight %></span></a></p>
       </section>
     </div>
   </div>

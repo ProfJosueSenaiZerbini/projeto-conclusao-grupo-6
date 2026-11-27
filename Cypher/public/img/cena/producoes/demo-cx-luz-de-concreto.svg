@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 390">
+<defs><pattern id="breu" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 3h4" stroke="#e5d9b3" opacity=".14"/></pattern></defs>
+<path fill="#2d352c" d="M0 0h640v390H0z"/><path fill="#bcaf85" d="M122 0h221L173 390H0v-33z"/><path fill="#e7d5a6" d="M324 0h94L278 390H164z"/><path fill="#575b48" d="M415 0h97L412 390H271z"/><path fill="#8e896f" d="M539 0h101v390H396z"/>
+<path d="M29 264h580m-580 31h580m-580 29h580M155 91v35m0 27v16m327 116v36m0 15v28" stroke="#252923" stroke-width="3" opacity=".58"/>
+<path fill="url(#breu)" d="M0 0h640v390H0z"/><path d="M22 64V24h39m557 40V24h-39M22 326v40h39m557-40v40h-39" fill="none" stroke="#f0e0a8" stroke-width="3"/>
+</svg>

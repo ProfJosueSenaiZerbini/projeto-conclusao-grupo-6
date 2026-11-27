@@ -5,7 +5,7 @@
     for (const [chave, dado] of Object.entries({q, genero, ano, ordem, formato: valor})) if (dado && !(chave === 'ordem' && dado === 'recentes')) params.set(chave, dado);
     if (pagina > 1) params.set('pagina', pagina);
     if (favor) params.set('curtidos', '1');
-    return '/works' + (params.size ? '?' + params : '');
+    return '/obras' + (params.size ? '?' + params : '');
   }
 %>
 <div class="dc-shell ob-acervo">
@@ -52,7 +52,7 @@
           </nav>
             <a class="ob-collection-button" data-ob-collection href="<%= urlFormato(formato, 1, !curtidos) %>"><%- include('../partials/componentes/icone-beat', { tipo: 'crown' }) %> <%= curtidos ? 'Ver todas as obras' : 'Ver curtidas' %><% if (!curtidos) { %> <span data-ob-favorite-count><%= totalCurtidos %></span><% } %></a>
           <details class="dc-filter ob-filter"><summary><span aria-hidden="true"><%- icones.sliders %></span> Refinar<%= genero || ano ? ' •' : '' %></summary>
-            <form action="/works">
+            <form action="/obras">
               <% if (curtidos) { %><input type="hidden" name="curtidos" value="1"><% } %>
               <% for (const [chave, dado] of Object.entries({q, formato})) { if (dado) { %><input type="hidden" name="<%= chave %>" value="<%= dado %>"><% }} %>
               <label>Gênero musical<select name="genero"><option value="">Todos os gêneros</option><% generos.forEach(g => { %><option value="<%= g %>"<%= g === genero ? ' selected' : '' %>><%= g %></option><% }) %></select></label>
@@ -62,7 +62,7 @@
             </form>
           </details>
         </div>
-        <% if (filtrado) { %><div class="ob-active-filters"><span><%= [formato, genero, ano].filter(Boolean).join(' · ') || 'Busca no acervo' %></span><a href="/works">Limpar filtros</a></div><% } %>
+        <% if (filtrado) { %><div class="ob-active-filters"><span><%= [formato, genero, ano].filter(Boolean).join(' · ') || 'Busca no acervo' %></span><a href="/obras">Limpar filtros</a></div><% } %>
         <% if (obras.length) { %>
           <% grupos.forEach(grupo => { %>
             <section class="ob-shelf" data-ob-shelf aria-labelledby="ob-<%= grupo.id %>-titulo">
@@ -74,7 +74,7 @@
           <% }) %>
           <div class="dc-empty ob-empty" data-ob-collection-empty hidden><%- include('../partials/componentes/icone-beat', { tipo: 'crown' }) %><div><h3>Nenhuma obra curtida nesta página.</h3><a class="ob-text-button" href="<%= urlFormato(formato, 1) %>">Atualizar curtidas</a></div></div>
         <% } else { %>
-          <div class="dc-empty ob-empty"><%- icones.search %><div><h3><%= curtidos ? 'Nenhuma obra curtida nesta seleção.' : filtrado ? 'Nenhuma obra encontrada.' : 'Nenhuma obra disponível.' %></h3><a class="ob-text-button" href="/works">Explorar todo o acervo</a></div></div>
+          <div class="dc-empty ob-empty"><%- icones.search %><div><h3><%= curtidos ? 'Nenhuma obra curtida nesta seleção.' : filtrado ? 'Nenhuma obra encontrada.' : 'Nenhuma obra disponível.' %></h3><a class="ob-text-button" href="/obras">Explorar todo o acervo</a></div></div>
         <% } %>
         <% if (paginas > 1) { %><nav class="ob-catalog-note" aria-label="Páginas de obras">
           <% if (pagina > 1) { %><a href="<%= urlFormato(formato, pagina - 1) %>">Página anterior</a><% } %>
@@ -84,7 +84,7 @@
       </section>
       <p class="sr-only" role="status" aria-live="polite" data-ob-status></p>
     </main>
-    <%- include('../partials/navegacao-mobile', { rotaAtual: '/works' }) %>
+    <%- include('../partials/navegacao-mobile', { rotaAtual: '/obras' }) %>
   </div>
 </div>
 <script src="/js/catalogo-obras.js" defer></script>

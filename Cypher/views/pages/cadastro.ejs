@@ -2,16 +2,16 @@
 <link rel="stylesheet" href="/css/entrada.css">
 <link rel="stylesheet" href="/css/contas.css">
 <main class="tag-page entrada-cypher registration-page" data-tag-page data-active="<%= erro || tipoInicial ? dados.tipoConta : '' %>">
-<a class="tag-brand" href="/login" aria-label="Cypher, entrar">CYPHER</a><%- include('../partials/componentes/tema-entrada') %><div class="tag-content"><div class="tag-shell">
+<a class="tag-brand" href="/entrar" aria-label="Cypher, entrar">CYPHER</a><%- include('../partials/componentes/tema-entrada') %><div class="tag-content"><div class="tag-shell">
 <header class="tag-intro"><h1>Boas-vindas à Cypher!</h1><p>Como você participa da cena?</p></header>
 <nav class="tag-stack" aria-label="Tipo de conta">
 <% for (const [tipo,nome,descricao] of [['consumidor','Público','Descubra e acompanhe a cena.'],['profissional','Profissional','Mostre a todos sua arte!']]) { %>
-<a href="<%= (erro || tipoInicial) && dados.tipoConta === tipo ? '/register' : '/register?tipo='+tipo %>" class="tag-sticker" data-sticker="<%= tipo %>" aria-controls="cadastro-dados"><span class="sticker-paper"><span class="tag-band" aria-hidden="true">CYPHER</span><strong><%= nome %></strong><small><%= descricao %></small><% if ((erro || tipoInicial) && dados.tipoConta === tipo) { %><span class="sr-only">Conta selecionada. Trocar tipo de conta.</span><% } %></span></a>
+<a href="<%= (erro || tipoInicial) && dados.tipoConta === tipo ? '/cadastro' : '/cadastro?tipo='+tipo %>" class="tag-sticker" data-sticker="<%= tipo %>" aria-controls="cadastro-dados"><span class="sticker-paper"><span class="tag-band" aria-hidden="true">CYPHER</span><strong><%= nome %></strong><small><%= descricao %></small><% if ((erro || tipoInicial) && dados.tipoConta === tipo) { %><span class="sr-only">Conta selecionada. Trocar tipo de conta.</span><% } %></span></a>
 <% } %></nav>
 <section class="auth-panel tag-panel" id="cadastro-dados">
 <h2 data-register-title tabindex="-1">Crie sua conta</h2><p data-register-description>Preencha seus dados para continuar.</p>
 <% if(erro){ %><p class="auth-message auth-message-error" role="alert"><%= erro %></p><% } %>
-<form method="post" action="/register" data-register-form data-atuacao-form data-start-stage="<%= etapaInicial %>">
+<form method="post" action="/cadastro" data-register-form data-atuacao-form data-start-stage="<%= etapaInicial %>">
 <div hidden><% for(const tipo of ['consumidor','profissional']){ %><input type="radio" name="tipoConta" value="<%= tipo %>" <%= dados.tipoConta===tipo?'checked':'' %>><% } %></div>
   <ol class="register-steps" aria-label="Dados da conta e etapas do cadastro">
     <% for (const [id, nome] of [['conta','Nome'],['contato','Contato'],['acesso','Acesso'],['categorias','Atuação'],['vertentes','Vertentes'],['questionarios','Tempo de atuação']]) { %>
@@ -32,9 +32,9 @@
     <p class="register-inline-error" data-stage-error role="alert" hidden></p>
     <div class="register-navigation"><button class="button button-outline" type="button" data-register-back>Voltar</button><button class="button button-lime" type="button" data-continue>Continuar →</button></div>
   </section>
-  <section class="register-stage" data-register-stage="acesso" aria-label="Nascimento e senha" hidden>
+  <section class="register-stage" data-register-stage="acesso" aria-label="Nascimento, gênero e senha" hidden>
     <%- include('../partials/componentes/olhos-senha') %>
-    <div class="form-grid"><label>Data de nascimento<input name="nascimento" type="date" value="<%= dados.nascimento %>" max="<%= hoje %>" required autocomplete="bday"><small>A partir de 16 anos. Contas de 16 e 17 anos recebem proteções reforçadas de privacidade e contato.</small></label></div>
+    <div class="form-grid"><label>Data de nascimento<input name="nascimento" type="date" value="<%= dados.nascimento %>" max="<%= hoje %>" required autocomplete="bday"><small>A partir de 16 anos. Contas de 16 e 17 anos recebem proteções reforçadas de privacidade e contato.</small></label><%- include('../partials/componentes/genero',{identidade:dados}) %></div>
     <div class="form-grid"><label>Senha<input type="password" name="password" minlength="8" maxlength="128" autocomplete="new-password" required></label><label>Confirmar senha<input type="password" name="passwordConfirmation" minlength="8" maxlength="128" autocomplete="new-password" required></label></div>
     <label class="account-consent"><input type="checkbox" name="aceiteTermos" value="sim" <%= aceiteTermos ? 'checked' : '' %> required><span>Li e aceito os <a href="/termos-de-uso" target="_blank" rel="noopener">Termos de Uso</a> e estou ciente da <a href="/politica-privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</span></label><input type="hidden" name="versaoTermos" value="<%= versaoTermos %>"><input type="hidden" name="versaoPrivacidade" value="<%= versaoPrivacidade %>">
     <p class="register-inline-error" data-stage-error role="alert" hidden></p><div class="register-navigation"><button class="button button-outline" type="button" data-register-back>Voltar</button><button class="button button-lime" type="button" data-account-next>Continuar <span aria-hidden="true">→</span></button></div>
@@ -56,5 +56,5 @@
   <noscript><style>[data-register-stage][hidden],[data-category-area-panel][hidden],[data-category-browser][hidden]{display:block!important}</style><p>Sem JavaScript, preencha os dados e, se for profissional, selecione as profissões e seus tempos de atuação abaixo.</p><button class="button button-lime" type="submit">Finalizar cadastro</button></noscript>
   <input type="hidden" name="respostasAtuacoesJson" data-respostas-atuacoes-json value="{}"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
 </form></section>
-<p class="tag-login">Já tem uma conta? <a href="/login">Entrar</a></p>
+<p class="tag-login">Já tem uma conta? <a href="/entrar">Entrar</a></p>
 </div></div></main><script src="/js/questionario-atuacoes.js" defer></script><%- include('../partials/fim-pagina') %>

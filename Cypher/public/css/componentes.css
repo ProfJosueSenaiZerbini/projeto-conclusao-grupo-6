@@ -660,32 +660,23 @@ textarea:focus-visible {
   margin-top: 1px;
   color: #768a2c;
 }
-.mvc-toast {
-  position: fixed;
-  right: 22px;
-  bottom: 22px;
-  z-index: 100;
-  max-width: min(430px, calc(100vw - 32px));
-  padding: 12px 17px;
-  border: 1px solid #394332;
-  border-radius: 10px;
-  color: #f7faef;
-  background: #101a10;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18);
-  font-size: 12px;
-  animation: toast-in 0.2s ease-out;
+.cy-feedback.dc-shell {
+  position: fixed; inset: auto 18px 18px auto; z-index: 100; min-height: 0; margin: 0;
+  width: fit-content; max-width: min(340px, calc(100vw - 36px)); padding: 9px 13px;
+  border: 1px solid var(--dc-line); border-inline-start: 3px solid var(--dc-accent); border-radius: 3px 9px 3px 6px;
+  color: var(--dc-ink); background: var(--dc-surface); box-shadow: var(--dc-shadow);
+  font: 600 13px/1.35 "Space Grotesk", sans-serif; overflow-wrap: anywhere; pointer-events: none;
+  animation: toast-in 150ms ease-out;
 }
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(7px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.cy-feedback[hidden] { display: none !important; }
+.cy-feedback[data-tipo="erro"] { border-inline-start-color: #a63f30; }
+.dark .cy-feedback[data-tipo="erro"] { border-inline-start-color: #ffad98; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 900px) {
+  .cy-feedback.dc-shell { inset-inline-end: max(12px, env(safe-area-inset-right)); inset-block-end: calc(12px + env(safe-area-inset-bottom)); }
+  body:has(.dc-bottom) .cy-feedback.dc-shell { inset-block-end: calc(70px + env(safe-area-inset-bottom)); }
 }
-
+@media (prefers-reduced-motion: reduce) { .cy-feedback.dc-shell { animation: none; } }
 
 /* Seleção profissional por área — fluxo compacto e progressivo. */
 .professional-area-picker {
@@ -803,7 +794,28 @@ textarea:focus-visible {
 
 .reputation-stars{display:block;color:var(--yellow);letter-spacing:.12em;font-size:20px;margin:10px 0}
 
-.cy-report-link{display:inline-flex;align-items:center;padding:10px 12px;font-size:12px;color:var(--dc-muted,var(--ink));text-decoration:underline;text-underline-offset:3px}.cy-report-link:focus-visible{outline:2px solid var(--dc-accent);outline-offset:3px}
+.cy-report-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-block: 10px; }
+.dc-shell .cy-report-link {
+  --cy-report-ink: #8d3028;
+  --cy-report-wash: #b74b3514;
+  display: inline-grid; flex: none; place-items: center; vertical-align: middle;
+  width: 44px; height: 44px; padding: 0; border: 1px solid color-mix(in srgb, var(--cy-report-ink) 56%, transparent);
+  border-radius: 3px 8px 3px 6px; color: var(--cy-report-ink); background: var(--cy-report-wash);
+  text-decoration: none; list-style: none; cursor: pointer; touch-action: manipulation;
+}
+.dark .dc-shell .cy-report-link { --cy-report-ink: #ffab9b; --cy-report-wash: #f1725521; }
+.cy-report-link::-webkit-details-marker { display: none; }
+.dc-shell .cy-report-link svg { width: 18px; height: 18px; }
+.dc-shell .cy-report-link:is(:hover, :focus-visible) { color: var(--cy-report-ink); border-color: var(--cy-report-ink); background: color-mix(in srgb, var(--cy-report-ink) 12%, var(--dc-surface)); }
+.dc-shell .cy-report-link:focus-visible { outline: 2px solid var(--cy-report-ink); outline-offset: 2px; }
+.ci-actions > .cy-report-link { margin-inline-start: auto; }
+.pf-actions > .cy-report-link { order: 2; margin-inline-start: 12px; }
+.cy-report-actions > .cy-report-link, .ci-message > .cy-report-link { margin-inline-start: auto; }
+.cy-report-review > .cy-report-link { display: grid; margin: 8px 0 8px auto; }
+.cy-report-link[hidden] { display: none !important; }
+@media (hover: hover) and (pointer: fine) {
+  .dc-shell :is(.msg-bubble, .ci-message, .pf-seal-actions) .cy-report-link { width: 32px; height: 32px; }
+}
 .cy-selo-marca,
 .sp-selo-imagem {
   object-fit: contain;
@@ -841,13 +853,24 @@ textarea:focus-visible {
 .pf-seal::before { content: ""; position: absolute; inset: 10%; border: max(1px, calc(var(--seal-size) * .008)) solid currentColor; border-radius: inherit; opacity: .7; }
 .pf-seal::after { content: ""; position: absolute; z-index: -1; width: 160%; height: 25%; transform: rotate(-35deg); background: currentColor; opacity: .07; }
 .pf-seal-symbol { position: absolute; top: 15%; font-size: calc(var(--seal-size) * .19); font-weight: 700; }
+.pf-seal-symbol svg { display:block; width:1em; height:1em; }
 .pf-seal-letters { position: relative; margin-top: 10%; font-size: calc(var(--seal-size) * .3); font-weight: 800; letter-spacing: -.08em; white-space: nowrap; }
 .pf-seal-rule { position: absolute; bottom: 17%; width: 28%; border-top: max(1px, calc(var(--seal-size) * .01)) solid currentColor; }
-.pf-seal[data-cor="areia"] { --seal-base: #f0d5a0; --seal-light: #fff0cd; --seal-ink: #372411; }
-.pf-seal[data-cor="lilas"] { --seal-base: #ae9af4; --seal-light: #e3d9ff; --seal-ink: #231747; }
-.pf-seal[data-cor="cobre"] { --seal-base: #dc815d; --seal-light: #f7c0a2; --seal-ink: #321710; }
-.pf-seal[data-cor="ciano"] { --seal-base: #6bd9db; --seal-light: #c9faf2; --seal-ink: #10333b; }
-.pf-seal[data-cor="rosa"] { --seal-base: #ee78a8; --seal-light: #ffc6d8; --seal-ink: #441b34; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="areia"] { --seal-base: #f0d5a0; --seal-light: #fff0cd; --seal-ink: #372411; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="lilas"] { --seal-base: #ae9af4; --seal-light: #e3d9ff; --seal-ink: #231747; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="cobre"] { --seal-base: #dc815d; --seal-light: #f7c0a2; --seal-ink: #321710; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="ciano"] { --seal-base: #6bd9db; --seal-light: #c9faf2; --seal-ink: #10333b; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="rosa"] { --seal-base: #ee78a8; --seal-light: #ffc6d8; --seal-ink: #441b34; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="ouro"] { --seal-base: #d6ac51; --seal-light: #ffeac1; --seal-ink: #372406; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="rubi"] { --seal-base: #e7858a; --seal-light: #ffd4cd; --seal-ink: #4e121b; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="jade"] { --seal-base: #76c5a4; --seal-light: #cdf2d8; --seal-ink: #11382d; }
+:is(.pf-seal, .pf-seal-color-option)[data-cor="prata"] { --seal-base: #acbbc9; --seal-light: #edf5fe; --seal-ink: #202e41; }
+.pf-seal[data-forma="escudo"] { border-radius: 15% 15% 46% 46% / 14% 14% 56% 56%; }
+.pf-seal[data-forma="gota"] { border-radius: 57% 50% 56% 16%; }
+.pf-seal[data-forma="bilhete"] { border-radius: 13% 13% 24% 24%; aspect-ratio: 5 / 4; }
+.pf-seal[data-forma="bilhete"]::before { border-style: dashed; }
+.pf-seal[data-simbolo="nenhum"] .pf-seal-symbol { display: none; }
+.pf-seal[data-simbolo="nenhum"] .pf-seal-letters { margin-top: 0; }
 .pf-seal[data-forma="placa"] { border-radius: 8% 30%; }
 .pf-seal[data-forma="quadro"] { border-radius: 9%; }
 .pf-seal[data-forma="orbita"] { border-radius: 50%; transform: rotate(-12deg); box-shadow: inset 0 0 0 max(1px, calc(var(--seal-size) * .025)) var(--seal-base), inset 0 0 0 max(2px, calc(var(--seal-size) * .045)) var(--seal-ink), 0 0 0 max(1px, calc(var(--seal-size) * .018)) var(--seal-base), 0 0 0 max(2px, calc(var(--seal-size) * .035)) var(--seal-ink); }
@@ -858,6 +881,15 @@ textarea:focus-visible {
 .pf-seal[data-forma="prisma"] > * { transform: rotate(-45deg) scale(1.25); }
 .pf-seal[data-forma="prisma"] .pf-seal-symbol { top: 13%; left: 23%; }
 .pf-seal[data-forma="prisma"] .pf-seal-rule { bottom: 13%; right: 23%; }
+.pf-seal.pf-seal-composicao {
+  container-type: inline-size;
+  border: 0;
+  box-shadow: none;
+}
+.pf-seal.pf-seal-composicao::before, .pf-seal.pf-seal-composicao::after { content: none; }
+.pf-seal.pf-seal-composicao > * { position: absolute; inset: 0; transform: none; }
+.pf-seal.pf-seal-composicao > svg { width: 100%; height: 100%; }
+.pf-seal-composicao > .pf-seal-moldura { border-radius: inherit; pointer-events: none; }
 .cy-creditos-ficha .cy-selo-monograma,
 .cy-credito-assinatura .cy-selo-monograma {
   --seal-size: 2.5rem;

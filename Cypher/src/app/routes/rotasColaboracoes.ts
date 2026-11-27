@@ -3,7 +3,7 @@ import * as c from "../controllers/controladorColaboracoes.js";
 const r = Router(),
   s = c.seguro;
 r.get("/colaboracoes", s(c.lista));
-r.get("/colaboracoes/new", s(c.novo));
+r.get("/colaboracoes/novo", s(c.novo));
 r.post("/colaboracoes", s(c.criar));
 r.get("/colaboracoes/:id", s(c.detalhe));
 r.post("/colaboracoes/:id/avaliacoes", s(c.avaliar));

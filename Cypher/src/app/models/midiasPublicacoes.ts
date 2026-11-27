@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { caminhoBancoCypher, conexaoInternaCypher } from "./bancoDados.js";
+import { imagemPerfilDemo } from "./catalogoDemonstrativo.js";
 import { detectarMidia } from "./projetosTrabalho.js";
 import { objetoDisponivel, objetoSobMedida } from "./politicasModeracao.js";
 import { exigirContaInteracao, ErroInteracao } from "./interacoesConteudo.js";
@@ -89,6 +90,14 @@ export function capaPublicacao(ator: string, tipo: string, id: string) {
   return listarMidiasPublicacoes(ator, tipo, id).find(
     m => m.finalidade === "imagem" && m.posicao === "principal"
   )?.id;
+}
+export function fotoPerfilVisivel(ator: string, alvo: string, identificador?: string) {
+  if (!identificador || !objetoDisponivel(db(), "perfil", alvo, ator)) return "";
+  const enviada = capaPublicacao(ator, "perfil", alvo);
+  const catalogo = !enviada ? imagemPerfilDemo(identificador) : "";
+  return enviada
+    ? `/midias-de-publicacao/${encodeURIComponent(enviada)}`
+    : catalogo ? `/img/${catalogo}` : "";
 }
 export function salvarMidiaPublicacao(
   ator: string,

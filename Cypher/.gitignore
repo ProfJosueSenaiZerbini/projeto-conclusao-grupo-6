@@ -1,8 +1,8 @@
 node_modules/
 dist/
 coverage/
-/data/*.sqlite*
-/data/emails/
+/data/
+/tmp/
 
 .env
 .env.*
@@ -11,5 +11,3 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
-
-/data/midias/

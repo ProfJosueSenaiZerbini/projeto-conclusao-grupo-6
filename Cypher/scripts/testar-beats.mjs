@@ -537,6 +537,7 @@ try {
   ok(() => assert.equal(m.gestaoBeat("produtor", legado).disponivel, 0));
   // HTTP real: autenticação, CSRF, arquivos privados, EJS e ausência de atalhos de aprovação.
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   app.locals.icones = new Proxy({}, { get: () => "<svg></svg>" });
@@ -585,13 +586,13 @@ try {
       headers: { cookie: cookies[id], ...options.headers },
     });
   for (const [nome, url, id] of [
-    ["catalogo", "/beats?modalidade=premium&arquivo=audio%2Fwav", "comprador"],
-    ["novo", "/beats/new", "produtor"],
-    ["gestao", "/beats/" + beat + "/manage", "produtor"],
-    ["ficha", "/beats/" + beat, "comprador"],
-    ["compras", "/purchases", "comprador"],
-    ["pedido", "/purchases/" + gratuito, "comprador"],
-    ["premium", "/purchases/" + retry, "comprador"],
+    ["catalogo", "/banco-de-beats?modalidade=premium&arquivo=audio%2Fwav", "comprador"],
+    ["novo", "/banco-de-beats/novo", "produtor"],
+    ["gestao", "/banco-de-beats/" + beat + "/gestao", "produtor"],
+    ["ficha", "/banco-de-beats/" + beat, "comprador"],
+    ["compras", "/compras", "comprador"],
+    ["pedido", "/compras/" + gratuito, "comprador"],
+    ["premium", "/compras/" + retry, "comprador"],
   ]) {
     const response = await request(url, id),
       html = await response.text();
@@ -611,7 +612,7 @@ try {
     }
   }
   const cards = async (query) => {
-    const resposta = await request("/beats?" + query);
+    const resposta = await request("/banco-de-beats?" + query);
     assert.equal(resposta.status, 200);
     return Array.from((await resposta.text()).matchAll(/data-beat-id="([^"]+)"/g), v => v[1]);
   };
@@ -641,18 +642,18 @@ try {
   const before = m.pedidoBeat("comprador", retry).estado;
   await okAsync(async () =>
     assert.equal(
-      (await request("/purchases/" + retry + "?status=approved&payment_id=123"))
+      (await request("/compras/" + retry + "?status=approved&payment_id=123"))
         .status,
       200
     )
   );
   ok(() => assert.equal(m.pedidoBeat("comprador", retry).estado, before));
   await okAsync(async () =>
-    assert.equal((await request("/purchases/" + gratuito, "outro")).status, 404)
+    assert.equal((await request("/compras/" + gratuito, "outro")).status, 404)
   );
   await okAsync(async () =>
     assert.equal(
-      (await request("/purchases/" + gratuito + "/files/" + stems.id)).status,
+      (await request("/compras/" + gratuito + "/arquivos/" + stems.id)).status,
       404
     )
   );
@@ -660,7 +661,7 @@ try {
     assert.equal(
       (
         await request(
-          "/purchases/" + gratuito + "/files/" + entrega.id,
+          "/compras/" + gratuito + "/arquivos/" + entrega.id,
           "outro"
         )
       ).status,
@@ -668,7 +669,7 @@ try {
     )
   );
   const arquivo = await request(
-    "/purchases/" + gratuito + "/files/" + entrega.id
+    "/compras/" + gratuito + "/arquivos/" + entrega.id
   );
   ok(() => assert.equal(arquivo.status, 200));
   ok(() =>
@@ -679,14 +680,14 @@ try {
   );
   await okAsync(async () =>
     assert.equal(
-      (await request("/purchases/" + gratuito + "/license")).status,
+      (await request("/compras/" + gratuito + "/licenca")).status,
       200
     )
   );
   await okAsync(async () =>
     assert.equal(
       (
-        await request("/beats/" + beat + "/availability", "produtor", {
+        await request("/banco-de-beats/" + beat + "/disponibilidade", "produtor", {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ versao: 1 }),
@@ -699,7 +700,7 @@ try {
     assert.equal(
       (
         await request(
-          "/beats/" + beat + "/files?finalidade=previa",
+          "/banco-de-beats/" + beat + "/arquivos?finalidade=previa",
           "produtor",
           {
             method: "POST",
@@ -727,9 +728,35 @@ try {
       401
     )
   );
-  const anon = await fetch(host + "/purchases", { redirect: "manual" });
+  // Exercita os destinos publicados pelo formulário, não apenas URLs montadas no teste.
+  const gestao = "/banco-de-beats/" + beat + "/gestao";
+  const acaoOferta = async (pagina) => {
+    const resposta = await request(pagina, "produtor");
+    assert.equal(resposta.status, 200);
+    const html = await resposta.text();
+    const formulario = html.match(/<form\b[\s\S]*?<\/form>/g)?.find(tag => tag.includes('<select name="modalidade">'));
+    const acao = formulario?.match(/\baction="([^"]+)"/)?.[1];
+    assert.ok(acao, "Formulário de oferta deve publicar um destino");
+    return acao;
+  };
+  const enviarOferta = (acao, dados) => {
+    const body = new URLSearchParams({ ...dados, _csrf: csrf });
+    body.delete("arquivos");
+    dados.arquivos.forEach(id => body.append("arquivos", id));
+    return request(acao, "produtor", { method: "POST", body });
+  };
+  const nova = await acaoOferta(gestao);
+  ok(() => assert.equal(nova, "/banco-de-beats/" + beat + "/ofertas"));
+  const revisao = await acaoOferta(gestao + "?oferta=" + free);
+  ok(() => assert.equal(revisao, nova + "/" + free));
+  const ofertaRevisada = await enviarOferta(revisao, {
+    ...termos, versao: "2", titulo: "Licença revisada pelo formulário",
+  });
+  ok(() => assert.equal(ofertaRevisada.status, 303));
+  ok(() => assert.equal(m.gestaoBeat("produtor", beat).ofertas.find(o => o.id === free).numero, 3));
+  const anon = await fetch(host + "/compras", { redirect: "manual" });
   ok(() => assert.equal(anon.status, 302));
-  m.retirarOfertaBeat("produtor", beat, free, 2);
+  m.retirarOfertaBeat("produtor", beat, free, 3);
   await okAsync(async () => assert.deepEqual(await cards("modalidade=free"), []));
   ok(() =>
     assert.equal(

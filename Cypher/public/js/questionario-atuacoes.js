@@ -37,7 +37,7 @@
   const pageByStage = {
     conta: ["Como você se chama?", "Informe seu nome e escolha se ele aparece publicamente."],
     contato: ["Como te encontrar?", "Escolha seu @ e informe seu e-mail."],
-    acesso: ["Crie seu acesso", "Informe sua data de nascimento e escolha uma senha."],
+    acesso: ["Crie seu acesso", "Informe sua data de nascimento, escolha como quer ser tratado e crie sua senha."],
     categorias: ["Como você movimenta a cena?", "Selecione uma ou mais profissões. Você pode escolher em áreas diferentes."],
     vertentes: ["Qual é a sua sonoridade?", "Esta etapa é opcional. Você pode mudar suas escolhas depois."],
     questionarios: ["Tempo de atuação", "Informe seu tempo de atuação em cada profissão selecionada."],
@@ -526,7 +526,7 @@
     const originalText = accountNext.innerHTML;
     accountNext.textContent = "Verificando…";
     try {
-      const response = await fetch("/register/validate", {
+      const response = await fetch("/cadastro/validar", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -784,7 +784,7 @@
       const name = link.querySelector("strong").textContent;
       const descricao = link.querySelector("small").textContent;
       link.setAttribute("aria-label", name + ". " + descricao + (active ? " Conta selecionada. Trocar tipo de conta." : ""));
-      link.href = active ? "/register" : "/register?tipo=" + link.dataset.sticker;
+      link.href = active ? "/cadastro" : "/cadastro?tipo=" + link.dataset.sticker;
     }
     const after = sticker.getBoundingClientRect();
     if (sticker.animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) {

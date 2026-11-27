@@ -29,7 +29,7 @@
       <% if (mensagem) { %><p class="et-feedback" role="status"><%- icones.circleCheck %><%= mensagem %></p><% } %>
       <% if (secao) { %><a class="et-back" href="<%= url() %>"><%- icones.arrowLeft %> Voltar à visão geral</a><% } %>
       <span id="et-aviso" class="et-sr" aria-live="polite"></span>
-      <nav class="et-workspace-links" aria-label="Acervo e oportunidades"><a class="et-more" href="/colaboracoes">Minhas colaborações</a><a class="et-more" href="/portfolio/edit">Organizar meu portfólio</a><a class="et-more" href="/work-projects?meus=sim">Meus projetos e galerias</a><a class="et-more" href="/work-projects/new">Criar trabalho / galeria</a><a class="et-more" href="/my-opportunities">Minhas oportunidades</a></nav>
+      <nav class="et-workspace-links" aria-label="Acervo e oportunidades"><a class="et-more" href="/colaboracoes">Minhas colaborações</a><a class="et-more" href="/portfolio/editar">Organizar meu portfólio</a><a class="et-more" href="/trabalhos-e-galerias?meus=sim">Meus projetos e galerias</a><a class="et-more" href="/trabalhos-e-galerias/novo">Criar trabalho / galeria</a><a class="et-more" href="/minhas-oportunidades">Minhas oportunidades</a></nav>
       <div id="et-resultados">
       <% grupos.forEach(g => { %>
         <section class="et-section" aria-labelledby="titulo-<%= g.id %>">
@@ -44,7 +44,7 @@
               <span class="et-empty-icon" aria-hidden="true"><%- q ? icones.search : g.proprio ? icones.disc : icones.users %></span>
               <div><h3><%= g.vazio %></h3>
                 <% if (!q && profissao === 'todas' && !g.proprio) { %><p>Os créditos confirmados e as participações em eventos aparecem aqui.</p><% } %>
-                <% if (!q && profissao === 'todas' && g.proprio && acoes.length) { %><a class="et-more" href="<%= acoes[0].base %>/new?origem=espaco"><%= acoes[0].nome %> <%- icones.arrowRight %></a><% } %>
+                <% if (!q && profissao === 'todas' && g.proprio && acoes.length) { %><a class="et-more" href="<%= acoes[0].base %>/novo?origem=espaco"><%= acoes[0].nome %> <%- icones.arrowRight %></a><% } %>
               </div>
             </div>
           <% } %>
@@ -59,7 +59,7 @@
           </summary>
           <nav id="et-acoes" aria-label="Ações de criação">
             <% acoes.forEach(a => { %>
-              <a class="et-create-action" data-create-kind="<%= a.base.slice(1) %>" href="<%= a.base %>/new?origem=espaco">
+              <a class="et-create-action" data-create-kind="<%= a.base.slice(1) %>" href="<%= a.base %>/novo?origem=espaco">
                 <span aria-hidden="true"><%- icones[a.icone] %></span>
                 <span><%= a.nome %></span>
               </a>

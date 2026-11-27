@@ -24,7 +24,7 @@ export const urlBusca = (
   for (const [nome, valor] of Object.entries(valores))
     if (valor && !(nome === "tipo" && valor === "tudo"))
       params.set(nome, String(valor));
-  return "/search" + (params.size ? "?" + params : "");
+  return "/busca" + (params.size ? "?" + params : "");
 };
 
 // Página e sugestões compartilham as mesmas projeções e políticas públicas.
@@ -77,10 +77,10 @@ export function pesquisarGlobal(
           item.grupo === "obras"
             ? enderecoObra(item.handle, item.id)
             : item.grupo === "beats"
-              ? "/beats#beat-" + encodeURIComponent(item.id)
+              ? "/banco-de-beats#beat-" + encodeURIComponent(item.id)
               : item.demonstracao
-                ? "/events?localizacao=#evento-" + encodeURIComponent(item.id)
-                : "/events/" + encodeURIComponent(item.id),
+                ? "/eventos?localizacao=#evento-" + encodeURIComponent(item.id)
+                : "/eventos/" + encodeURIComponent(item.id),
         temaCartao: resolverTemaEvento(item.temaCartao),
         fotoDestaque: fotoEventoDemonstrativo(item.id),
         dia: partes.find(p => p.type === "day")?.value,

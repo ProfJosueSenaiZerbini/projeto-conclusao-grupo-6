@@ -4,7 +4,6 @@ document.addEventListener("submit", async evento => {
   evento.preventDefault();
   const botao = form.querySelector("button");
   if (botao.disabled || botao.getAttribute("aria-busy") === "true") return;
-  const status = document.querySelector("#ci-status");
   const chave = form.dataset.ciAction;
   const estado = { curtir: "curtido", salvar: "salvo", seguir: "segue" }[chave];
   if (chave === "salvar") {
@@ -48,8 +47,7 @@ document.addEventListener("submit", async evento => {
         );
       }
     }
-    if (status)
-      status.textContent =
+    window.cypherAvisar?.(
         chave === "curtir"
           ? ativo
             ? "Curtida adicionada."
@@ -60,13 +58,12 @@ document.addEventListener("submit", async evento => {
               : "Você deixou de seguir este perfil."
             : ativo
               ? "Adicionado aos seus salvos."
-              : "Removido dos seus salvos.";
+              : "Removido dos seus salvos.");
   } catch (erro) {
-    if (status)
-      status.textContent =
+    window.cypherAvisar?.(
         erro instanceof SyntaxError
           ? "Não foi possível concluir a ação. Atualize a página e tente novamente."
-          : erro.message;
+          : erro.message, "erro");
   } finally {
     if (chave === "salvar") {
       botao.removeAttribute("aria-busy");
@@ -201,19 +198,13 @@ document.addEventListener("submit", async evento => {
       return;
     const root = form.closest(".ci-conversation");
     const url = content.contains(root) ? trigger?.dataset.ciOpen : null;
-    const opening = request;
     const submittingText = root.querySelector(".ci-composer textarea")?.value || "";
     const publishing = form.dataset.ciComment === "publicar";
     const activeConversation = () => dialog.open && content.contains(root);
-    const say = text => {
-      const live = dialog.open && url && opening === request
-        ? message : document.querySelector("#ci-status");
-      if (live) live.textContent = text;
-    };
     if (url && pendingComments.has(url)) return;
     const scroll = root.querySelector(".ci-messages").scrollTop;
     button.disabled = true;
-    say("");
+    if (activeConversation()) announce("");
     try {
       const operation = fetch(form.action, {
         method: "POST",
@@ -241,7 +232,7 @@ document.addEventListener("submit", async evento => {
         }
         content.querySelector(".ci-messages").scrollTop = publishing ? 0 : scroll;
       } else if (!url) root.outerHTML = data.html;
-      say(
+      window.cypherAvisar?.(
         form.dataset.ciComment === "excluir"
           ? "Comentário excluído."
           : form.dataset.ciComment === "editar"
@@ -252,7 +243,7 @@ document.addEventListener("submit", async evento => {
       say(
         error instanceof SyntaxError
           ? "Não foi possível concluir. Tente novamente."
-          : error.message
+          : error.message, "erro"
       );
     } finally {
       if (url) pendingComments.delete(url);

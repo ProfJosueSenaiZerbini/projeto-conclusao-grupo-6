@@ -1,0 +1,19 @@
+<%
+  const hrefProducao = "/trabalhos-e-galerias/" + encodeURIComponent(projeto.id);
+  const numeroProducao = String(indice + 1).padStart(2, "0");
+%>
+<article class="dc-producao" data-modalidade="<%= projeto.modalidade %>">
+  <a class="dc-producao-link" href="<%= hrefProducao %>" aria-label="Ver produção: <%= projeto.titulo %>">
+    <div class="dc-producao-capa" aria-hidden="true">
+      <% if (projeto.imagem) { %><img src="<%= projeto.imagem %>" alt="" loading="lazy" width="640" height="390">
+      <% } else { %><span class="dc-producao-marca"><%- icones.disc %></span><% } %>
+      <span class="dc-producao-indice"><%= numeroProducao %></span>
+    </div>
+    <div class="dc-producao-corpo">
+      <p class="dc-producao-formato"><%= projeto.formato %></p>
+      <h3><%= projeto.titulo %></h3>
+      <p class="dc-producao-descricao"><%= projeto.descricao %></p>
+      <footer><span><%= projeto.autor %></span><span class="dc-producao-acao">Ver produção <%- icones.arrowUpRight %></span></footer>
+    </div>
+  </a>
+</article>

@@ -5,7 +5,7 @@
      if (termo) params.set('q', termo);
      if (refino) params.set('detalhe', refino);
      if (pag > 1) params.set('pagina', pag);
-     return '/dashboard' + (params.size ? '?' + params : '');
+     return '/descoberta' + (params.size ? '?' + params : '');
    };
    function cabecao(titulo, url, acao = 'Ver mais') { %>
   <div class="dc-heading"><h2><%= titulo %></h2><% if (url) { %><a href="<%= url %>" aria-label="<%= acao %> — <%= titulo %>"><%= acao %> <%- icones.arrowRight %></a><% } %></div>
@@ -30,7 +30,7 @@
         </nav>
         <% if (gruposOpcoes.length || detalhe) { %>
           <details class="dc-filter cy-filter-panel" <%= detalhe ? 'open' : '' %>><summary aria-label="Refinar resultados" title="Refinar resultados"><%- icones.sliders %><span>Filtros<%= detalhe ? ' · 1' : '' %></span></summary>
-            <form action="/dashboard">
+            <form action="/descoberta">
               <input type="hidden" name="tipo" value="<%= categoria %>"><input type="hidden" name="q" value="<%= q %>">
               <label>Refinar resultados<select name="detalhe"><option value="">Todos os resultados</option>
                 <% gruposOpcoes.forEach(grupo => { %><optgroup label="<%= grupo.nome %>"><% grupo.valores.forEach(op => { %><option value="<%= op %>" <%= op === detalhe ? 'selected' : '' %>><%= op %></option><% }) %></optgroup><% }) %>
@@ -40,7 +40,7 @@
         <% } %>
       </div>
       <% if (filtrado) { %>
-        <section class="dc-results"><% cabecao(q ? 'Resultados para “' + q + '”' : (categoria === 'musica' ? 'Lançamentos na cena' : categorias.find(c => c.id === categoria).nome), '/dashboard', 'Limpar filtros'); %>
+        <section class="dc-results"><% cabecao(q ? 'Resultados para “' + q + '”' : (categoria === 'musica' ? 'Lançamentos na cena' : categorias.find(c => c.id === categoria).nome), '/descoberta', 'Limpar filtros'); %>
           <p><%= total %> <%= total === 1 ? 'resultado' : 'resultados' %><%= detalhe ? ' · ' + detalhe : '' %></p>
           <% if (total) { %><div class="dc-result-grid">
             <% resultados.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %>
@@ -79,8 +79,8 @@
                   <% }) %>
                 </div>
                 <div class="dc-feature-controls">
-                  <button class="dc-feature-arrow dc-feature-prev" type="button" aria-label="Destaque anterior" aria-controls="destaques-conteudo"><%- icones.arrowLeft %></button>
-                  <button class="dc-feature-arrow dc-feature-next" type="button" aria-label="Próximo destaque" aria-controls="destaques-conteudo"><%- icones.arrowRight %></button>
+                  <button class="dc-feature-arrow dc-feature-prev" type="button" tabindex="-1" aria-label="Destaque anterior" aria-controls="destaques-conteudo"><%- icones.arrowLeft %></button>
+                  <button class="dc-feature-arrow dc-feature-next" type="button" tabindex="-1" aria-label="Próximo destaque" aria-controls="destaques-conteudo"><%- icones.arrowRight %></button>
                 </div>
                 <span class="dc-feature-status" role="status" aria-live="polite" aria-atomic="true"></span>
               </div>
@@ -99,42 +99,35 @@
               </div>
             </section>
             <section class="dc-discovery-section" aria-labelledby="oportunidades-titulo">
-              <div class="dc-heading"><h2 id="oportunidades-titulo">Oportunidades para criar junto</h2><a href="/opportunities">Ver todas <%- icones.arrowRight %></a></div>
-              <% if (oportunidades.length) { %><div class="dc-opportunities">
-                <% oportunidades.forEach(oportunidade => { %><article class="dc-opportunity">
-                  <span class="dc-stamp">CHAMADA ABERTA</span>
-                  <h3><a href="/opportunities/<%= encodeURIComponent(oportunidade.id) %>"><%= oportunidade.titulo %></a></h3>
-                  <p><%= oportunidade.descricao %></p>
-                  <div class="dc-opportunity-tags"><% oportunidade.funcoes.forEach(funcao => { %><span><%= funcao %></span><% }) %></div>
-                  <footer><span><%= oportunidade.autor %><%= oportunidade.local ? ' · ' + oportunidade.local : '' %></span><a href="/opportunities/<%= encodeURIComponent(oportunidade.id) %>" aria-label="Ver oportunidade: <%= oportunidade.titulo %>">Ver chamada <%- icones.arrowUpRight %></a></footer>
-                </article><% }) %>
-              </div><% } else { %><div class="dc-empty"><%- icones.briefcase %><div><strong>Novas chamadas aparecerão aqui.</strong><p>Explore as oportunidades publicadas pela comunidade.</p></div></div><% } %>
+              <div class="dc-heading"><h2 id="oportunidades-titulo">Oportunidades para criar junto</h2><a href="/oportunidades">Ver todas <%- icones.arrowRight %></a></div>
+              <% if (oportunidades.length) { %>
+                <div class="dc-rail">
+                  <div id="trilho-oportunidades-descoberta" class="dc-tiles cy-call-rail" role="region" aria-label="Oportunidades: rolagem horizontal" tabindex="0">
+                    <% oportunidades.forEach(chamada => { %>
+                      <%- include('../partials/componentes/cartao-oportunidade', { chamada, contextoCard: 'explorar' }) %>
+                    <% }) %>
+                  </div>
+                  <%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-oportunidades-descoberta', titulo: 'oportunidades', rotulo: 'Navegar pelas oportunidades' }) %>
+                </div><% } else { %><div class="dc-empty"><%- icones.briefcase %><div><strong>Novas chamadas aparecerão aqui.</strong><p>Explore as oportunidades publicadas pela comunidade.</p></div></div><% } %>
             </section>
-            <section class="dc-discovery-section"><% cabecao('Beats para ouvir', '/beats'); %>
+            <section class="dc-discovery-section"><% cabecao('Beats para ouvir', '/banco-de-beats'); %>
               <% if (beats.length) { %><div class="dc-rail"><div id="trilho-beats-descoberta" class="dc-tiles" role="region" aria-label="Beats para ouvir — rolagem horizontal" tabindex="0"><% beats.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-beats-descoberta', titulo: 'beats', rotulo: 'Navegar pelos beats' }) %></div><% } else { %><div class="dc-empty"><%- icones.headphones %><div><strong>Os próximos beats da cena aparecerão aqui.</strong></div></div><% } %>
             </section>
-            <section class="dc-discovery-section"><% cabecao('Produções da cena', projetosCena.length ? '/work-projects' : '/works'); %>
+            <section class="dc-discovery-section"><% cabecao('Produções da cena', projetosCena.length ? '/trabalhos-e-galerias' : '/obras'); %>
               <% if (projetosCena.length) { %>
-                <div class="dc-rail"><div id="trilho-producoes-descoberta" class="dc-tiles" role="region" aria-label="Produções da cena: rolagem horizontal" tabindex="0">
-                  <% projetosCena.forEach(projeto => { const url = "/work-projects/" + encodeURIComponent(projeto.id); %>
-                    <article class="dc-opportunity">
-                      <span class="dc-stamp"><%= projeto.formato %></span>
-                      <h3><a href="<%= url %>"><%= projeto.titulo %></a></h3>
-                      <p><%= projeto.descricao %></p>
-                      <footer><span><%= projeto.autor %></span><a href="<%= url %>" aria-label="Ver produção: <%= projeto.titulo %>">Ver produção <%- icones.arrowUpRight %></a></footer>
-                    </article>
-                  <% }) %>
+                <div class="dc-rail"><div id="trilho-producoes-descoberta" class="dc-tiles dc-producoes-trilho" role="region" aria-label="Produções da cena: rolagem horizontal" tabindex="0">
+                  <% projetosCena.forEach((projeto, indice) => { %><%- include('../partials/componentes/cartao-producao-cena', { projeto, indice }) %><% }) %>
                 </div><%- include("../partials/componentes/navegacao-horizontal", { faixa: "trilho-producoes-descoberta", titulo: "produções", rotulo: "Navegar pelas produções da cena" }) %></div>
               <% } else if (producoes.length) { %><div class="dc-rail"><div id="trilho-producoes-descoberta" class="dc-tiles" role="region" aria-label="Produções da cena — rolagem horizontal" tabindex="0"><% producoes.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-producoes-descoberta', titulo: 'produções', rotulo: 'Navegar pelas produções da cena' }) %></div><% } else { %><div class="dc-empty"><%- icones.music %><div><strong>As obras da comunidade aparecerão aqui.</strong></div></div><% } %>
             </section>
-            <section class="dc-discovery-section"><% cabecao('Novos talentos', '/search?tipo=pessoas'); %>
+            <section class="dc-discovery-section"><% cabecao('Novos talentos', '/busca?tipo=pessoas'); %>
               <% if (novosTalentos.length) { %><div class="dc-rail"><div id="trilho-talentos-descoberta" class="dc-people" role="region" aria-label="Novos talentos — rolagem horizontal" tabindex="0"><% novosTalentos.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-talentos-descoberta', titulo: 'novos talentos', rotulo: 'Navegar pelos novos talentos' }) %></div><% } else { %><div class="dc-empty"><%- icones.users %><div><strong>Novos perfis aparecerão aqui.</strong></div></div><% } %>
             </section>
-            <section><% cabecao('Profissionais para colaborar', '/search?tipo=pessoas'); %>
+            <section><% cabecao('Profissionais para colaborar', '/busca?tipo=pessoas'); %>
               <% if (pessoas.length) { %><div class="dc-rail"><div id="trilho-profissionais" class="dc-people" role="region" aria-label="Profissionais para colaborar — rolagem horizontal" tabindex="0"><% pessoas.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }) %></div><%- include('../partials/componentes/navegacao-horizontal', { faixa: 'trilho-profissionais', titulo: 'profissionais', rotulo: 'Navegar pelos profissionais' }) %></div>
               <% } else { %><div class="dc-empty"><%- icones.users %><div><strong>Novos nomes por aqui em breve</strong><p>Os perfis públicos de outros profissionais aparecem aqui.</p></div></div><% } %>
             </section>
-            <section><% cabecao('Eventos em destaque', '/events?localizacao='); %>
+            <section><% cabecao('Eventos em destaque', '/eventos?localizacao='); %>
               <% if (eventosDestacados.length) { %>
                 <div class="dc-rail">
                   <div id="eventos-destaque-conteudo" class="dc-tiles dc-event-tiles" role="region" aria-label="Eventos em destaque — rolagem horizontal" tabindex="0">
@@ -148,12 +141,12 @@
             </section>
           </div>
           <aside class="dc-aside" aria-label="Mais na cena">
-            <section class="dc-panel"><% cabecao('Perfis Mais Populares', '/search?ordem=populares'); %>
+            <section class="dc-panel"><% cabecao('Perfis Mais Populares', '/busca?ordem=populares'); %>
               <% if (populares.length) { populares.forEach(item => { %><%- include('../partials/componentes/item-descoberta', { item }) %><% }); } else { %>
                 <div class="dc-empty"><%- icones.users %><div><strong>Ainda não há perfis populares.</strong></div></div>
               <% } %>
             </section>
-            <section class="dc-panel"><% cabecao('Próximos eventos', '/events?periodo=proximos&ordem=recentes&localizacao='); %>
+            <section class="dc-panel"><% cabecao('Próximos eventos', '/eventos?periodo=proximos&ordem=recentes&localizacao='); %>
               <% if (agenda.length) { %>
                 <div class="dc-rail">
                   <div class="dc-agenda-pages" id="agenda-proximos" role="region" aria-label="Próximos eventos por data" tabindex="0">
@@ -172,20 +165,22 @@
             <section class="dc-panel dc-guide">
               <div class="dc-heading"><h2>Cypher Central</h2><a class="dc-central-info" href="/central" aria-label="Abrir Cypher Central" title="Abrir Cypher Central"><span aria-hidden="true">&#128712;</span></a></div>
               <% if(!guias.length){ %><p class="dc-empty">Os guias publicados pela equipe aparecerão aqui.</p><% } %>
-              <div class="dc-central-guides" id="guias-central" role="region" aria-label="Guias da Cypher Central">
-              <% guias.forEach((guia, indice) => { %>
-                <div class="dc-central-guide"<% if (indice) { %> hidden<% } %>>
-                <%- include('../partials/componentes/cartao-central', { rotulo: 'Guia da cena', titulo: guia.q, descricao: guia.a, href: guia.href }) %>
+              <% if (guias.length) { %>
+                <div class="dc-rail dc-guide-rail">
+                  <div class="dc-guide-track" id="guias-central" role="region" aria-label="Guias da Cypher Central: rolagem horizontal" tabindex="0">
+                    <% guias.forEach(guia => { %>
+                      <%- include('../partials/componentes/cartao-central', { rotulo: 'Guia da cena', titulo: guia.q, descricao: guia.a, href: guia.href }) %>
+                    <% }) %>
+                  </div>
+                  <%- include('../partials/componentes/navegacao-horizontal', { faixa: 'guias-central', titulo: 'guias da Cypher Central', rotulo: 'Navegar pelos guias da Cypher Central' }) %>
                 </div>
-              <% }); %>
-              <% if (guias.length > 1) { %><div class="dc-central-nav" role="group" aria-label="Navegar pelos guias da Cypher Central"><button type="button" class="dc-central-prev" aria-label="Guia anterior" aria-controls="guias-central" hidden><%- icones.arrowLeft %></button><button type="button" class="dc-central-next" aria-label="Próximo guia" aria-controls="guias-central"><%- icones.arrowRight %></button></div><% } %>
-              </div>
+              <% } %>
             </section>
           </aside>
         </div>
       <% } %>
     </main>
-    <%- include('../partials/navegacao-mobile', { rotaAtual: '/dashboard' }) %>
+    <%- include('../partials/navegacao-mobile', { rotaAtual: '/descoberta' }) %>
   </div>
 </div>
 <script src="/js/descoberta.js" defer></script>

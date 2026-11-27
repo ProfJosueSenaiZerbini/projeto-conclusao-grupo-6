@@ -1,6 +1,6 @@
 <%- include('../partials/cabecalho', { title, stylesheet }) %>
 <link rel="stylesheet" href="/css/entrada.css"><link rel="stylesheet" href="/css/contas.css">
-<main class="account-policy"><a class="tag-brand" href="/login">CYPHER</a><header><span class="eyebrow">REGRAS CLARAS PRA PARTICIPAR</span><h1><%= title %></h1><p>Versão <%= versao %>. Esta é a versão registrada no aceite do seu cadastro.</p></header>
+<main class="account-policy"><a class="tag-brand" href="/entrar">CYPHER</a><header><span class="eyebrow">REGRAS CLARAS PRA PARTICIPAR</span><h1><%= title %></h1><p>Versão <%= versao %>. Esta é a versão registrada no aceite do seu cadastro.</p></header>
 <div class="account-policy-grid">
 <% if(privacidade){ %>
 <section><span class="account-step">01</span><h2>O que a conta guarda</h2><p>Nome, e-mail, nascimento e credenciais protegem sua identidade e acesso. Profissões, trabalhos, mensagens e interações sustentam as funções que você utiliza. A senha é armazenada como hash; os links de confirmação e recuperação expiram.</p></section>
@@ -17,4 +17,4 @@
 <section><span class="account-step">05</span><h2>Decisões e contestações</h2><p>A equipe pode aplicar medidas proporcionais, com justificativa e histórico, conforme a conduta analisada. Use o suporte para consultar decisões e apresentar os esclarecimentos ou recursos cabíveis. Uma denúncia não comprova uma acusação.</p></section>
 <section><span class="account-step">06</span><h2>Seu acesso e sua saída</h2><p>Sessões duram no máximo 24 horas. Trocar ou recuperar a senha encerra sessões anteriores. Você pode encerrar a conta confirmando sua senha; registros compartilhados necessários à proteção de direitos e à auditoria permanecem preservados.</p></section>
 <% } %>
-</div><footer><a class="button button-lime" href="/register">Voltar ao cadastro</a><a class="button button-outline" href="<%= privacidade ? '/termos-de-uso' : '/politica-privacidade' %>"><%= privacidade ? 'Termos de Uso' : 'Política de Privacidade' %></a><a href="/login">Já tenho conta</a></footer></main><%- include('../partials/fim-pagina') %>
+</div><footer><a class="button button-lime" href="/cadastro">Voltar ao cadastro</a><a class="button button-outline" href="<%= privacidade ? '/termos-de-uso' : '/politica-privacidade' %>"><%= privacidade ? 'Termos de Uso' : 'Política de Privacidade' %></a><a href="/entrar">Já tenho conta</a></footer></main><%- include('../partials/fim-pagina') %>

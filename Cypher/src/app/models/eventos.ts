@@ -36,19 +36,15 @@ export const estadosInscricao: Record<string, string> = {
   recusada: "Recusada",
   cancelada: "Cancelada",
 };
-export function fusoValido(valor: unknown) {
-  const s = texto(valor, 80, "Fuso horário", 1);
-  try {
-    new Intl.DateTimeFormat("pt-BR", { timeZone: s }).format();
-    return s;
-  } catch {
-    throw new ErroEvento("Selecione um fuso horário válido.");
-  }
+const referenciaAgenda = "America/Sao_Paulo";
+const horarioPublico = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short", timeZone: referenciaAgenda });
+export function apresentarHorarioEvento(n: number | null) {
+  return n === null ? "Horário a confirmar" : horarioPublico.format(n);
 }
-function partes(n: number, fuso: string) {
+function partes(n: number) {
   return Object.fromEntries(
     new Intl.DateTimeFormat("en-CA", {
-      timeZone: fuso,
+      timeZone: referenciaAgenda,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -62,7 +58,7 @@ function partes(n: number, fuso: string) {
       .map(p => [p.type, p.value])
   );
 }
-export function instanteLocal(data: string, hora: string, fuso: string) {
+export function instanteLocal(data: string, hora: string) {
   exigir(
     /^\d{4}-\d{2}-\d{2}$/.test(data) && /^\d{2}:\d{2}$/.test(hora),
     "Informe data e horário completos."
@@ -75,7 +71,7 @@ export function instanteLocal(data: string, hora: string, fuso: string) {
   );
   let t = alvo;
   for (let i = 0; i < 4; i++) {
-    const p = partes(t, fuso);
+    const p = partes(t);
     const local = Date.parse(
       `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}Z`
     );
@@ -83,10 +79,10 @@ export function instanteLocal(data: string, hora: string, fuso: string) {
     if (!d) break;
     t += d;
   }
-  const p = partes(t, fuso);
+  const p = partes(t);
   exigir(
     `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}` === data + "T" + hora,
-    "Esse horário não existe no fuso selecionado."
+    "Informe um horário válido para essa data."
   );
   return t;
 }
@@ -119,7 +115,6 @@ function config(id: string) {
       evento_id: id,
       capacidade: null,
       criterios: "",
-      fuso: "America/Sao_Paulo",
       inicio_em: null,
       fim_em: null,
       latitude: null,
@@ -179,7 +174,7 @@ function notificar(
     destino,
     titulo,
     mensagem,
-    "/events/" + id,
+    "/eventos/" + id,
     id,
     "eventos:" + id + ":" + chave + ":" + destino
   );
@@ -215,12 +210,10 @@ function participacaoAberta(e: Linha, c: Linha, agora: number) {
   );
 }
 export function validarConfiguracaoEvento(b: Record<string, unknown>) {
-  const fuso = fusoValido(b.fuso ?? "America/Sao_Paulo"),
-    inicio = instanteLocal(String(b.data ?? ""), String(b.horario ?? ""), fuso),
+  const inicio = instanteLocal(String(b.data ?? ""), String(b.horario ?? "")),
     fim = instanteLocal(
       String(b.fimData ?? ""),
-      String(b.fimHorario ?? ""),
-      fuso
+      String(b.fimHorario ?? "")
     );
   exigir(
     fim > inicio && fim - inicio <= 30 * 86400000,
@@ -256,12 +249,12 @@ export function validarConfiguracaoEvento(b: Record<string, unknown>) {
   return {
     capacidade: cap ? Number(cap) : null,
     criterios,
-    fuso,
     inicio_em: inicio,
     fim_em: fim,
     latitude: lat,
     longitude: lon,
     local_confirmado: lat === null ? 0 : 1,
+    endereco_mapa_json: typeof b.enderecoMapaJson === "string" ? b.enderecoMapaJson : "",
     serie_id: serie || null,
   };
 }
@@ -301,17 +294,17 @@ export function salvarConfiguracaoEvento(
       );
     }
     run(
-      `INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,fuso,inicio_em,fim_em,latitude,longitude,local_confirmado,serie_id) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(evento_id) DO UPDATE SET capacidade=excluded.capacidade,criterios=excluded.criterios,fuso=excluded.fuso,inicio_em=excluded.inicio_em,fim_em=excluded.fim_em,latitude=excluded.latitude,longitude=excluded.longitude,local_confirmado=excluded.local_confirmado,serie_id=excluded.serie_id,versao=eventos_configuracoes.versao+1`,
+      `INSERT INTO eventos_configuracoes(evento_id,capacidade,criterios,inicio_em,fim_em,latitude,longitude,local_confirmado,serie_id,endereco_mapa_json) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(evento_id) DO UPDATE SET capacidade=excluded.capacidade,criterios=excluded.criterios,inicio_em=excluded.inicio_em,fim_em=excluded.fim_em,latitude=excluded.latitude,longitude=excluded.longitude,local_confirmado=excluded.local_confirmado,serie_id=excluded.serie_id,endereco_mapa_json=excluded.endereco_mapa_json,versao=eventos_configuracoes.versao+1`,
       id,
       v.capacidade,
       v.criterios,
-      v.fuso,
       v.inicio_em,
       v.fim_em,
       v.latitude,
       v.longitude,
       v.local_confirmado,
-      v.serie_id
+      v.serie_id,
+      v.endereco_mapa_json
     );
     const relevantes =
       antes &&
@@ -362,16 +355,21 @@ export function salvarConfiguracaoEvento(
     }
   });
 }
+export function camposHorarioEvento(n: number) {
+  const p = partes(n);
+  return { data: `${p.year}-${p.month}-${p.day}`, horario: `${p.hour}:${p.minute}` };
+}
 export function configuracaoFormularioEvento(ator: string, id: string) {
   organizador(ator, id);
   const c = config(id),
-    p = c.fim_em ? partes(c.fim_em, c.fuso) : null;
+    p = c.fim_em ? partes(c.fim_em) : null;
   return {
     capacidade: c.capacidade ?? "",
     criterios: c.criterios,
-    fuso: c.fuso,
+    ...(c.inicio_em ? camposHorarioEvento(c.inicio_em) : {}),
     fimData: p ? `${p.year}-${p.month}-${p.day}` : "",
     fimHorario: p ? `${p.hour}:${p.minute}` : "",
+    enderecoMapaJson: c.endereco_mapa_json ?? "",
     localConfirmado: c.local_confirmado ? "sim" : "",
     latitude: c.latitude ?? "",
     longitude: c.longitude ?? "",
@@ -423,10 +421,9 @@ export function seguirEvento(
       );
     if (acao === "preferencias")
       run(
-        "UPDATE eventos_acompanhamentos SET lembrar24=?,lembrar_dia=?,fuso=? WHERE evento_id=? AND usuario_id=?",
+        "UPDATE eventos_acompanhamentos SET lembrar24=?,lembrar_dia=? WHERE evento_id=? AND usuario_id=?",
         b.lembrar24 === "sim" ? 1 : 0,
         b.lembrarDia === "sim" ? 1 : 0,
-        fusoValido(b.fuso),
         id,
         ator
       );
@@ -963,22 +960,29 @@ export function fichaEvento(ator: string, id: string, agora = Date.now()) {
     ).filter(x => objetoDisponivel(db(), "evento", x.id, ator)),
   };
 }
-export function pontosMapaEventos(ator: string) {
+export function pontosMapaEventos(ator: string, agora = Date.now()) {
   usuario(ator);
+  const d = partes(agora);
+  const hoje = `${d.year}-${d.month}-${d.day}`;
   return todos(
-    `SELECT e.id,e.titulo,e.local,c.latitude,c.longitude FROM eventos e JOIN eventos_configuracoes c ON c.evento_id=e.id WHERE e.demonstracao=0 AND c.estado='ativo' AND c.local_confirmado=1 AND c.latitude IS NOT NULL AND c.longitude IS NOT NULL`
+    `SELECT e.id,e.titulo,e.local,e.data_texto,c.latitude,c.longitude,c.inicio_em,c.endereco_mapa_json
+       FROM eventos e JOIN eventos_configuracoes c ON c.evento_id=e.id
+       WHERE e.demonstracao=0 AND c.estado='ativo' AND e.situacao NOT IN('Encerrado','Cancelado')
+         AND c.local_confirmado=1 AND c.latitude IS NOT NULL AND c.longitude IS NOT NULL
+         AND (c.fim_em>? OR (c.fim_em IS NULL AND date(e.data_texto)=e.data_texto AND e.data_texto>=?))
+       ORDER BY e.data_texto,c.inicio_em,e.id`, agora, hoje
   ).filter(e => objetoDisponivel(db(), "evento", e.id, ator));
 }
 export function processarLembretesEventos(agora = Date.now()) {
   return tx(() => {
     let enviados = 0;
     for (const e of todos(
-      `SELECT e.id,e.titulo,c.inicio_em,c.fim_em,c.fuso AS evento_fuso,a.* FROM eventos e JOIN eventos_configuracoes c ON c.evento_id=e.id JOIN eventos_acompanhamentos a ON a.evento_id=e.id JOIN usuarios u ON u.id=a.usuario_id WHERE c.estado='ativo' AND e.situacao NOT IN('Encerrado','Cancelado') AND e.demonstracao=0 AND u.demonstracao=0 AND u.email_confirmado_em IS NOT NULL AND c.inicio_em>? AND (a.interessado=1 OR a.salvo=1 OR EXISTS(SELECT 1 FROM eventos_inscricoes i WHERE i.evento_id=e.id AND i.usuario_id=a.usuario_id AND i.estado IN('pendente','confirmada')))`,
+      `SELECT e.id,e.titulo,c.inicio_em,a.* FROM eventos e JOIN eventos_configuracoes c ON c.evento_id=e.id JOIN eventos_acompanhamentos a ON a.evento_id=e.id JOIN usuarios u ON u.id=a.usuario_id WHERE c.estado='ativo' AND e.situacao NOT IN('Encerrado','Cancelado') AND e.demonstracao=0 AND u.demonstracao=0 AND u.email_confirmado_em IS NOT NULL AND c.inicio_em>? AND (a.interessado=1 OR a.salvo=1 OR EXISTS(SELECT 1 FROM eventos_inscricoes i WHERE i.evento_id=e.id AND i.usuario_id=a.usuario_id AND i.estado IN('pendente','confirmada')))`,
       agora
     )) {
       if (!objetoDisponivel(db(), "evento", e.id, e.usuario_id)) continue;
       const dataLocal = (n: number) => {
-        const p = partes(n, e.fuso);
+        const p = partes(n);
         return `${p.year}-${p.month}-${p.day}`;
       };
       for (const tipo of ["24h", "dia"]) {
@@ -1005,7 +1009,7 @@ export function processarLembretesEventos(agora = Date.now()) {
             ? "Um evento que você acompanha acontece em até 24 horas."
             : "Um evento que você acompanha acontece hoje.",
           e.titulo,
-          "/events/" + e.id,
+          "/eventos/" + e.id,
           e.id,
           chave
         );

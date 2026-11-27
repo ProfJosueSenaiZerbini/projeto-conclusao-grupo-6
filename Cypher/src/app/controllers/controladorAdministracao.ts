@@ -78,7 +78,7 @@ export function logoutAdministrativo(req: Request, res: Response) {
     sameSite: "strict",
     secure: req.secure,
   });
-  return res.redirect(303, "/admin/login");
+  return res.redirect(303, "/admin/entrar");
 }
 
 export function painelAdministrativo(req: Request, res: Response) {

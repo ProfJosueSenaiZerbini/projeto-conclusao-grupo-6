@@ -45,8 +45,15 @@ try {
   });
   await email.emitirConfirmacaoEmail("teste", "destino@example.org");
   assert.equal(mensagem.from.address, "teste@example.org");
+  assert.equal(mensagem.subject, "Confirme seu e-mail | Cypher");
+  assert.match(mensagem.html, /Confirmar meu e-mail/);
+  assert.match(mensagem.html, /role="presentation"/);
+  assert.match(mensagem.text, /30 minutos/);
   const token = mensagem.text.match(/token=([a-f0-9]{64})/)[1];
+  assert.ok(mensagem.html.includes(`https://example.org/confirmar-email?token=${token}`));
   assert.equal(await email.confirmarEmailUsuario(token), "teste");
+  assert.equal(mensagem.subject, "A cena também é sua. Bem-vindo à Cypher!");
+  assert.match(mensagem.html, /href="https:\/\/example.org\/descoberta"/);
   const db = b.conexaoInternaCypher();
   db.prepare("UPDATE tokens_confirmacao_email SET criado_em=0").run();
   falhar = true;
@@ -73,6 +80,9 @@ try {
   try {
     console.error = texto => avisos.push(texto);
     assert.equal(await email.confirmarEmailUsuario(tokenNovo), "teste");
+    assert.equal(mensagem.subject, "Seu e-mail foi alterado | Cypher");
+    assert.equal(mensagem.to, "destino@example.org");
+    assert.doesNotMatch(mensagem.html + mensagem.text, /novo@example\.org/);
   } finally {
     console.error = erroOriginal;
   }
@@ -87,6 +97,17 @@ try {
     email.confirmarEmailUsuario(tokenNovo),
     /inválido ou expirado/
   );
+  const { montarEmailCypher } = await import("../dist/src/app/models/modelosEmail.js");
+  const rota = "https://example.org/redefinir-senha?token=abc&x=%22";
+  assert.match(montarEmailCypher("recuperacao", rota).html, /token=abc&amp;x=%22/);
+  assert.throws(() => montarEmailCypher("confirmacao", "javascript:alert(1)"), /URL/);
+  assert.match(montarEmailCypher("senhaAlterada").html, /href="https:\/\/example.org\/recuperar-senha"/);
+  assert.match(montarEmailCypher("boasVindasProfissional").html, /href="https:\/\/example.org\/perfil"/);
+  assert.match(montarEmailCypher("conversao").html, /href="https:\/\/example.org\/perfil"/);
+  process.env.CYPHER_SUPPORT_EMAIL = "ajuda@example.org";
+  assert.match(montarEmailCypher("encerramento").html, /href="mailto:ajuda@example.org"/);
+  assert.doesNotMatch(montarEmailCypher("encerramento").html, /recuperar-senha|reativar/i);
+  assert.doesNotMatch(montarEmailCypher("conversao").html, /ajuda@example.org/);
   process.env.CYPHER_PUBLIC_ORIGIN = "http://example.org";
   const entrega = await import("../dist/src/app/models/entregaEmail.js");
   assert.throws(() => entrega.configurarEmail(), /HTTPS/);

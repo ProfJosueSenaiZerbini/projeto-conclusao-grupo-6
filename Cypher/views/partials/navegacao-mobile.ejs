@@ -1,27 +1,28 @@
 <%
   const profissional = usuario.tipoConta === 'profissional' && !usuario.demonstracao;
   const destinos = [
-    { href: '/dashboard', nome: 'Descoberta', icone: 'house' },
-    { href: '/works', nome: 'Obras', icone: 'music' },
+    { href: '/descoberta', nome: 'Descoberta', rotas: ['/descoberta', '/'] },
+    { href: '/busca', nome: 'Busca', rotas: ['/busca'] },
     profissional
-      ? { href: '/espaco-de-trabalho', nome: 'Trabalho', icone: 'briefcase' }
-      : { href: '/beats', nome: 'Beats', icone: 'headphones' },
-    { href: '/events', nome: 'Eventos', icone: 'calendarDays' },
-    { href: '/profile', nome: 'Perfil', icone: 'user' },
+      ? { href: '/espaco-de-trabalho', nome: 'Trabalho', rotas: ['/espaco-de-trabalho', '/minhas-oportunidades'] }
+      : { href: '/banco-de-beats', nome: 'Beats', rotas: ['/banco-de-beats'] },
+    { href: '/mensagens', nome: 'Mensagens', rotas: ['/mensagens'] },
   ];
-  const rotaNavegacao = (typeof rotaAtual === 'string' ? rotaAtual : '').split('?')[0];
-  const ativo = destinos.findIndex(destino =>
-    rotaNavegacao === destino.href ||
-    rotaNavegacao.startsWith(destino.href + '/') ||
-    (destino.href === '/dashboard' && rotaNavegacao === '/')
-  );
+  const rotaNavegacao = (typeof caminhoNavegacao === 'string' ? caminhoNavegacao : typeof rotaAtual === 'string' ? rotaAtual : '').split('?')[0];
+  const atual = destinos.find(destino => destino.rotas.some(rota =>
+    rotaNavegacao === rota || (rota !== '/' && rotaNavegacao.startsWith(rota + '/'))
+  ));
 %>
-<nav class="dc-bottom" aria-label="Navegação rápida" style="--dc-nav-current: <%= ativo %>">
-  <% destinos.forEach((destino, indice) => { %>
-    <a href="<%= destino.href %>"<% if (indice === ativo) { %> aria-current="page"<% } %>>
-      <span aria-hidden="true"><%- icones[destino.icone] %></span>
-      <%= destino.nome %>
+<nav class="dc-bottom" aria-label="Atalhos da Cypher">
+  <% destinos.forEach(destino => { %>
+    <a class="dc-mobile-item" href="<%= destino.href %>"<% if (atual === destino) { %> aria-current="page"<% } %>>
+      <span class="dc-mobile-icon" aria-hidden="true"><%- include("componentes/icone-navegacao", { destino: destino.href }) %></span>
+      <span class="dc-mobile-label"><%= destino.nome %></span>
     </a>
   <% }) %>
-  <% if (ativo >= 0) { %><span class="dc-nav-glider" aria-hidden="true"></span><% } %>
+  <button class="dc-mobile-item<%= atual ? '' : ' is-more-section' %>" type="button" data-menu-mobile-open aria-haspopup="dialog" aria-label="Abrir menu da Cypher" aria-controls="menu-cypher-mobile" aria-expanded="false">
+    <span class="dc-mobile-icon" aria-hidden="true"><%- icones.menu %></span>
+    <span class="dc-mobile-label">Menu</span>
+  </button>
 </nav>
+<%- include("navegacao-conta", { modoMenu: "mobile", path: rotaNavegacao }) %>

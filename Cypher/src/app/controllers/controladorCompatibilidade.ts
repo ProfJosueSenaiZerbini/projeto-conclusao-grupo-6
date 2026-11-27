@@ -2,6 +2,7 @@
 import { conexaoInternaCypher } from "../models/bancoDados.js";
 import { montarApresentacao, type NavegacaoPerfil } from "../models/apresentacaoPerfil.js";
 import { coresSelo, formasSelo, simbolosSelo, seloPerfil } from "../models/seloPerfil.js";
+import { recursosEstudio } from "../models/composicaoSelo.js";
 import { situacaoContaModeracao, objetoDisponivel } from "../models/politicasModeracao.js";
 import { rotuloProfissional } from "../models/tratamentoProfissional.js";
 import { resolverPerfilPublico, obterPreferenciasUsuario } from "../models/identidadeUsuario.js";
@@ -86,25 +87,29 @@ import { ErroAcervo, impedirExclusaoVinculada, opcoesAcervo, tipoAcervo, valores
 import { listaDeLinhas, validarApresentacaoPerfil, validarPerfil } from "../validators/validarPerfil.js";
 
 const nomeCookieSessao = "cypher_session";
+const areasAdministrativas = new Set([
+  "central", "creditos", "entrar", "equipe", "identificador", "lancamentos",
+  "moderacao", "oportunidades", "reputacao", "revisao", "sair", "selos",
+]);
 const caminhosProtegidos = new Set([
   "/",
-  "/dashboard",
+  "/descoberta",
   "/espaco-de-trabalho",
-  "/search",
-  "/search/suggestions",
-  "/events",
-  "/events/new",
-  "/works",
-  "/works/new",
-  "/beats",
-  "/beats/new",
+  "/busca",
+  "/busca/sugestoes",
+  "/eventos",
+  "/eventos/novo",
+  "/obras",
+  "/obras/novo",
+  "/banco-de-beats",
+  "/banco-de-beats/novo",
   "/central",
-  "/profile",
-  "/profile/categorias/sugerir",
-  "/profile/categorias/solicitar-excecao",
-  "/settings",
-  "/settings/privacy",
-  "/settings/delete-account",
+  "/perfil",
+  "/perfil/categorias/sugerir",
+  "/perfil/categorias/solicitar-excecao",
+  "/configuracoes",
+  "/configuracoes/privacidade",
+  "/configuracoes/encerrar-conta",
   "/notificacoes",
   "/notificacoes/marcar-todas-lidas",
   "/admin/revisao",
@@ -115,14 +120,14 @@ const caminhosProtegidos = new Set([
 function caminhoProtegido(caminho: string): boolean {
   caminho = caminho.toLowerCase().replace(/\/+$/, "") || "/";
   return (
-    /^\/(interacoes|colecoes|publicacoes|publication-media|representacoes|creditos|selos)(\/|$)/.test(caminho) ||
-    /^\/(opportunities|my-opportunities|my-applications|service-requests|service-mediation|messages|work-projects|work-media|portfolio|colaboracoes|reputacao|central|suporte|p|beats|purchases|events)(\/|$)/.test(caminho) ||
-    caminhosProtegidos.has(caminho) || caminho.startsWith("/espaco-de-trabalho/") || caminho.startsWith("/profile/") || caminho.startsWith("/settings/") || caminho.startsWith("/admin/") || caminho === "/admin" ||
-    /^\/(?:works|events|beats)\/[^/]+\/(?:edit|delete)$/.test(caminho) ||
-    /^\/events\/[^/]+\/(?:interest|interest\/cancel|interests\/[^/]+\/status)$/.test(
+    /^\/(interacoes|colecoes|publicacoes|midias-de-publicacao|representacoes|creditos|selos)(\/|$)/.test(caminho) ||
+    /^\/(oportunidades|minhas-oportunidades|minhas-candidaturas|solicitacoes-de-servico|mediacao-de-servicos|mensagens|trabalhos-e-galerias|midias-de-trabalho|portfolio|colaboracoes|reputacao|central|suporte|artistas|banco-de-beats|compras|eventos)(\/|$)/.test(caminho) ||
+    caminhosProtegidos.has(caminho) || caminho.startsWith("/espaco-de-trabalho/") || caminho.startsWith("/perfil/") || caminho.startsWith("/configuracoes/") || caminho.startsWith("/admin/") || caminho === "/admin" ||
+    /^\/(?:obras|eventos|banco-de-beats)\/[^/]+\/(?:editar|excluir)$/.test(caminho) ||
+    /^\/eventos\/[^/]+\/(?:interesse|interesse\/cancelar|interesses\/[^/]+\/status)$/.test(
       caminho
     ) ||
-    /^\/works\/[^/]+\/(?:like|evidencia)$/.test(caminho) ||
+    /^\/obras\/[^/]+\/(?:curtir|evidencia)$/.test(caminho) ||
     caminho.startsWith("/notificacoes/") ||
     /^\/admin\/revisao\/(?:generos|categorias-profissionais|excecoes-categorias|solicitacoes-excecao)\/[^/]+$/.test(
       caminho
@@ -149,7 +154,7 @@ function exigeAcesso(req: Request, res: Response): UsuarioDaSessao | undefined {
     (res.locals.usuario as UsuarioDaSessao | undefined) ??
     usuarioDaRequisicao(req);
   if (caminhoProtegido(req.path) && !usuario) {
-    res.redirect("/login");
+    res.redirect("/entrar");
     return undefined;
   }
   return usuario;
@@ -187,15 +192,17 @@ export function middlewareAutorizacao(
   next: NextFunction
 ) {
   const caminho = req.path.toLowerCase().replace(/\/+$/, "") || "/";
-  if (caminho === "/admin/login") return next();
+  // Uma área desconhecida não é uma página de login nem um atalho.
+  if (caminho.startsWith("/admin/") && !areasAdministrativas.has(caminho.split("/")[2] ?? "")) return next("router");
+  if (caminho === "/admin/entrar") return next();
   if (!caminhoProtegido(caminho)) return next();
   const interno = caminho === "/admin" || caminho.startsWith("/admin/");
   const usuario = usuarioDaRequisicao(req);
   if (!usuario) {
     if (interno && req.headers.cookie?.split(";").some(item => item.trim().startsWith("cypher_session="))) return res.sendStatus(403);
-    return res.redirect(interno ? "/admin/login" : "/login");
+    return res.redirect(interno ? "/admin/entrar" : "/entrar");
   }
-  if (!interno && usuario.tipoConta!=='administrativo' && situacaoContaModeracao(conexaoInternaCypher(),usuario.id).restrita && !/^\/suporte(?:\/|$)/.test(caminho) && caminho!=='/logout' && caminho!=='/settings/encerramento' && caminho!=='/settings/delete-account') {
+  if (!interno && usuario.tipoConta!=='administrativo' && situacaoContaModeracao(conexaoInternaCypher(),usuario.id).restrita && !/^\/suporte(?:\/|$)/.test(caminho) && caminho!=='/sair' && caminho!=='/configuracoes/encerramento' && caminho!=='/configuracoes/encerrar-conta') {
     if(req.method==='GET'||req.method==='HEAD')return res.redirect(303,'/suporte?restricao=1');
     return res.status(403).send('Sua conta está restrita. Acesse o suporte para consultar a decisão e recorrer.');
   }
@@ -205,8 +212,8 @@ export function middlewareAutorizacao(
     const acao = caminho.includes("excecoes") || caminho.includes("solicitacoes-excecao") ? "excecoes" : "taxonomia";
     if (!podeAdministrar(usuario,acao)) return res.sendStatus(403);
   }
-  const alvo=/^\/(works|beats|events)\/([^/]+)\/(edit|delete|like|interest|interests)/.exec(caminho);
-  if(alvo && alvo[2]!=='new' && !objetoDisponivel(conexaoInternaCypher(),({works:'obra',beats:'beat',events:'evento'})[alvo[1]],alvo[2],usuario.id))return res.sendStatus(404);
+  const alvo=/^\/(obras|banco-de-beats|eventos)\/([^/]+)\/(?:editar|excluir|curtir|interesses?)(?:\/|$)/.exec(caminho);
+  if(alvo && alvo[2]!=='novo' && !objetoDisponivel(conexaoInternaCypher(),({obras:'obra','banco-de-beats':'beat',eventos:'evento'})[alvo[1]],alvo[2],usuario.id))return res.sendStatus(404);
   res.locals.origemEspaco = req.query.origem === "espaco" || req.body?.origem === "espaco";
   res.locals.usuario = usuarioParaView(usuario);
   res.locals.temaPreferido = interno ? "light" : obterPreferenciasUsuario(usuario.id).tema;
@@ -435,7 +442,7 @@ export async function login(req: Request, res: Response) {
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identificador);
   const acessoInvalido = () => res.status(401).render("pages/entrar", {
     title: "Entrar",
-    path: "/login",
+    path: "/entrar",
     stylesheet: "autenticacao",
     authenticated: false,
     erro: "E-mail, usuário ou senha inválidos. Confira os dados e tente novamente.",
@@ -458,12 +465,12 @@ export async function login(req: Request, res: Response) {
     encerrarSessao(tokenVerificacao);
     if (contaVerificacao?.tipoConta === "administrativo") return acessoInvalido();
     substituirSessao(req, res, usuarioId);
-    return res.redirect("/dashboard");
+    return res.redirect("/descoberta");
   } catch (erro) {
     console.error("Falha ao autenticar usuário Cypher:", erro);
     return res.status(500).render("pages/entrar", {
       title: "Entrar",
-      path: "/login",
+      path: "/entrar",
       stylesheet: "autenticacao",
       authenticated: false,
       erro: "Não foi possível concluir o acesso agora. Tente novamente.",
@@ -482,7 +489,7 @@ export function logout(req: Request, res: Response) {
     sameSite: "lax",
     secure: req.secure,
   });
-  return res.redirect("/login");
+  return res.redirect("/entrar");
 }
 
 export const analisarCategoria = (req: Request, res: Response) => {
@@ -918,7 +925,7 @@ export const novaObra = (req: Request, res: Response) => {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao || !podePublicar(usuario, "obra")) {
-    return res.redirect(303, "/works?erro=permissao");
+    return res.redirect(303, "/obras?erro=permissao");
   }
   const tipoRecebido = parametroTexto(req, "tipo");
   const tipo =
@@ -929,9 +936,9 @@ export const novaObra = (req: Request, res: Response) => {
   }
   if (tipo === "Beat") {
     if (!podePublicar(usuario, "beat")) {
-      return res.redirect(303, "/works?erro=permissao");
+      return res.redirect(303, "/obras?erro=permissao");
     }
-    return res.redirect(303, "/beats/new");
+    return res.redirect(303, "/banco-de-beats/novo");
   }
   if (!podePublicar(usuario,"obra",tipo)) return res.sendStatus(403);
   return renderizarFormularioObra(res, usuario, {
@@ -943,7 +950,7 @@ export const editarObra = (req: Request, res: Response) => {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao || usuario.tipoConta !== "profissional") {
-    return res.redirect(303, "/works?erro=permissao");
+    return res.redirect(303, "/obras?erro=permissao");
   }
   const obra = CypherModel.obraDoUsuario(req.params.id ?? "", usuario.id);
   if (!obra) return res.sendStatus(404);
@@ -964,7 +971,7 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao || usuario.tipoConta !== "profissional") {
-    return res.redirect(303, "/works?erro=permissao");
+    return res.redirect(303, "/obras?erro=permissao");
   }
 
   const valores = formularioObraRecebido(req);
@@ -974,9 +981,9 @@ function processarFormularioObra(req: Request, res: Response, editar: boolean) {
   if (!editar && !podePublicar(usuario,"obra",valores.tipo)) return res.sendStatus(403);
   if (valores.tipo === "Beat") {
     if (!podePublicar(usuario, "beat")) {
-      return res.redirect(303, "/works?erro=permissao");
+      return res.redirect(303, "/obras?erro=permissao");
     }
-    return res.redirect(303, "/beats/new");
+    return res.redirect(303, "/banco-de-beats/novo");
   }
   const creditos = valoresDeCreditosRecebidos(req);
   const obraId = editar ? (req.params.id ?? "") : "";
@@ -1127,7 +1134,7 @@ export const excluirObra = (req: Request, res: Response) => {
   const usuario = exigeAcesso(req, res);
   if (!usuario) return;
   if (usuario.demonstracao || usuario.tipoConta !== "profissional") {
-    return res.redirect(303, "/works?erro=permissao");
+    return res.redirect(303, "/obras?erro=permissao");
   }
   const id = req.params.id ?? "";
   const excluida = CypherModel.excluirObra(id, usuario.id);
@@ -1171,6 +1178,7 @@ function valoresPerfil(usuario: UsuarioDaSessao) {
 const secoesEdicaoPerfil = new Set([
   "pessoal",
   "identidade",
+  "selo",
   "profissional",
   "portfolio",
   "privacidade",
@@ -1227,7 +1235,7 @@ function renderizarPerfil(
   }));
   return res.status(opcoes.status ?? 200).render("pages/perfil", {
     title: "Meu perfil",
-    path: "/profile",
+    path: "/perfil",
     stylesheet: "cena-perfil",
     authenticated: true,
     usuario: usuarioParaView(usuario),
@@ -1237,7 +1245,7 @@ function renderizarPerfil(
     apresentacao: opcoes.editando && !usuario.demonstracao ? null : montarApresentacao({
       id: usuario.id, handle: usuario.handle, categorias: usuario.categories, demo: usuario.demonstracao,
     }, usuario, true, opcoes.navegacao ?? {}),
-    selo: opcoes.editando ? seloPerfil(usuario.id) : null, coresSelo, formasSelo, simbolosSelo,
+    selo: opcoes.editando ? seloPerfil(usuario.id) : null, coresSelo, formasSelo, simbolosSelo, recursosEstudio,
     seloResultado: opcoes.seloResultado ?? "",
     categoriasDisponiveis,
     gruposProfissionais: listarGruposProfissionais(),
@@ -1416,13 +1424,13 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
   });
   if (resultado === "nao_encontrada") return res.sendStatus(404);
   if (resultado === "nao_bloqueada") {
-    return res.redirect(303, "/profile?editar=1&erro=excecao_nao_necessaria");
+    return res.redirect(303, "/perfil?editar=1&erro=excecao_nao_necessaria");
   }
   if (resultado === "excecao_disponivel") {
-    return res.redirect(303, "/profile?editar=1&erro=excecao_ja_autorizada");
+    return res.redirect(303, "/perfil?editar=1&erro=excecao_ja_autorizada");
   }
   if (resultado === "categorias_iguais") {
-    return res.redirect(303, "/profile?editar=1&erro=excecao_iguais");
+    return res.redirect(303, "/perfil?editar=1&erro=excecao_iguais");
   }
   if (resultado === "snapshot_invalido") {
     return reexibir(
@@ -1434,7 +1442,7 @@ export function solicitarExcecaoCategoria(req: Request, res: Response) {
       )
     );
   }
-  return res.redirect(303, "/profile?editar=1&solicitacao=pendente");
+  return res.redirect(303, "/perfil?editar=1&solicitacao=pendente");
 }
 
 export function solicitarCategoriaProfissional(req: Request, res: Response) {
@@ -1445,7 +1453,7 @@ export function solicitarCategoriaProfissional(req: Request, res: Response) {
     .trim()
     .replace(/\s+/g, " ");
   if (categoria.length < 2 || categoria.length > 60) {
-    return res.redirect(303, "/profile?editar=1&categoria=invalida");
+    return res.redirect(303, "/perfil?editar=1&categoria=invalida");
   }
   const resultado = solicitarCategoriaProfissionalCypher(usuario.id, categoria);
   const destino: Record<typeof resultado, string> = {
@@ -1458,7 +1466,7 @@ export function solicitarCategoriaProfissional(req: Request, res: Response) {
   };
   return res.redirect(
     303,
-    `/profile?editar=1&secao=profissional&categoria=${destino[resultado]}`
+    `/perfil?editar=1&secao=profissional&categoria=${destino[resultado]}`
   );
 }
 
@@ -1475,7 +1483,7 @@ export const configuracoes = (req: Request, res: Response) => {
   };
   return res.render("pages/configuracoes", {
     title: "Configurações",
-    path: "/settings",
+    path: "/configuracoes",
     stylesheet: "configuracoes",
     authenticated: true,
     usuario: usuarioParaView(usuario),
@@ -1498,13 +1506,13 @@ export const perfilPublico = (req: Request, res: Response) => {
   const slug = String(req.params.identificador ?? "").trim();
   const handle = /^[a-z0-9_.]{3,24}$/i.test(slug) ? resolverPerfilPublico(slug) ?? normalizarIdentificador(slug) : "";
   const pessoa = handle ? obterPerfilPublicoCypher(handle, handle === normalizarIdentificador(visitante.handle) ? undefined : visitante.id) : null;
-  const pagina = { stylesheet: "cena-perfil", path: "/search", authenticated: true, editando: false };
+  const pagina = { stylesheet: "cena-perfil", path: "/busca", authenticated: true, editando: false };
   if (!pessoa) return res.status(404).render("pages/perfil", { ...pagina,
     title: "Perfil indisponível", pessoa: null, apresentacao: null });
   if (handle !== normalizarIdentificador(slug)) {
     const parametros = new URLSearchParams();
     for (const [k, v] of Object.entries(navegacaoPerfil(req))) if (v) parametros.set(k, v);
-    return res.redirect(308, "/p/" + encodeURIComponent(handle.slice(1)) + (parametros.size ? "?" + parametros : ""));
+    return res.redirect(308, "/artistas/" + encodeURIComponent(handle.slice(1)) + (parametros.size ? "?" + parametros : ""));
   }
   return res.render("pages/perfil", {
     ...pagina, title: pessoa.vulgo || pessoa.name,
@@ -1662,7 +1670,7 @@ export function atualizarPerfil(req: Request, res: Response) {
     }
     destino.set("salvo", "1");
     if (propostaGenero) destino.set("genero", "analise");
-    return res.redirect(303, `/profile?${destino.toString()}`);
+    return res.redirect(303, `/perfil?${destino.toString()}`);
   } catch (erroAtualizacao) {
     const mensagemErro =
       erroAtualizacao instanceof Error ? erroAtualizacao.message : "";
@@ -1712,7 +1720,7 @@ export function atualizarPerfilPorSecao(req: Request, res: Response) {
       valores: { ...valoresPerfil(usuario), cidade, biografia },
     });
     if (!atualizarApresentacaoCypher(usuario.id, "profissional", cidade, biografia)) return res.sendStatus(404);
-    return res.redirect(303, "/profile?editar=1&secao=pessoal&salvo=1");
+    return res.redirect(303, "/perfil?editar=1&secao=pessoal&salvo=1");
   }
   if (secao === "contato") {
     const contato = String(req.body.contato ?? "").trim();
@@ -1721,7 +1729,7 @@ export function atualizarPerfilPorSecao(req: Request, res: Response) {
       valores: { ...valoresPerfil(usuario), contato },
     });
     if (!atualizarContatoProfissionalCypher(usuario.id, contato)) return res.sendStatus(404);
-    return res.redirect(303, "/profile?editar=1&secao=privacidade&salvo=1");
+    return res.redirect(303, "/perfil?editar=1&secao=privacidade&salvo=1");
   }
 
   const valoresAtuais = valoresPerfil(usuario);
@@ -2075,7 +2083,7 @@ export function responderSolicitacaoCategoria(req: Request, res: Response) {
   if (usuario.demonstracao) return res.sendStatus(403);
   const mensagem = String(req.body.mensagem ?? "").trim();
   if (mensagem.length < 5 || mensagem.length > 1000) {
-    return res.redirect(303, "/profile?editar=1&erro=resposta_esclarecimento");
+    return res.redirect(303, "/perfil?editar=1&erro=resposta_esclarecimento");
   }
   const enviada = responderSolicitacaoCategoriaCypher(
     String(req.params.id ?? ""),
@@ -2083,7 +2091,7 @@ export function responderSolicitacaoCategoria(req: Request, res: Response) {
     mensagem
   );
   if (!enviada) return res.sendStatus(409);
-  return res.redirect(303, "/profile?editar=1&solicitacao=pendente");
+  return res.redirect(303, "/perfil?editar=1&solicitacao=pendente");
 }
 
 export function atualizarPrivacidade(req: Request, res: Response) {
@@ -2101,8 +2109,8 @@ export function atualizarPrivacidade(req: Request, res: Response) {
   return res.redirect(
     303,
     req.body.retorno === "perfil"
-      ? "/profile?editar=1&secao=privacidade&privacidade=salva"
-      : "/settings?privacidade=salva"
+      ? "/perfil?editar=1&secao=privacidade&privacidade=salva"
+      : "/configuracoes?privacidade=salva"
   );
 }
 
@@ -2111,17 +2119,17 @@ export async function excluirConta(req: Request, res: Response) {
   if (!usuario) return;
   if (usuario.demonstracao || !usuario.email) return res.sendStatus(403);
   if (validarConfirmacaoExclusao(req.body.confirmacao)) {
-    return res.redirect(303, "/settings?erro=confirmacao");
+    return res.redirect(303, "/configuracoes?erro=confirmacao");
   }
   const senha = String(req.body.password ?? "");
   if (validarSenhaExclusao(senha)) {
-    return res.redirect(303, "/settings?erro=senha");
+    return res.redirect(303, "/configuracoes?erro=senha");
   }
 
   try {
     const usuarioAutenticado = await autenticarUsuario(usuario.email, senha);
     if (usuarioAutenticado !== usuario.id) {
-      return res.redirect(303, "/settings?erro=senha");
+      return res.redirect(303, "/configuracoes?erro=senha");
     }
 
     const resultado = excluirContaCypher(usuario.id);
@@ -2129,8 +2137,8 @@ export async function excluirConta(req: Request, res: Response) {
       return res.redirect(
         303,
         resultado.obras || resultado.eventos || resultado.beats
-          ? "/settings?erro=registros"
-          : "/settings?erro=indisponivel"
+          ? "/configuracoes?erro=registros"
+          : "/configuracoes?erro=indisponivel"
       );
     }
 
@@ -2142,10 +2150,10 @@ export async function excluirConta(req: Request, res: Response) {
       sameSite: "lax",
       secure: req.secure,
     });
-    return res.redirect(303, "/login?conta=excluida");
+    return res.redirect(303, "/entrar?conta=excluida");
   } catch (erro) {
     console.error("Falha ao encerrar conta Cypher:", erro);
-    return res.redirect(303, "/settings?erro=indisponivel");
+    return res.redirect(303, "/configuracoes?erro=indisponivel");
   }
 }
 

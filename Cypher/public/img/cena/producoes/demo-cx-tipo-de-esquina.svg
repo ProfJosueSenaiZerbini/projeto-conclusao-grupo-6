@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 390">
+<defs><pattern id="r" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M1 0v10" stroke="#173f35" stroke-width="2" opacity=".15"/></pattern></defs>
+<path fill="#e4b95b" d="M0 0h640v390H0z"/><path fill="url(#r)" d="M0 0h640v390H0z"/>
+<g fill="none" stroke="#164239" stroke-width="2"><path d="M24 23h592v344H24z"/><path d="M39 38h562v214H39zM39 280h562v70H39z"/></g>
+<g fill="#164239"><path d="M70 67h125v32h-44v113h-36V99H70zM219 67h43v145h-43zM294 67h78l29 23v44l-29 24h-43v54h-35zm35 30v33h34l9-7v-18l-9-8zM431 67h96l34 27v91l-34 27h-96l-30-27V94zm21 28-19 15v59l19 15h55l20-15v-59l-20-15z"/></g><path stroke="#164239" stroke-width="2" d="M55 227h521m-394 52v70m278-70v70"/><text x="65" y="322" fill="#164239" font-size="23" font-family="monospace" font-weight="700">02 TINTAS</text><text x="203" y="325" fill="#164239" font-family="monospace" font-size="29" font-weight="900">DE ESQUINA</text><text x="476" y="321" fill="#164239" font-family="monospace" font-size="15">SÉRIE 01</text>
+</svg>

@@ -1,4 +1,4 @@
-<form class="profile-edit-form" method="post" action="/settings/identidade" data-identity-editor>
+<form class="profile-edit-form" method="post" action="/configuracoes/identidade" data-identity-editor>
   <div class="form-grid"><label>Nome Completo<input name="nomeInformado" value="<%= usuario.nomeInformado || usuario.name %>" minlength="2" maxlength="80" autocomplete="name" required></label>
   <label>Vulgo / nome artístico<input name="vulgo" value="<%= usuario.vulgo || '' %>" maxlength="80" autocomplete="nickname"></label></div>
   <div class="form-grid"><label>Data de nascimento<input type="date" name="nascimento" value="<%= usuario.nascimento || '' %>" <%= usuario.nascimento ? 'readonly' : 'required' %>><small>Privada. Correções da data registrada precisam ser solicitadas à equipe.</small></label>

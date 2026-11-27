@@ -28,6 +28,7 @@ import {
 } from "../validators/validarAutenticacao.js";
 import {
   validarDadosIdentidade,
+  validarGenero,
   validarIdentificador,
   normalizarIdentificador,
   dataAtualCadastro,
@@ -59,6 +60,7 @@ import {
   versaoPrivacidade,
 } from "../models/consentimentoConta.js";
 import { validarApresentacaoPerfil } from "../validators/validarPerfil.js";
+import { etapasCompletarPerfil, salvarEtapaPerfil, ErroCompletarPerfil } from "../models/completarPerfil.js";
 import { menorProtegido } from "../models/protecoesConta.js";
 
 const ligado = (valor: unknown) =>
@@ -74,6 +76,8 @@ const dadosComuns = (body: Request["body"]) => ({
   vulgo: texto(body.vulgo),
   nomePublico: ligado(body.nomePublico),
   nascimento: texto(body.nascimento),
+  tratamento: texto(body.tratamento),
+  generoPersonalizado: body.tratamento === "outro" ? texto(body.generoPersonalizado) : "",
   tipoConta: texto(body.tipoConta) || "profissional",
 });
 
@@ -99,6 +103,9 @@ function validarConta(body: Request["body"]) {
   if (email) throw new ErroFormulario(email, "email");
   const handle = validarIdentificador(dados.identificador);
   if (handle) throw new ErroFormulario(handle, "identificador");
+  const genero = validarGenero(dados.tratamento, dados.generoPersonalizado);
+  if (genero)
+    throw new ErroFormulario(genero, genero.startsWith("Descreva") ? "generoPersonalizado" : "tratamento");
   const identidade = validarDadosIdentidade(dados);
   if (identidade)
     throw new ErroFormulario(
@@ -259,6 +266,8 @@ export async function registrarConta(req: Request, res: Response) {
       vulgo: dados.vulgo,
       nomePublico: dados.nomePublico,
       nascimento: dados.nascimento,
+      tratamento: dados.tratamento,
+      generoPersonalizado: dados.generoPersonalizado,
       categorias: selecao.categorias,
       atuacoes: selecao.atuacoes,
       vertentes: selecao.vertentes,
@@ -359,7 +368,7 @@ export function meuPerfil(req: Request, res: Response) {
   return res.render("pages/perfil-consumidor", {
     title: "Meu espaço",
     stylesheet: "cena-perfil",
-    path: "/profile",
+    path: "/perfil",
     usuario,
     erro: req.query.erro ? texto(req.query.erro) : null,
     salvo: req.query.salvo === "1",
@@ -371,10 +380,25 @@ export function completarPerfil(_req: Request, res: Response) {
   return res.render("pages/completar-perfil", {
     title: "Progresso do perfil",
     stylesheet: "cena-perfil",
-    path: "/profile",
+    path: "/perfil",
     usuario,
     completude: completudePerfil(usuario, true),
   });
+}
+
+export function dadosCompletarPerfil(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  const usuario = atual(res);
+  if (!usuario || usuario.demonstracao || !["consumidor", "profissional"].includes(usuario.tipoConta))
+    return res.status(403).json({ erro: "Assistente indisponível para esta conta." });
+  if (req.method === "GET") return res.json(etapasCompletarPerfil(usuario));
+  try {
+    salvarEtapaPerfil(usuario, texto(req.body?.id), req.body?.valor, req.body?.tempos);
+    return res.sendStatus(204);
+  } catch (erro) {
+    if (erro instanceof ErroCompletarPerfil) return res.status(erro.status).json({ erro: erro.message });
+    throw erro;
+  }
 }
 
 export function salvarApresentacao(req: Request, res: Response) {
@@ -384,13 +408,13 @@ export function salvarApresentacao(req: Request, res: Response) {
   if (erro)
     return res.redirect(
       303,
-      "/profile?editar=apresentacao&erro=" + encodeURIComponent(erro)
+      "/perfil?editar=apresentacao&erro=" + encodeURIComponent(erro)
     );
   if (
     !atualizarApresentacaoCypher(atual(res).id, "consumidor", cidade, biografia)
   )
     return res.sendStatus(404);
-  return res.redirect(303, "/profile?salvo=1");
+  return res.redirect(303, "/perfil?salvo=1");
 }
 
 export function configuracoesIdentidade(req: Request, res: Response) {
@@ -398,7 +422,7 @@ export function configuracoesIdentidade(req: Request, res: Response) {
   return res.render("pages/configuracoes", {
     title: "Configurações",
     stylesheet: "configuracoes",
-    path: "/settings",
+    path: "/configuracoes",
     usuario,
     preferencias: obterPreferenciasUsuario(usuario.id),
     generosInteresse,
@@ -436,14 +460,14 @@ export function salvarIdentidade(req: Request, res: Response) {
     return res.redirect(
       303,
       req.body.retorno === "perfil" && usuario.tipoConta === "profissional"
-        ? "/profile?editar=1&secao=identidade&salvo=1#editar-perfil"
-        : "/settings?salvo=1#identidade"
+        ? "/perfil?editar=1&secao=identidade&salvo=1#editar-perfil"
+        : "/configuracoes?salvo=1#identidade"
     );
   } catch (erro) {
     return res.status(400).render("pages/configuracoes", {
       title: "Configurações",
       stylesheet: "configuracoes",
-      path: "/settings",
+      path: "/configuracoes",
       usuario: {
         ...usuario,
         nomeInformado: texto(req.body.nomeInformado),
@@ -478,11 +502,11 @@ export function salvarIdentificador(req: Request, res: Response) {
       texto(req.body.identificador),
       intervaloIdentificador
     );
-    return res.redirect(303, "/settings?salvo=1#identidade");
+    return res.redirect(303, "/configuracoes?salvo=1#identidade");
   } catch (erro) {
     return res.redirect(
       303,
-      `/settings?erro=${encodeURIComponent((erro as Error).message)}#identidade`
+      `/configuracoes?erro=${encodeURIComponent((erro as Error).message)}#identidade`
     );
   }
 }
@@ -496,12 +520,12 @@ export function salvarPreferencias(req: Request, res: Response) {
     );
     return res.redirect(
       303,
-      `/settings?salvo=1#${req.body.secao === "aparencia" ? "aparencia" : "descoberta"}`
+      `/configuracoes?salvo=1#${req.body.secao === "aparencia" ? "aparencia" : "descoberta"}`
     );
   } catch (erro) {
     return res.redirect(
       303,
-      `/settings?erro=${encodeURIComponent((erro as Error).message)}#descoberta`
+      `/configuracoes?erro=${encodeURIComponent((erro as Error).message)}#descoberta`
     );
   }
 }
@@ -525,18 +549,18 @@ export async function solicitarTrocaEmail(req: Request, res: Response) {
   } catch (erro) {
     return res.redirect(
       303,
-      `/settings?erro=${encodeURIComponent((erro as Error).message)}#conta`
+      `/configuracoes?erro=${encodeURIComponent((erro as Error).message)}#conta`
     );
   }
 }
 
 export function ativarProfissional(req: Request, res: Response) {
   if (atual(res).tipoConta !== "consumidor")
-    return res.redirect(303, "/profile");
+    return res.redirect(303, "/perfil");
   return res.render("pages/ativar-profissional", {
     title: "Ativar perfil profissional",
     stylesheet: "perfil",
-    path: "/profile",
+    path: "/perfil",
     usuario: atual(res),
     ...baseSelecao(),
     categoriasSelecionadas: [],
@@ -545,13 +569,13 @@ export function ativarProfissional(req: Request, res: Response) {
     erro: req.query.erro ? texto(req.query.erro) : null,
   });
 }
-export function confirmarProfissionalizacao(req: Request, res: Response) {
+export async function confirmarProfissionalizacao(req: Request, res: Response) {
   if (atual(res).tipoConta !== "consumidor")
-    return res.redirect(303, "/profile");
+    return res.redirect(303, "/perfil");
   try {
     const selecao = dadosAtuacao(req.body);
-    profissionalizarUsuario(atual(res).id, selecao, ligado(req.body.confirmar));
-    return res.redirect(303, "/profile?profissionalizado=1");
+    await profissionalizarUsuario(atual(res).id, selecao, ligado(req.body.confirmar));
+    return res.redirect(303, "/perfil?profissionalizado=1");
   } catch (erro) {
     let atuacoesExistentes: unknown[] = [];
     try {
@@ -566,7 +590,7 @@ export function confirmarProfissionalizacao(req: Request, res: Response) {
     return res.status(400).render("pages/ativar-profissional", {
       title: "Ativar perfil profissional",
       stylesheet: "perfil",
-      path: "/profile",
+      path: "/perfil",
       usuario: atual(res),
       ...baseSelecao(),
       categoriasSelecionadas: listaTextual(req.body.categorias),

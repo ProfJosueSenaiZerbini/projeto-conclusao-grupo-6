@@ -1,3 +1,4 @@
+@import "./campos-criacao.css";
 /* Campos compartilhados, nos temas claro e escuro. */
 form label.floating-field {
   position: relative;

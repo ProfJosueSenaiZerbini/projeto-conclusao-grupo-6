@@ -2,7 +2,7 @@
 <%
   const rotulosTipos = {
     colaboracao: 'Colaboração', evento: 'Evento', evento_lembrete: 'Evento',
-    oportunidade: 'Oportunidade', suporte: 'Suporte',
+    oportunidade: 'Oportunidade', suporte: 'Suporte', mensagem: 'Mensagem',
     credito_confirmado: 'Crédito', convite_credito: 'Crédito',
   };
 %>
@@ -42,26 +42,42 @@
             <% } %>
           </div>
 
-          <nav class="nc-tabs" aria-label="Filtrar notificações">
-            <a href="/notificacoes" <%- !naoLidas ? 'aria-current="page"' : '' %>>Todas</a>
-            <a href="/notificacoes?filtro=nao-lidas" <%- naoLidas ? 'aria-current="page"' : '' %>>Não lidas<% if (quantidadeNaoLidas > 0) { %><span class="nc-tab-count"><%= quantidadeNaoLidas %></span><% } %></a>
-          </nav>
+          <div class="dc-controls nc-tabs">
+            <%- include('../partials/componentes/filtros-caixa', { rotulo: 'Filtros de Notificações', urlTudo: urlCaixa(1, false), urlNaoLidas: urlCaixa(1, true), somenteNaoLidas: naoLidas, buscaDinamica: false, totalNaoLidas: quantidadeNaoLidas }) %>
+            <% if (temNotificacoes) { %>
+              <form class="nc-clear-form" method="post" action="/notificacoes/limpar"
+                data-confirm="Apagar todas as notificações, lidas e não lidas? Suas mensagens e conversas não serão apagadas."
+                data-confirm-destrutiva="true" data-confirm-rotulo="Apagar tudo">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="nc-clear-button" type="submit" name="confirmar" value="sim" aria-label="Apagar todas as notificações" aria-haspopup="dialog" data-submit-com-confirmacao disabled>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M5 6l1 14h12l1-14M10 10v6m4-6v6"/></svg>
+                  <span aria-hidden="true">Apagar tudo</span>
+                </button>
+              </form>
+            <% } %>
+          </div>
 
           <% if (notificacoes.length) { %>
             <ul class="nc-list">
               <% for (const aviso of notificacoes) { %>
                 <li class="nc-notice<%= aviso.lida ? '' : ' nc-unread' %>">
-                  <div class="nc-notice-mark" aria-hidden="true"><%- icones.bell %></div>
+                  <% if (aviso.remetenteIniciais) { %>
+                    <%- include('../partials/componentes/avatar-notificacao', { aviso }) %>
+                  <% } else { %>
+                    <div class="nc-notice-mark" aria-hidden="true"><%- aviso.tipo === 'mensagem' ? icones.messageCircle : icones.bell %></div>
+                  <% } %>
                   <div class="nc-notice-body">
                     <div class="nc-notice-meta">
                       <span class="nc-type"><%= rotulosTipos[aviso.tipo] || 'Atualização' %></span>
                       <time><%= apresentarData(aviso.criadaEm) %></time>
                       <% if (!aviso.lida) { %><span class="nc-new">Novo</span><% } %>
                     </div>
-                    <h3><%= aviso.titulo %></h3>
-                    <% if (aviso.mensagem) { %><p><%= aviso.mensagem %></p><% } %>
+                    <% if (aviso.tipo === 'mensagem' && aviso.url) { %><a class="nc-message-link" href="<%= aviso.url %>"><% } %>
+                      <h3><%= aviso.titulo %></h3>
+                      <% if (aviso.mensagem) { %><p><%= aviso.mensagem %></p><% } %>
+                    <% if (aviso.tipo === 'mensagem' && aviso.url) { %></a><% } %>
                     <div class="nc-actions">
-                      <% if (aviso.url) { %><a class="nc-open" href="<%= aviso.url %>" aria-label="Abrir: <%= aviso.titulo %>">Abrir aviso</a><% } %>
+                      <% if (aviso.url && aviso.tipo !== 'mensagem') { %><a class="nc-open" href="<%= aviso.url %>" aria-label="Abrir: <%= aviso.titulo %>">Abrir aviso</a><% } %>
                       <% for (const [acao, rotulo] of [[aviso.lida ? 'nao-lida' : 'lida', aviso.lida ? 'Marcar como não lida' : 'Marcar como lida'], ['excluir', 'Excluir']]) { %>
                         <form method="post" action="/notificacoes/<%= encodeURIComponent(aviso.id) %>/<%= acao %>">
                           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -110,19 +126,6 @@
               <button class="dc-primary" type="submit" name="salvar" value="sim">Salvar preferências</button>
             </form>
           </section>
-          <% if (notificacoes.length || naoLidas) { %>
-            <section class="nc-panel nc-manage" aria-labelledby="nc-manage-title">
-              <h2 id="nc-manage-title">Gerenciar caixa</h2>
-              <details class="nc-clear">
-                <summary>Excluir todas as notificações</summary>
-                <p>Esta ação exclui todos os avisos, lidos e não lidos.</p>
-                <form method="post" action="/notificacoes/limpar">
-                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <button class="nc-delete" type="submit" name="confirmar" value="sim">Confirmar exclusão</button>
-                </form>
-              </details>
-            </section>
-          <% } %>
         </aside>
       </div>
     </main>

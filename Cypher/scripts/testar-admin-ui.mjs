@@ -83,7 +83,7 @@ processo.stderr.on("data", dados => (logServidor += dados));
 async function aguardarServidor() {
   for (let tentativa = 0; tentativa < 100; tentativa += 1) {
     try {
-      const resposta = await fetch(`${base}/login`);
+      const resposta = await fetch(`${base}/entrar`);
       if (resposta.ok) return;
     } catch {}
     if (processo.exitCode !== null) break;
@@ -93,7 +93,7 @@ async function aguardarServidor() {
 }
 
 async function registrar(email, nome) {
-  const resposta = await fetch(`${base}/register`, {
+  const resposta = await fetch(`${base}/cadastro`, {
     method: "POST",
     redirect: "manual",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -119,7 +119,7 @@ async function registrar(email, nome) {
 
 try {
   await aguardarServidor();
-  const cadastroInicial = await fetch(`${base}/register`);
+  const cadastroInicial = await fetch(`${base}/cadastro`);
   assert.equal(cadastroInicial.status, 200);
   const cadastroInicialHtml = await cadastroInicial.text();
   assert.match(cadastroInicialHtml, /Dados da conta/);
@@ -139,7 +139,7 @@ try {
   assert.doesNotMatch(cadastroInicialHtml, /data-category-other/);
   assert.doesNotMatch(cadastroInicialHtml, /Compartilhe sua atuação profissional/);
   assert.match(cadastroInicialHtml, /data-question-next/);
-  const validacaoConta = await fetch(`${base}/register/validate`, {
+  const validacaoConta = await fetch(`${base}/cadastro/validar`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -159,7 +159,7 @@ try {
     "A pré-validação não deve criar conta antes de concluir o onboarding"
   );
   semContaPrematura.close();
-  const invalidacaoConta = await fetch(`${base}/register/validate`, {
+  const invalidacaoConta = await fetch(`${base}/cadastro/validar`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ name: "A", email: "invalido", password: "curta" }),
@@ -175,7 +175,7 @@ try {
   `],{cwd:process.cwd(),env:{...process.env,NODE_ENV:'test',CYPHER_DB_PATH:arquivoBanco},encoding:'utf8'});
   assert.equal(criarInterno.status,0,criarInterno.stderr);
 
-  const emailDuplicado = await fetch(`${base}/register/validate`, {
+  const emailDuplicado = await fetch(`${base}/cadastro/validar`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -238,7 +238,7 @@ try {
     .get("admin-ui-fixture-1").identificador;
   banco.close();
 
-  const login = await fetch(`${base}/login`, {
+  const login = await fetch(`${base}/entrar`, {
     method: "POST",
     redirect: "manual",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -250,7 +250,7 @@ try {
   assert.equal(login.status, 302);
   const cookie = login.headers.get("set-cookie")?.split(";")[0];
   assert.ok(cookie);
-  const loginEquipe = await fetch(`${base}/admin/login`,{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({email:'equipe-ui@example.test',password:'SenhaForteDeTeste2026'})});
+  const loginEquipe = await fetch(`${base}/admin/entrar`,{method:'POST',redirect:'manual',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({email:'equipe-ui@example.test',password:'SenhaForteDeTeste2026'})});
   assert.equal(loginEquipe.status,303);
   const cookieEquipe = loginEquipe.headers.getSetCookie().find(c => c.startsWith('cypher_admin_session='))?.split(';')[0];
   assert.ok(cookieEquipe);
@@ -258,7 +258,7 @@ try {
 
 
   const perfilEditorResponse = await fetch(
-    `${base}/profile?editar=1&secao=profissional`,
+    `${base}/perfil?editar=1&secao=profissional`,
     { headers: { cookie } }
   );
   const perfilEditorHtml = await perfilEditorResponse.text();
@@ -282,9 +282,9 @@ try {
   assert.match(perfilEditorHtml, /name="outroGenero"/);
   assert.match(
     perfilEditorHtml,
-    /action="\/profile\/secoes\/contato"[^>]*data-profile-section="privacidade"/
+    /action="\/perfil\/secoes\/contato"[^>]*data-profile-section="privacidade"/
   );
-  const sugestaoCategoria = await fetch(`${base}/profile/categorias/sugerir`, {
+  const sugestaoCategoria = await fetch(`${base}/perfil/categorias/sugerir`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -306,7 +306,7 @@ try {
   );
   bancoPropostaCategoria.close();
 
-  const formularioObraResponse = await fetch(`${base}/works/new?tipo=Outro`, {
+  const formularioObraResponse = await fetch(`${base}/obras/novo?tipo=Outro`, {
     headers: { cookie },
   });
   assert.equal(formularioObraResponse.status, 200);
@@ -331,7 +331,7 @@ try {
     dataLancamento: "",
     link: "",
   };
-  const obraOutroInvalida = await fetch(`${base}/works/new`, {
+  const obraOutroInvalida = await fetch(`${base}/obras/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -343,7 +343,7 @@ try {
   });
   assert.equal(obraOutroInvalida.status, 400);
   assert.match(await obraOutroInvalida.text(), /Especifique o tipo de projeto/);
-  const obraOutroCriada = await fetch(`${base}/works/new`, {
+  const obraOutroCriada = await fetch(`${base}/obras/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -400,7 +400,7 @@ try {
     dataLancamento: "2026-10-29",
     link: "",
   };
-  const papelOutroSemDetalhe = await fetch(`${base}/works/new`, {
+  const papelOutroSemDetalhe = await fetch(`${base}/obras/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -412,7 +412,7 @@ try {
     /Especifique seu crédito em 2 a 80 caracteres/
   );
   dadosPapelOutro.papelOutro = "Direção de arte e visualizers";
-  const criarPapelOutro = await fetch(`${base}/works/new`, {
+  const criarPapelOutro = await fetch(`${base}/obras/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -428,7 +428,7 @@ try {
   assert.equal(obraPapelOutro.funcao_principal, "Outro crédito");
   assert.equal(obraPapelOutro.funcao_detalhe, dadosPapelOutro.papelOutro);
   const edicaoPapelOutro = await fetch(
-    `${base}/works/${encodeURIComponent(obraPapelOutro.id)}/edit`,
+    `${base}/obras/${encodeURIComponent(obraPapelOutro.id)}/editar`,
     { headers: { cookie } }
   );
   assert.equal(edicaoPapelOutro.status, 200);
@@ -441,7 +441,7 @@ try {
     .run(obraPapelOutro.id);
   bancoPapelOutro.close();
   const edicaoPapelOutroLegado = await fetch(
-    `${base}/works/${encodeURIComponent(obraPapelOutro.id)}/edit`,
+    `${base}/obras/${encodeURIComponent(obraPapelOutro.id)}/editar`,
     { headers: { cookie } }
   );
   const edicaoPapelOutroLegadoHtml = await edicaoPapelOutroLegado.text();
@@ -452,7 +452,7 @@ try {
   assert.ok(campoPapelOutroLegado);
   assert.doesNotMatch(campoPapelOutroLegado, /required/);
   const salvarPapelOutroLegado = await fetch(
-    `${base}/works/${encodeURIComponent(obraPapelOutro.id)}/edit`,
+    `${base}/obras/${encodeURIComponent(obraPapelOutro.id)}/editar`,
     {
       method: "POST",
       redirect: "manual",
@@ -485,7 +485,7 @@ try {
   );
   assert.match(catalogoObraHtml, /enviada para análise/);
   const formularioEdicaoObra = await fetch(
-    `${base}/works/${encodeURIComponent(obraSalva.id)}/edit`,
+    `${base}/obras/${encodeURIComponent(obraSalva.id)}/editar`,
     { headers: { cookie } }
   );
   const formularioEdicaoObraHtml = await formularioEdicaoObra.text();
@@ -498,13 +498,14 @@ try {
     formularioEdicaoObraHtml,
     /name="generoOutro"[^>]*value="Gênero autoral Cypher"/
   );
-  const configuracoesResponse = await fetch(`${base}/settings`, {
+  const configuracoesResponse = await fetch(`${base}/configuracoes`, {
     headers: { cookie },
   });
   assert.equal(configuracoesResponse.status, 200);
   const configuracoesHtml = await configuracoesResponse.text();
   assert.match(configuracoesHtml, /id="privacidade"/);
   assert.match(configuracoesHtml, /Salvar visibilidade/);
+  assert.match(configuracoesHtml, /href="\/eventos(?:\?[^"]*)?">Explorar eventos<\/a>/);
   assert.doesNotMatch(configuracoesHtml, /name="retorno" value="perfil"/);
 
   const bancoEdicao = new Database(arquivoBanco);
@@ -523,7 +524,7 @@ try {
     .all(adminId);
   bancoEdicao.close();
 
-  const salvarPessoal = await fetch(`${base}/profile/secoes/pessoal`, {
+  const salvarPessoal = await fetch(`${base}/perfil/secoes/pessoal`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -552,7 +553,7 @@ try {
     )
     .all(adminId);
   bancoAposPessoal.close();
-  assert.equal(perfilAposPessoal.nome, "Admin UI Revisado");
+  assert.equal(perfilAposPessoal.nome, perfilAntes.nome);
   assert.equal(perfilAposPessoal.cidade, "Belém, PA");
   assert.equal(
     perfilAposPessoal.biografia,
@@ -578,7 +579,7 @@ try {
     ])
   );
   const salvarProfissional = await fetch(
-    `${base}/profile/secoes/profissional`,
+    `${base}/perfil/secoes/profissional`,
     {
       method: "POST",
       redirect: "manual",
@@ -601,7 +602,7 @@ try {
     /secao=profissional/
   );
   const objetivoOutroSemDetalhe = await fetch(
-    `${base}/profile/secoes/profissional`,
+    `${base}/perfil/secoes/profissional`,
     {
       method: "POST",
       redirect: "manual",
@@ -630,7 +631,7 @@ try {
        FROM perfis WHERE usuario_id = ?`
     )
     .get(adminId);
-  assert.equal(perfilAposProfissional.nome, "Admin UI Revisado");
+  assert.equal(perfilAposProfissional.nome, perfilAntes.nome);
   assert.equal(perfilAposProfissional.cidade, "Belém, PA");
   assert.equal(
     perfilAposProfissional.biografia,
@@ -645,7 +646,7 @@ try {
   ]);
   bancoAposProfissional.close();
 
-  const salvarContato = await fetch(`${base}/profile/secoes/contato`, {
+  const salvarContato = await fetch(`${base}/perfil/secoes/contato`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -656,7 +657,7 @@ try {
     salvarContato.headers.get("location") ?? "",
     /secao=privacidade/
   );
-  const salvarPrivacidade = await fetch(`${base}/settings/privacy`, {
+  const salvarPrivacidade = await fetch(`${base}/configuracoes/privacidade`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -670,7 +671,7 @@ try {
   assert.equal(salvarPrivacidade.status, 303);
   assert.match(
     salvarPrivacidade.headers.get("location") ?? "",
-    /profile\?editar=1&secao=privacidade&privacidade=salva/
+    /perfil\?editar=1&secao=privacidade&privacidade=salva/
   );
   const bancoAposPrivacidade = new Database(arquivoBanco);
   const perfilAposPrivacidade = bancoAposPrivacidade
@@ -687,7 +688,7 @@ try {
     )
     .all(adminId);
   bancoAposPrivacidade.close();
-  assert.equal(perfilAposPrivacidade.nome, "Admin UI Revisado");
+  assert.equal(perfilAposPrivacidade.nome, perfilAntes.nome);
   assert.equal(
     perfilAposPrivacidade.biografia,
     "Biografia editada na seção pessoal."
@@ -708,7 +709,7 @@ try {
   assert.equal(perfilAposPrivacidade.contato_publico, 1);
   assert.deepEqual(snapshotAposPrivacidade, snapshotAntes);
   const perfilPrivacidadeSalva = await fetch(
-    `${base}/profile?editar=1&secao=privacidade&privacidade=salva`,
+    `${base}/perfil?editar=1&secao=privacidade&privacidade=salva`,
     { headers: { cookie } }
   );
   const perfilPrivacidadeHtml = await perfilPrivacidadeSalva.text();
@@ -719,7 +720,7 @@ try {
   );
   assert.match(perfilPrivacidadeHtml, /name="retorno" value="perfil"/);
 
-  const generoPerfilOutro = await fetch(`${base}/profile/secoes/profissional`, {
+  const generoPerfilOutro = await fetch(`${base}/perfil/secoes/profissional`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -825,7 +826,7 @@ try {
   bancoSegundaSessao.close();
 
   const motivoInvalido = await fetch(
-    `${base}/profile/categorias/solicitar-excecao`,
+    `${base}/perfil/categorias/solicitar-excecao`,
     {
       method: "POST",
       redirect: "manual",
@@ -840,7 +841,7 @@ try {
   assert.match(await motivoInvalido.text(), /Selecione um motivo/);
 
   const motivoOutroCurto = await fetch(
-    `${base}/profile/categorias/solicitar-excecao`,
+    `${base}/perfil/categorias/solicitar-excecao`,
     {
       method: "POST",
       redirect: "manual",
@@ -863,7 +864,7 @@ try {
 
   for (const token of [tokenComum, tokenSegundoUsuario]) {
     const solicitacao = await fetch(
-      `${base}/profile/categorias/solicitar-excecao`,
+      `${base}/perfil/categorias/solicitar-excecao`,
       {
         method: "POST",
         redirect: "manual",
@@ -889,12 +890,12 @@ try {
     assert.equal(solicitacao.status, 303);
     assert.match(
       solicitacao.headers.get("location") ?? "",
-      /profile\?editar=1/
+      /perfil\?editar=1/
     );
   }
 
   const perfilPendente = await fetch(
-    `${base}/profile?editar=1&secao=profissional`,
+    `${base}/perfil?editar=1&secao=profissional`,
     {
       headers: { cookie: `cypher_session=${tokenComum}` },
     }
@@ -911,17 +912,17 @@ try {
   );
   assert.doesNotMatch(perfilPendenteHtml, /profile-exception-request-form/);
 
-  const perfilProprio = await fetch(`${base}/profile?aba=atuacao&atuacao=Rapper`, {
+  const perfilProprio = await fetch(`${base}/perfil?aba=atuacao&atuacao=Rapper`, {
     headers: { cookie: `cypher_session=${tokenComum}` },
   });
   assert.equal(perfilProprio.status, 200);
   const perfilProprioHtml = await perfilProprio.text();
   assert.match(perfilProprioHtml, /class="pf-experience"/);
-  assert.match(perfilProprioHtml, /<details open><summary>Rapper/);
+  assert.match(perfilProprioHtml, /<details class="pf-role-card"\s+open><summary>[\s\S]*?<strong>Rapper<\/strong>/);
   assert.match(perfilProprioHtml, /Editar atuação profissional/);
 
   const perfilPublico = await fetch(
-    `${base}/p/${identificadorPublico.replace(/^@/, "")}`,
+    `${base}/artistas/${identificadorPublico.replace(/^@/, "")}`,
     { headers: { cookie: `cypher_session=${tokenSegundoUsuario}` } }
   );
   assert.equal(perfilPublico.status, 200);
@@ -999,7 +1000,7 @@ try {
     /erro=aguarda_resposta/
   );
   const respostaProfissional = await fetch(
-    `${base}/profile/categorias/solicitacoes/${pedido1}/responder`,
+    `${base}/perfil/categorias/solicitacoes/${pedido1}/responder`,
     {
       method: "POST",
       redirect: "manual",
@@ -1165,11 +1166,11 @@ try {
   );
   bancoDecisoes.close();
 
-  const perfilAprovado = await fetch(`${base}/profile?editar=1`, {
+  const perfilAprovado = await fetch(`${base}/perfil?editar=1`, {
     headers: { cookie: `cypher_session=${tokenComum}` },
   });
   assert.equal(perfilAprovado.status, 200);
-  const perfilRecusado = await fetch(`${base}/profile?editar=1`, {
+  const perfilRecusado = await fetch(`${base}/perfil?editar=1`, {
     headers: { cookie: `cypher_session=${tokenSegundoUsuario}` },
   });
   const perfilRecusadoHtml = await perfilRecusado.text();
@@ -1199,7 +1200,7 @@ try {
   bancoOrganizador.prepare("UPDATE profissoes_usuario SET estado='inativa' WHERE usuario_id=?").run(adminId);
   bancoOrganizador.prepare("INSERT INTO profissoes_usuario(id,usuario_id,profissao_id,valor_original) VALUES(?,?,?,?)").run("atuacao-organizador-ui",adminId,"organizador-eventos","Organizador(a) de eventos");
   bancoOrganizador.close();
-  const formularioEventoResponse = await fetch(`${base}/events/new`, {
+  const formularioEventoResponse = await fetch(`${base}/eventos/novo`, {
     headers: { cookie },
   });
   assert.equal(formularioEventoResponse.status, 200);
@@ -1210,8 +1211,10 @@ try {
     titulo: "Encontro de DJs independentes de teste",
     categoria: "Outro",
     categoriaDetalhe: "",
-    data: "2026-03-12",
-    horario: "18h",
+    data: `${new Date().getUTCFullYear() + 1}-03-12`,
+    horario: "18:00",
+    fimHorario: "20:00",
+    criterios: "Entrada aberta, respeitando a lotação do espaço.",
     local: "Centro Cultural Cypher de teste",
     organizador: "Equipe de teste Cypher",
     situacao: "Inscrições abertas",
@@ -1223,7 +1226,8 @@ try {
     etiquetas: "Teste, Música",
     tipoParticipacao: "aberta",
   };
-  const eventoOutroInvalido = await fetch(`${base}/events/new`, {
+  dadosEventoTeste.fimData = dadosEventoTeste.data;
+  const eventoOutroInvalido = await fetch(`${base}/eventos/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
@@ -1236,16 +1240,19 @@ try {
   );
   dadosEventoTeste.categoriaDetalhe = "Encontro de DJs independentes";
   dadosEventoTeste.temaCartao = "cartaz-de-rua";
-  const eventoOutroCriado = await fetch(`${base}/events/new`, {
+  const eventoOutroCriado = await fetch(`${base}/eventos/novo`, {
     method: "POST",
     redirect: "manual",
     headers: { cookie, "content-type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams(dadosEventoTeste),
   });
-  assert.equal(eventoOutroCriado.status, 302);
+  if (eventoOutroCriado.status !== 302) {
+    const html = await eventoOutroCriado.text();
+    assert.fail(`Criação do evento retornou ${eventoOutroCriado.status}: ${html.match(/role="alert"[^>]*>([^<]+)/)?.[1] ?? "sem mensagem de validação"}`);
+  }
   assert.match(
     eventoOutroCriado.headers.get("location") ?? "",
-    /\/events\?mensagem=/
+    /\/eventos\?mensagem=/
   );
   const bancoEvento = new Database(arquivoBanco);
   const eventoSalvo = bancoEvento
@@ -1260,32 +1267,31 @@ try {
     dadosEventoTeste.categoriaDetalhe
   );
   bancoEvento.close();
-  const oportunidades = await fetch(`${base}/events`, { headers: { cookie } });
+  const oportunidades = await fetch(`${base}/eventos?q=${encodeURIComponent(dadosEventoTeste.titulo)}`, { headers: { cookie } });
   const oportunidadesHtml = await oportunidades.text();
   assert.equal(oportunidades.status, 200);
   assert.match(oportunidadesHtml, /data-event-theme="cartaz-de-rua"/);
+  assert.ok(oportunidadesHtml.includes(`href="/eventos/${eventoSalvo.id}"`));
   assert.match(
     oportunidadesHtml,
-    /data-detail-category-detail="Encontro de DJs independentes"/
-  );
-  assert.match(
-    oportunidadesHtml,
-    /data-detail-title="Encontro de DJs independentes de teste"[\s\S]*?<time class="dc-event-date" datetime="\d{4}-03-12"[^>]*>\s*<span aria-hidden="true">MAR<\/span>\s*<strong aria-hidden="true">12<\/strong>/
+    /class="dc-event-title">Encontro de DJs independentes de teste<\/strong>[\s\S]*?<time class="dc-event-date" datetime="\d{4}-03-12"[^>]*>\s*<span aria-hidden="true">MAR<\/span>\s*<strong aria-hidden="true">12<\/strong>/
   );
   assert.match(oportunidadesHtml, /Outro · Encontro de DJs independentes/);
   const formularioEdicaoEvento = await fetch(
-    `${base}/events/${encodeURIComponent(eventoSalvo.id)}/edit`,
+    `${base}/eventos/${encodeURIComponent(eventoSalvo.id)}/editar`,
     { headers: { cookie } }
   );
   const formularioEdicaoEventoHtml = await formularioEdicaoEvento.text();
   assert.equal(formularioEdicaoEvento.status, 200);
-  assert.match(formularioEdicaoEventoHtml, /name="temaCartao" value="cartaz-de-rua" checked/);
+  assert.match(formularioEdicaoEventoHtml, /name="temaCartao" value="cartaz-de-rua"[^>]*\bchecked\b/);
   assert.match(
     formularioEdicaoEventoHtml,
     /name="categoriaDetalhe"[^>]*value="Encontro de DJs independentes"[^>]*required/
   );
+  dadosEventoTeste.versao = formularioEdicaoEventoHtml.match(/name="versao" value="(\d+)"/)?.[1];
+  assert.ok(dadosEventoTeste.versao, "O formulário deve emitir a versão para edição");
   const categoriaOutroVazia = await fetch(
-    `${base}/events/${encodeURIComponent(eventoSalvo.id)}/edit`,
+    `${base}/eventos/${encodeURIComponent(eventoSalvo.id)}/editar`,
     {
       method: "POST",
       redirect: "manual",
@@ -1305,7 +1311,7 @@ try {
     .run(eventoSalvo.id);
   bancoEventoLegado.close();
   const formularioEventoLegado = await fetch(
-    `${base}/events/${encodeURIComponent(eventoSalvo.id)}/edit`,
+    `${base}/eventos/${encodeURIComponent(eventoSalvo.id)}/editar`,
     { headers: { cookie } }
   );
   const formularioEventoLegadoHtml = await formularioEventoLegado.text();
@@ -1315,7 +1321,7 @@ try {
   assert.ok(campoEventoLegado);
   assert.doesNotMatch(campoEventoLegado, /required/);
   const salvarEventoLegado = await fetch(
-    `${base}/events/${encodeURIComponent(eventoSalvo.id)}/edit`,
+    `${base}/eventos/${encodeURIComponent(eventoSalvo.id)}/editar`,
     {
       method: "POST",
       redirect: "manual",
@@ -1344,14 +1350,14 @@ try {
     .run(adminId);
   bancoPerfilPublico
     .prepare(
-      "UPDATE obras SET situacao = 'Lançado', publicada = 1, data_lancamento = '2026-10-29' WHERE id = ?"
+      "UPDATE obras SET situacao = 'Lançado', publicada = 1, data_lancamento = '2026-10-29' WHERE id IN (?, ?)"
     )
-    .run(obraSalva.id);
+    .run(obraSalva.id, obraPapelOutro.id);
   const identificadorPerfilPublico = bancoPerfilPublico
     .prepare("SELECT identificador FROM perfis WHERE usuario_id = ?")
     .get(adminId).identificador;
   bancoPerfilPublico.close();
-  const perfilDoTitular = await fetch(`${base}/profile`, {
+  const perfilDoTitular = await fetch(`${base}/perfil?obra=${encodeURIComponent(obraSalva.id)}`, {
     headers: { cookie },
   });
   assert.equal(perfilDoTitular.status, 200);
@@ -1359,14 +1365,22 @@ try {
     await perfilDoTitular.text(),
     /Coletivo audiovisual independente/
   );
+  const perfilPublicoBase = `${base}/artistas/${encodeURIComponent(identificadorPerfilPublico.replace(/^@/, ""))}`;
+  const visitante = { headers: { cookie: `cypher_session=${tokenSegundoUsuario}` }, redirect: "manual" };
   const perfilPublicoOutro = await fetch(
-    `${base}/p/${encodeURIComponent(identificadorPerfilPublico.replace(/^@/, ""))}`
+    `${perfilPublicoBase}?obra=${encodeURIComponent(obraSalva.id)}`,
+    visitante
   );
   assert.equal(perfilPublicoOutro.status, 200);
   const perfilPublicoOutroHtml = await perfilPublicoOutro.text();
   assert.match(perfilPublicoOutroHtml, /Coletivo audiovisual independente/);
   assert.match(perfilPublicoOutroHtml, /Gênero autoral Cypher/);
-  assert.match(perfilPublicoOutroHtml, /Direção de arte e visualizers/);
+  const perfilPublicoPapelOutro = await fetch(
+    `${perfilPublicoBase}?obra=${encodeURIComponent(obraPapelOutro.id)}`,
+    visitante
+  );
+  assert.equal(perfilPublicoPapelOutro.status, 200);
+  assert.match(await perfilPublicoPapelOutro.text(), /Direção de arte e visualizers/);
 
   console.log(
     "OK: admin e busca; cadastro/profissional; propostas de categoria; dependências Outro; obras e eventos detalhados com moderação; solicitações de exceção e permissões."

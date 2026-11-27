@@ -2,8 +2,9 @@ export const esquemaEventos = `
 CREATE TABLE IF NOT EXISTS eventos_configuracoes (
  evento_id TEXT PRIMARY KEY REFERENCES eventos(id) ON DELETE RESTRICT,
  capacidade INTEGER CHECK(capacidade IS NULL OR capacidade BETWEEN 1 AND 100000),
- criterios TEXT NOT NULL DEFAULT '', fuso TEXT NOT NULL DEFAULT 'America/Sao_Paulo',
+ criterios TEXT NOT NULL DEFAULT '',
  inicio_em INTEGER, fim_em INTEGER, latitude REAL, longitude REAL,
+ endereco_mapa_json TEXT NOT NULL DEFAULT '',
  local_confirmado INTEGER NOT NULL DEFAULT 0 CHECK(local_confirmado IN(0,1)),
  serie_id TEXT REFERENCES eventos(id), estado TEXT NOT NULL DEFAULT 'ativo' CHECK(estado IN('ativo','cancelado')),
  motivo_cancelamento TEXT NOT NULL DEFAULT '', versao INTEGER NOT NULL DEFAULT 1,
@@ -22,7 +23,7 @@ CREATE TABLE IF NOT EXISTS eventos_acompanhamentos (
  evento_id TEXT NOT NULL REFERENCES eventos(id) ON DELETE RESTRICT, usuario_id TEXT NOT NULL REFERENCES usuarios(id),
  interessado INTEGER NOT NULL DEFAULT 0 CHECK(interessado IN(0,1)), salvo INTEGER NOT NULL DEFAULT 0 CHECK(salvo IN(0,1)),
  lembrar24 INTEGER NOT NULL DEFAULT 1 CHECK(lembrar24 IN(0,1)), lembrar_dia INTEGER NOT NULL DEFAULT 1 CHECK(lembrar_dia IN(0,1)),
- fuso TEXT NOT NULL DEFAULT 'America/Sao_Paulo', criada_em INTEGER NOT NULL,
+ criada_em INTEGER NOT NULL,
  PRIMARY KEY(evento_id,usuario_id)
 );
 CREATE TABLE IF NOT EXISTS eventos_presencas (

@@ -13,7 +13,7 @@ export function buscaGlobal(req: Request, res: Response) {
   return res.render("pages/busca-pessoas", {
     title: "Busca global",
     stylesheet: "busca-pessoas",
-    path: "/search",
+    path: "/busca",
     authenticated: true,
     ...pesquisarGlobal(req.query, usuario.id),
     categorias: categoriasBusca,
@@ -41,7 +41,7 @@ export function sugestoesBusca(req: Request, res: Response) {
               titulo: item.name,
               detalhe: [item.handle, ...rotulosPessoa(item)].join(" · "),
               categoria: categoria.nome,
-              url: "/p/" + encodeURIComponent(item.handle.replace(/^@/, "")),
+              url: "/artistas/" + encodeURIComponent(item.handle.replace(/^@/, "")),
             }
           : {
               titulo: item.titulo,

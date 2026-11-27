@@ -288,15 +288,6 @@
 .pf-menu-list a:hover {
   background: var(--dc-hover);
 }
-.pf-share-status:not(:empty) {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 9;
-  padding: 4px 8px;
-  background: var(--dc-surface);
-  font-size: 0.8rem;
-}
 .pf-controls {
   display: flex;
   justify-content: space-between;
@@ -661,9 +652,6 @@
   .pf-fullname {
     font-size: 0.88rem;
   }
-  .pf-signature .pf-seal {
-    --seal-size: 2.35rem;
-  }
   .pf-identity-foot {
     flex-direction: column;
     align-items: stretch;
@@ -778,4 +766,146 @@
   .pf-portrait { width: clamp(78px, 22vw, 108px); }
   .pf-names h2 { font-size: clamp(1.9rem, 7.7vw, 3.1rem); }
   .pf-roles li { font-size: .72rem; }
+}
+
+
+/* A assinatura publicada fica em seu próprio espaço, sem cobrir o retrato. */
+.pf-cover-com-selo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(min-content, 1fr) auto;
+  grid-template-areas: "artista selo" "artista acervo";
+  column-gap: clamp(14px, 2.8vw, 44px);
+  row-gap: 12px;
+}
+.pf-cover-com-selo .pf-signature {
+  grid-area: artista;
+  align-self: end;
+}
+.pf-cover-com-selo .pf-cover-credit {
+  grid-area: acervo;
+  justify-self: end;
+  max-width: min(18vw, 20ch);
+}
+.pf-selo-assinatura {
+  --pf-selo-medida: clamp(64px, 6vw, 88px);
+  grid-area: selo;
+  align-self: start;
+  justify-self: end;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 5px 11px;
+  max-inline-size: 100%;
+  padding: 8px 11px 8px 8px;
+  border: 1px solid #c7d59b72;
+  border-radius: 3px 12px 3px 3px;
+  background: #161d16f2;
+  box-shadow: 3px 4px 0 #0d110c83;
+}
+.pf-selo-suporte {
+  display: grid;
+  grid-row: 1 / span 2;
+  place-items: center;
+  inline-size: calc(var(--pf-selo-medida) + 16px);
+  block-size: calc(var(--pf-selo-medida) + 16px);
+  border: 1px solid #d7deb039;
+  border-radius: 2px 9px 2px 2px;
+  background: radial-gradient(ellipse at 35% 25%, #676d55, #3b4434 70%);
+}
+.pf-selo-suporte .pf-seal {
+  --seal-size: var(--pf-selo-medida);
+}
+.pf-selo-suporte .cy-selo-marca {
+  inline-size: var(--pf-selo-medida);
+  block-size: var(--pf-selo-medida);
+}
+.pf-selo-legenda {
+  max-inline-size: 10ch;
+  color: #edf0d5;
+  font: 700 0.7rem/1.35 "Space Grotesk", sans-serif;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+.pf-selo-assinatura:not(:has(.cy-report-link)) .pf-selo-legenda {
+  grid-row: 1 / span 2;
+}
+.dc-shell .pf-selo-assinatura .cy-report-link {
+  align-self: end;
+  justify-self: start;
+  border-radius: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .dc-shell .pf-selo-assinatura .cy-report-link {
+    inline-size: 32px;
+    block-size: 32px;
+  }
+}
+@media (max-width: 700px) {
+  .pf-cover-com-selo {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) auto;
+    grid-template-areas: "artista" "selo";
+    row-gap: 14px;
+  }
+  .pf-selo-assinatura {
+    --pf-selo-medida: 46px;
+    justify-self: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 5px 8px 5px 5px;
+    gap: 8px;
+  }
+  .pf-selo-suporte,
+  .pf-selo-assinatura:not(:has(.cy-report-link)) .pf-selo-legenda {
+    grid-row: auto;
+  }
+  .pf-selo-suporte {
+    inline-size: calc(var(--pf-selo-medida) + 10px);
+    block-size: calc(var(--pf-selo-medida) + 10px);
+  }
+  .pf-selo-legenda {
+    max-inline-size: none;
+  }
+  .dc-shell .pf-selo-assinatura .cy-report-link {
+    align-self: center;
+  }
+}
+
+
+.pf-actions .pf-share {
+  border-color: color-mix(in srgb, var(--dc-olive) 62%, var(--dc-line));
+  background: color-mix(in srgb, var(--dc-olive) 10%, var(--dc-surface));
+}
+.pf-share-icon { display: inline-flex; transition: transform 160ms ease; }
+.pf-share:is(:hover, :focus-visible) .pf-share-icon { transform: translateY(-2px); }
+.pf-share[aria-busy="true"] { cursor: progress; }
+.pf-actions .pf-share[data-share-state="ok"] {
+  color: var(--dc-ink);
+  background: var(--dc-selected);
+}
+.pf-share-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(420px, calc(100vw - 26px));
+  padding: 20px;
+  border: 1px solid var(--dc-line);
+  border-radius: 3px 12px 3px 3px;
+  color: var(--dc-ink);
+  background: var(--dc-surface);
+}
+.pf-share-dialog::backdrop { background: #0e130cba; }
+.pf-share-dialog form, .pf-share-dialog label { display: grid; gap: 9px; }
+.pf-share-dialog h3 { margin: 0; }
+.pf-share-dialog input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 9px;
+  color: inherit;
+  background: var(--dc-field);
+  border: 1px solid var(--dc-line);
+}
+.pf-share-dialog button { justify-self: end; }
+@media (prefers-reduced-motion: reduce) {
+  .pf-share-icon { transition: none; }
 }

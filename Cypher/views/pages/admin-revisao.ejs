@@ -105,7 +105,7 @@
                 </strong>
                 <p>
                   Sugerido por
-                  <a href="/p/<%= proposta.handle.replace(/^@/, '') %>">
+                  <a href="/artistas/<%= proposta.handle.replace(/^@/, '') %>">
                     <%= proposta.nome %>
                   </a>
                 </p>
@@ -170,7 +170,7 @@
                 </strong>
                 <p>
                   Sugerida por
-                  <a href="/p/<%= proposta.handle.replace(/^@/, '') %>">
+                  <a href="/artistas/<%= proposta.handle.replace(/^@/, '') %>">
                     <%= proposta.nome %>
                   </a>
                 </p>
@@ -290,7 +290,7 @@
                   <p>
                     <%= solicitacao.email %>
                     ·
-                    <a href="/p/<%= solicitacao.handle.replace(/^@/, '') %>">
+                    <a href="/artistas/<%= solicitacao.handle.replace(/^@/, '') %>">
                       Ver perfil
                     </a>
                   </p>
@@ -402,7 +402,7 @@
                 <div class="admin-review-subject">
                   <span class="admin-decision-status <%= solicitacao.status === 'aprovado' ? 'is-approved' : 'is-rejected' %>"><span class="admin-status-dot" aria-hidden="true"></span><%= solicitacao.status === 'aprovado' ? 'Aprovada' : 'Recusada' %></span>
                   <strong><%= solicitacao.nome %></strong>
-                  <p><%= solicitacao.email %> · <a href="/p/<%= solicitacao.handle.replace(/^@/, '') %>">Ver perfil</a></p>
+                  <p><%= solicitacao.email %> · <a href="/artistas/<%= solicitacao.handle.replace(/^@/, '') %>">Ver perfil</a></p>
                   <small><%= `Enviada em ${new Date(`${solicitacao.criadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR')}` %></small>
                   <% if (solicitacao.revisadaEm) { %><small><%= `Decidida em ${new Date(`${solicitacao.revisadaEm.replace(' ', 'T')}Z`).toLocaleString('pt-BR')}` %></small><% } %>
                 </div>

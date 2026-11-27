@@ -58,11 +58,6 @@
   margin: auto 10px 10px;
 }
 
-.event-theme-preview .events-card-placeholder[data-event-theme="classico"] {
-  background:
-    url("marcas-acrilico.svg") top left / 140px auto no-repeat,
-    var(--dc-art);
-}
 
 .event-theme-preview .events-cover-icon {
   position: absolute;

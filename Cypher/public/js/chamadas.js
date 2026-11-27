@@ -1,6 +1,17 @@
 (() => {
   const chatHistory = document.querySelector(".msg-history");
-  if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+  function focarMensagemVinculada() {
+    let id;
+    try { id = decodeURIComponent(window.location.hash.slice(1)); } catch { return false; }
+    if (!id.startsWith("mensagem-")) return false;
+    const mensagem = document.getElementById(id);
+    if (!mensagem?.matches(".msg-history .msg-bubble-row, .op-chat .op-message")) return false;
+    mensagem.focus({ preventScroll: true });
+    mensagem.scrollIntoView({ block: "center", behavior: "instant" });
+    return true;
+  }
+  if (!focarMensagemVinculada() && chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+  window.addEventListener("hashchange", focarMensagemVinculada);
   const chatComposer = document.querySelector(".msg-compose");
   const chatText = chatComposer?.querySelector("textarea");
   const chatSend = chatComposer?.querySelector(".msg-send-button");
@@ -141,7 +152,7 @@
     uploadStatus.textContent = "Enviando anexo…";
     uploadStatus.hidden = false;
     try {
-      const response = await fetch(chatComposer.action + "/attachments", {
+      const response = await fetch(chatComposer.action + "/anexos", {
         method: "POST", credentials: "same-origin", body: file,
         headers: {
           "Content-Type": "application/octet-stream",
@@ -177,9 +188,19 @@
       searchInput.inert = !open;
       searchButton.type = open ? "submit" : "button";
       searchButton.setAttribute("aria-expanded", String(open));
-      searchButton.setAttribute("aria-label", open ? "Pesquisar pessoas" : "Abrir busca de pessoas");
+      searchButton.setAttribute("aria-label", open ? "Buscar em Mensagens" : "Abrir busca em Mensagens");
     };
     setSearchOpen(Boolean(searchInput.value));
+    const filterLinks = searchForm.closest(".msg-sidebar")?.querySelectorAll("[data-msg-filter]");
+    searchInput.addEventListener("input", () => {
+      filterLinks?.forEach(link => {
+        const url = new URL(link.href);
+        const termo = searchInput.value.trim();
+        if (termo) url.searchParams.set("q", termo);
+        else url.searchParams.delete("q");
+        link.href = url.href;
+      });
+    });
     searchButton.addEventListener("click", event => {
       if (searchForm.classList.contains("is-open")) return;
       event.preventDefault();
@@ -190,10 +211,11 @@
       if (event.key !== "Escape") return;
       event.preventDefault();
       if (new URLSearchParams(window.location.search).has("q")) {
-        window.location.assign("/messages");
+        window.location.assign(searchForm.dataset.clearUrl || "/mensagens");
         return;
       }
       searchInput.value = "";
+      searchInput.dispatchEvent(new Event("input"));
       setSearchOpen(false);
       searchButton.focus();
     });
@@ -210,6 +232,7 @@
         input.name = input.name.replace(/funcoes\[\d+\]/, `funcoes[${i}]`);
       })
     );
+    resumoVisivel();
   }
   document.querySelector("[data-op-add]")?.addEventListener("click", () => {
     if (functions.children.length >= 25) return;
@@ -228,9 +251,8 @@
       renumber();
     }
   });
-  document.querySelector("[data-op-preview]")?.addEventListener("click", () => {
-    const summary = document.querySelector("[data-op-summary]"),
-      content = summary.querySelector("[data-op-summary-content]");
+  function montarResumo(painel) {
+    const content = painel.querySelector("[data-op-summary-content]");
     content.replaceChildren();
     const dl = document.createElement("dl");
     editor.querySelectorAll("label").forEach(label => {
@@ -238,22 +260,24 @@
       if (!input?.value) return;
       const dt = document.createElement("dt"),
         dd = document.createElement("dd");
-      dt.textContent = label.childNodes[0].textContent.trim();
+      dt.textContent = (label.querySelector(".cy-create-caption, .field-caption")?.textContent || label.childNodes[0]?.textContent || "").trim();
       dd.textContent =
         input.tagName === "SELECT"
-          ? input.selectedOptions[0].textContent
+          ? input.selectedOptions[0]?.textContent || input.value
           : input.value;
       dl.append(dt, dd);
     });
     content.append(dl);
-    summary.hidden = false;
-    summary.scrollIntoView({
-      block: "start",
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
-    });
+  }
+  function resumoVisivel() {
+    const painel = editor?.querySelector("[data-op-summary]:not([hidden])");
+    if (painel) montarResumo(painel);
+  }
+  editor?.addEventListener("cypher:etapa", ({ detail: { painel } }) => {
+    if (painel.matches("[data-op-summary]")) montarResumo(painel);
   });
+  editor?.addEventListener("input", resumoVisivel);
+  editor?.addEventListener("change", resumoVisivel);
   document.querySelectorAll('.op-content form[method="post"]').forEach(form =>
     form.addEventListener("submit", e => {
       if (form.dataset.sending) {

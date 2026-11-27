@@ -1259,18 +1259,10 @@
   font-variant-numeric: tabular-nums;
 }
 .ob-album-timeline > :last-child { text-align: right; }
-.ob-album-timeline input {
-  appearance: none;
-  width: 100%;
-  height: 26px;
-  margin: 0;
-  background: linear-gradient(to right, var(--dc-olive) var(--ob-seek-progress, 0%), var(--dc-line) 0) center / 100% 4px no-repeat;
-  color: var(--dc-accent);
-  cursor: pointer;
+.ob-album-timeline input[type="range"] {
+  --cy-range-altura: 32px;
+  --cy-range-progresso: var(--ob-seek-progress, 0%);
 }
-.ob-album-timeline input::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
-.ob-album-timeline input::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: currentColor; }
-.ob-album-timeline input:disabled { cursor: default; opacity: .6; }
 .ob-album-status { margin: 4px 0; color: var(--dc-muted); font-size: 13px; }
 .ob-album-status:empty { display: none; }
 .ob-album-files { position: relative; display: inline-flex; align-items: center; min-height: 32px; color: var(--dc-accent); font-size: 13px; cursor: pointer; }

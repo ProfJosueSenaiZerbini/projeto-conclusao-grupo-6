@@ -54,7 +54,7 @@
         location.assign("/colecoes");
       } catch {
         importar.disabled = false;
-        anunciar("Não foi possível terminar a importação. Tente novamente.");
+        window.cypherAvisar?.("Não foi possível terminar a importação. Tente novamente.", "erro");
       }
     });
   }
@@ -134,8 +134,8 @@
           falhaPrevia = previa.dataset.previewId;
           audio.pause();
           atualizarPlayer();
-          anunciar(
-            `Não foi possível reproduzir a prévia de ${previa.dataset.previewTitle}. Tente novamente.`
+          window.cypherAvisar?.(
+            `Não foi possível reproduzir a prévia de ${previa.dataset.previewTitle}. Tente novamente.`, "erro"
           );
         }
       });

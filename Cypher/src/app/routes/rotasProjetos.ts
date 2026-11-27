@@ -2,19 +2,19 @@ import { Router, raw } from "express";
 import * as c from "../controllers/controladorProjetos.js";
 const r = Router(),
   s = c.seguro;
-r.get("/work-projects", s(c.lista));
-r.get("/work-projects/new", s(c.novo));
-r.post("/work-projects", s(c.salvar));
-r.get("/work-projects/:id/edit", s(c.editar));
-r.post("/work-projects/:id/edit", s(c.salvar));
-r.post("/work-projects/:id/withdraw", s(c.retirar));
-r.get("/work-projects/:id", s(c.detalhe));
+r.get("/trabalhos-e-galerias", s(c.lista));
+r.get("/trabalhos-e-galerias/novo", s(c.novo));
+r.post("/trabalhos-e-galerias", s(c.salvar));
+r.get("/trabalhos-e-galerias/:id/editar", s(c.editar));
+r.post("/trabalhos-e-galerias/:id/editar", s(c.salvar));
+r.post("/trabalhos-e-galerias/:id/retirar", s(c.retirar));
+r.get("/trabalhos-e-galerias/:id", s(c.detalhe));
 r.post(
-  "/work-media",
+  "/midias-de-trabalho",
   raw({ type: "application/octet-stream", limit: "25mb" }),
   s(c.upload)
 );
-r.get("/work-media/:id", s(c.arquivo));
-r.post("/work-media/:id/visibility", s(c.visibilidadeMidia));
-r.post("/work-media/:id/delete", s(c.removerMidia));
+r.get("/midias-de-trabalho/:id", s(c.arquivo));
+r.post("/midias-de-trabalho/:id/visibilidade", s(c.visibilidadeMidia));
+r.post("/midias-de-trabalho/:id/excluir", s(c.removerMidia));
 export default r;

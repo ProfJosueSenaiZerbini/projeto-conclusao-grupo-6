@@ -14,7 +14,7 @@ document.querySelectorAll("[data-beat-upload]").forEach(form => {
     status.textContent = "Enviando e conferindo o áudio…";
     try {
       const r = await fetch(
-        `/beats/${encodeURIComponent(form.dataset.beatUpload)}/files?finalidade=${finalidade}`,
+        `/banco-de-beats/${encodeURIComponent(form.dataset.beatUpload)}/arquivos?finalidade=${finalidade}`,
         {
           method: "POST",
           headers: {

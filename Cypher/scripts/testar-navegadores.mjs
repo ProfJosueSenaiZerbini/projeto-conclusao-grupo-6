@@ -55,7 +55,7 @@ for (const [nome, motor, opcoes] of navegadores) {
       const chave = "qa_" + nome.toLowerCase() + "_" + Date.now().toString(36);
       const tituloFonograma = "Fonograma navegador " + nome + " " + chave;
       await etapa("cadastro de consumidor", async () => {
-        await ir("/register?tipo=consumidor");
+        await ir("/cadastro?tipo=consumidor");
         await pagina.locator('[name="name"]').fill("Pessoa de Homologação");
         await pagina
           .locator('[data-register-stage="conta"] [data-continue]')
@@ -83,26 +83,26 @@ for (const [nome, motor, opcoes] of navegadores) {
         await pagina.getByRole("heading", { name: "E-mail confirmado" }).waitFor();
       });
       await etapa("autenticação profissional por teclado", async () => {
-        await ir("/login");
+        await ir("/entrar");
         await pagina
           .locator('[name="identificador"]')
           .fill("homolog0@example.test");
         await pagina.locator('[name="password"]').fill(senha);
         await pagina.locator('[name="password"]').press("Enter");
-        await pagina.waitForURL(/\/dashboard(?:\?|$)/);
+        await pagina.waitForURL(/\/descoberta(?:\?|$)/);
       });
       await etapa("busca e leitura", async () => {
-        await ir("/search?q=Homologa%C3%A7%C3%A3o");
+        await ir("/busca?q=Homologa%C3%A7%C3%A3o");
         await pagina.getByRole("heading", { level: 1 }).first().waitFor();
         assert.match(await pagina.locator("main").innerText(), /Homologação/i);
-        await ir("/p/homolog1?obra=obra-1#obra-obra-1");
+        await ir("/artistas/homolog1?obra=obra-1#obra-obra-1");
         await pagina
           .locator(".pf-work-detail")
           .getByRole("heading", { name: "Obra Homologação 1", exact: true })
           .waitFor();
       });
       await etapa("publicação e leitura de fonograma por teclado", async () => {
-        await ir("/works/new?tipo=Fonograma");
+        await ir("/obras/novo?tipo=Fonograma");
         await pagina.locator('[name="titulo"]').fill(tituloFonograma);
         await pagina.locator('[name="genero"]').selectOption("Rap");
         await pagina.locator('[name="isrc"]').fill("BRABC2600123");
@@ -132,7 +132,7 @@ for (const [nome, motor, opcoes] of navegadores) {
         await pagina.getByText("BRABC2600123", { exact: true }).waitFor();
       });
       await etapa("largura de 360 px e foco na publicação", async () => {
-        await ir("/works/new?tipo=Fonograma");
+        await ir("/obras/novo?tipo=Fonograma");
         assert.ok(
           await pagina.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth
@@ -155,7 +155,7 @@ for (const [nome, motor, opcoes] of navegadores) {
           { width: 1440, height: 900 },
         ]) {
           await pagina.setViewportSize(viewport);
-          await ir("/works/new?tipo=Fonograma");
+          await ir("/obras/novo?tipo=Fonograma");
           assert.ok(
             await pagina.evaluate(
               () => document.documentElement.scrollWidth <= innerWidth
@@ -165,7 +165,7 @@ for (const [nome, motor, opcoes] of navegadores) {
       });
       if (nome === "Chrome") {
         await etapa("montagem e evidência de Single", async () => {
-          await ir("/works/new?tipo=Single");
+          await ir("/obras/novo?tipo=Single");
           const titulo = "Single de homologação " + chave;
           await pagina.locator('[name="titulo"]').fill(titulo);
           await pagina.locator('[name="genero"]').selectOption("Rap");
@@ -198,7 +198,7 @@ for (const [nome, motor, opcoes] of navegadores) {
           await pagina.getByText("Evidência aguardando revisão").waitFor();
           const ficha = pagina.url();
           const equipe = await navegador.newPage();
-          await equipe.goto(base + "/admin/login");
+          await equipe.goto(base + "/admin/entrar");
           await equipe.locator('[name="email"]').fill("admin-homolog@example.test");
           await equipe.locator('[name="password"]').fill(senha);
           await equipe.getByRole("button", { name: "Entrar" }).press("Enter");
@@ -218,11 +218,11 @@ for (const [nome, motor, opcoes] of navegadores) {
               localStorage.setItem("cypher-tema", tema);
             }, tema);
             for (const rota of [
-              "/login",
-              "/register?tipo=consumidor",
-              "/dashboard",
-              "/works",
-              "/works/new?tipo=Fonograma",
+              "/entrar",
+              "/cadastro?tipo=consumidor",
+              "/descoberta",
+              "/obras",
+              "/obras/novo?tipo=Fonograma",
               "/espaco-de-trabalho/obra/obra-0",
             ]) {
               await ir(rota);

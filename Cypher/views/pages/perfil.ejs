@@ -4,11 +4,11 @@
   <a class="dc-skip" href="#perfil">Pular para o perfil</a>
   <%- include('../partials/barra-lateral', {path}) %>
   <div class="dc-page">
-    <%- include('../partials/componentes/cabecalho-descoberta', {titulo: path === '/profile' ? 'Meu perfil' : 'Perfil profissional', tituloId:'perfil-pagina', descricao:''}) %>
+    <%- include('../partials/componentes/cabecalho-descoberta', {titulo: path === '/perfil' ? 'Meu perfil' : 'Perfil profissional', tituloId:'perfil-pagina', descricao:''}) %>
     <main class="pf-page" id="perfil">
-      <% if (path === '/profile') { %><%- include('../partials/componentes/perfil-avisos') %><% } %>
+      <% if (path === '/perfil') { %><%- include('../partials/componentes/perfil-avisos') %><% } %>
       <% if (!pessoa) { %>
-        <section class="pf-panel pf-empty"><h2>Perfil indisponível</h2><p>O endereço pode ter mudado ou o acesso a este perfil é restrito.</p><a class="pf-button" href="/search?tipo=pessoas">Buscar profissionais</a></section>
+        <section class="pf-panel pf-empty"><h2>Perfil indisponível</h2><p>O endereço pode ter mudado ou o acesso a este perfil é restrito.</p><a class="pf-button" href="/busca?tipo=pessoas">Buscar profissionais</a></section>
       <% } else if (editando && !usuario.demonstracao) { %>
         <%- include('../partials/componentes/editar-perfil-secoes') %>
         <script src="/js/questionario-atuacoes.js" defer></script>

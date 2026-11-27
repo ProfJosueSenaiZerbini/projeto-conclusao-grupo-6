@@ -1,0 +1,9 @@
+<% const destinosIcones = {
+  '/descoberta': 'compass', '/busca': 'search', '/mensagens': 'messageCircle',
+  '/notificacoes': 'bell', '/perfil': 'circleUser', '/obras': 'music',
+  '/banco-de-beats': 'headphones', '/trabalhos-e-galerias': 'images', '/eventos': 'calendarDays',
+  '/oportunidades': 'sparkles', '/espaco-de-trabalho': 'panelsTopLeft', '/colaboracoes': 'handshake',
+  '/colecoes': 'libraryBig', '/compras': 'shoppingBag', '/central': 'bookOpen',
+  '/suporte': 'lifeBuoy', '/admin/revisao': 'shieldCheck', '/configuracoes': 'settings',
+}; const chave = destinosIcones[destino]; %>
+<% if (chave) { %><%- icones[chave] %><% } %>

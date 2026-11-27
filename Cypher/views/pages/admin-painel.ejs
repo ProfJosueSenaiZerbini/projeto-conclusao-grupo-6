@@ -8,7 +8,7 @@
     <h1>Painel administrativo</h1>
     <p>Olá, <%= usuario.name %>. Acompanhe o que precisa de decisão e acesse as ferramentas da sua área.</p>
     <div class="admin-hero-actions">
-      <% if (usuario.papelAdministrativo === 'editor') { %><a class="button button-lime" href="/admin/central/reviews">Abrir fila editorial <span aria-hidden="true">↗</span></a><a class="button button-outline" href="/admin/central">Ver conteúdos</a>
+      <% if (usuario.papelAdministrativo === 'editor') { %><a class="button button-lime" href="/admin/central/revisoes">Abrir fila editorial <span aria-hidden="true">↗</span></a><a class="button button-outline" href="/admin/central">Ver conteúdos</a>
       <% } else { %><a class="button button-lime" href="/admin/moderacao?estado=pendente">Ver denúncias e solicitações pendentes <span aria-hidden="true">↗</span></a><a class="button button-outline" href="/admin/revisao/excecoes">Ver exceções profissionais</a><% } %>
       <% if (usuario.papelAdministrativo === 'super_admin') { %><a class="button button-outline" href="#governanca">Equipe e histórico</a><% } %>
     </div>

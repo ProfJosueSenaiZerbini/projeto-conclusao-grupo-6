@@ -115,8 +115,8 @@ rotas.get(
 rotas.post(
   "/selos/solicitacoes",
   proteger((req, res) => {
-    s.pedirSelo(ator(res), req.body);
-    return res.status(201).json({ url: "/selos/solicitacoes" });
+    const id = s.pedirSelo(ator(res), req.body);
+    return res.status(201).json({ id, url: "/selos/solicitacoes" });
   })
 );
 rotas.get(
@@ -142,7 +142,7 @@ for (const base of ["/selos/imagem", "/admin/selos/imagem"]) {
       if (admin) c.acessoRevisao(ator(res));
       const { imagem, mime } = s.imagemSelo(ator(res), req.params.id, admin);
       return res
-        .set("X-Content-Type-Options", "nosniff")
+        .set({ "X-Content-Type-Options": "nosniff", "Cache-Control": "private, no-store" })
         .type(mime)
         .send(imagem);
     })

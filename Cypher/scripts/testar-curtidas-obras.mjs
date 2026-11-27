@@ -40,7 +40,7 @@ try {
   const server = app.listen(0, "127.0.0.1");
   await new Promise(resolve => server.once("listening", resolve));
   try {
-    const url = `http://127.0.0.1:${server.address().port}/works/obra/like`;
+    const url = `http://127.0.0.1:${server.address().port}/obras/obra/curtir`;
     const token = "a".repeat(64);
     const cookie = `cypher_csrf=${token}; cypher_session=${iniciarSessao("artista")}`;
     const post = (headers, body = { curtida: true }) => fetch(url, { method: "POST", redirect: "manual", headers: { "Content-Type": "application/json", ...headers }, body: JSON.stringify(body) });

@@ -145,7 +145,7 @@ const pedir = (rota, i, opcoes = {}) =>
 try {
   for (let i = 0; ; i++) {
     try {
-      const r = await pedir("/login", null);
+      const r = await pedir("/entrar", null);
       if (r.ok) {
         await r.text();
         break;
@@ -157,7 +157,7 @@ try {
     if (i >= 100) throw new Error("A instância não ficou pronta.");
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  const media = "/publication-media/" + idMidia;
+  const media = "/midias-de-publicacao/" + idMidia;
   console.log("Instância pronta. Verificando controles de privacidade.");
   const semSessao = await pedir(media, null);
   assert.equal(semSessao.status, 302);
@@ -167,15 +167,15 @@ try {
   assert.deepEqual(Buffer.from(await recuperada.arrayBuffer()), arquivo);
   console.log("Download privado conferido. Verificando perfis e letras.");
   assert.doesNotMatch(
-    await (await pedir("/p/homolog0?obra=obra-0", 1)).text(),
+    await (await pedir("/artistas/homolog0?obra=obra-0", 1)).text(),
     /LETRA RESERVADA HOMOLOGACAO/
   );
-  const menor = await (await pedir("/p/homolog999", 1)).text();
+  const menor = await (await pedir("/artistas/homolog999", 1)).text();
   assert.ok(
     !menor.includes(nascimentoMenor) &&
       !menor.includes("Artista Homologação 999")
   );
-  const menorLogado = await pedir("/settings", 20);
+  const menorLogado = await pedir("/configuracoes", 20);
   assert.equal(menorLogado.status, 200);
   await menorLogado.text();
   console.log("Privacidade conferida.");
@@ -199,20 +199,20 @@ try {
     });
   } else {
     const cenarios = [
-      ["Descoberta", 3000, () => "/dashboard"],
-      ["Obras", 3000, () => "/works"],
-      ["Banco de Beats", 3000, () => "/beats"],
-      ["Eventos", 3000, () => "/events"],
-      ["Oportunidades", 3000, () => "/opportunities"],
-      ["Busca global", 2000, () => "/search?q=homologacao"],
-      ["Filtrar Descoberta", 2000, () => "/dashboard?tipo=obras&q=homologacao"],
-      ["Filtrar Obras", 2000, () => "/works?q=homologacao"],
-      ["Filtrar Beats", 2000, () => "/beats?q=homologacao&genero=Rap"],
-      ["Filtrar Eventos", 2000, () => "/events?categoria=Show"],
-      ["Filtrar Oportunidades", 2000, () => "/opportunities?tipo=colaboracao"],
+      ["Descoberta", 3000, () => "/descoberta"],
+      ["Obras", 3000, () => "/obras"],
+      ["Banco de Beats", 3000, () => "/banco-de-beats"],
+      ["Eventos", 3000, () => "/eventos"],
+      ["Oportunidades", 3000, () => "/oportunidades"],
+      ["Busca global", 2000, () => "/busca?q=homologacao"],
+      ["Filtrar Descoberta", 2000, () => "/descoberta?tipo=obras&q=homologacao"],
+      ["Filtrar Obras", 2000, () => "/obras?q=homologacao"],
+      ["Filtrar Beats", 2000, () => "/banco-de-beats?q=homologacao&genero=Rap"],
+      ["Filtrar Eventos", 2000, () => "/eventos?categoria=Show"],
+      ["Filtrar Oportunidades", 2000, () => "/oportunidades?tipo=colaboracao"],
       ["Ficha de obra", 3000, i => "/espaco-de-trabalho/obra/obra-" + i],
-      ["Cadastrar composição", 3000, () => "/works/new", "POST"],
-      ["Editar composição", 3000, i => "/works/obra-" + i + "/edit", "POST"],
+      ["Cadastrar composição", 3000, () => "/obras/novo", "POST"],
+      ["Editar composição", 3000, i => "/obras/obra-" + i + "/editar", "POST"],
     ];
     const resultados = [];
     for (const [nome, limite, rota, metodo] of cenarios) {

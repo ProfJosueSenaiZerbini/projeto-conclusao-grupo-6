@@ -79,7 +79,7 @@ function origem(tipo: TipoCredito, id: string) {
     url:
       tipo === "obra"
         ? enderecoObra(r.identificador, r.id)
-        : (tipo === "beat" ? "/beats/" : "/events/") + encodeURIComponent(r.id),
+        : (tipo === "beat" ? "/banco-de-beats/" : "/eventos/") + encodeURIComponent(r.id),
   };
 }
 

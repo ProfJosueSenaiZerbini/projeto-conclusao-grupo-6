@@ -179,12 +179,12 @@ export function expirar() {
 export function urlFicha(o: Linha, u: string) {
   return conta(u).tipo_conta === "administrativo"
     ? `/admin/oportunidades/${o.id}`
-    : `/opportunities/${o.id}`;
+    : `/oportunidades/${o.id}`;
 }
 function urlCandidatura(c: Linha, u: string) {
   return conta(u).tipo_conta === "administrativo"
     ? `/admin/oportunidades/candidaturas/${c.id}`
-    : `/opportunities/applications/${c.id}`;
+    : `/oportunidades/candidaturas/${c.id}`;
 }
 function avisarEnvolvidos(o: Linha, titulo: string, chave: string) {
   const ids = new Set([
@@ -200,7 +200,7 @@ function avisarEnvolvidos(o: Linha, titulo: string, chave: string) {
       titulo,
       contaTipo(id) === "administrativo"
         ? `/admin/oportunidades/${o.id}`
-        : `/opportunities/${o.id}`,
+        : `/oportunidades/${o.id}`,
       chave
     );
 }

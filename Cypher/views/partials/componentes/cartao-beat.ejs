@@ -29,7 +29,7 @@
   <div class="beats-card-body">
     <div class="beats-track-heading">
       <h3 id="beat-titulo-<%= beat.id %>"><%= beat.title %></h3>
-      <p class="beats-producer"><span>por</span> <% if (beat.demoProducerHandle) { %><a href="/p/<%= encodeURIComponent(beat.demoProducerHandle.replace(/^@/, '')) %>"><%= beat.producer %></a><% } else { %><%= beat.producer %><% } %></p>
+      <p class="beats-producer"><span>por</span> <% if (beat.demoProducerHandle) { %><a href="/artistas/<%= encodeURIComponent(beat.demoProducerHandle.replace(/^@/, '')) %>"><%= beat.producer %></a><% } else { %><%= beat.producer %><% } %></p>
     </div>
     <div class="beats-specs">
       <span><span aria-hidden="true"><%- icones.audioLines %></span> <%= beat.bpm ? beat.bpm + ' BPM' : 'BPM não informado' %></span>
@@ -44,16 +44,15 @@
       </div>
       <%- include('abrir-ficha-beat', { beat, classe: 'beats-details-button', icone: 'arrowUpRight', rotulo: 'Ver beat' }) %>
     </div>
-    <%- include('acoes-conteudo', { tipo:'beat', id:beat.id }) %>
+    <%- include('acoes-conteudo', { tipo:'beat', id:beat.id, denuncia: !beat.demonstracao ? 'Denunciar este beat' : '' }) %>
     <% if (beat.owned) { %>
       <div class="beats-owner-actions">
-        <a class="beats-link" href="/beats/<%= encodeURIComponent(beat.id) %>/edit">Editar</a>
-        <form method="post" action="/beats/<%= encodeURIComponent(beat.id) %>/delete" data-confirm="Retirar este beat do catálogo e preservar autorizações anteriores?">
+        <a class="beats-link" href="/banco-de-beats/<%= encodeURIComponent(beat.id) %>/editar">Editar</a>
+        <form method="post" action="/banco-de-beats/<%= encodeURIComponent(beat.id) %>/excluir" data-confirm="Retirar este beat do catálogo e preservar autorizações anteriores?">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <button class="beats-link beats-delete" type="submit">Retirar do catálogo</button>
         </form>
       </div>
     <% } %>
   </div>
-<% if(!beat.demonstracao){ %><a class="cy-report-link" href="/suporte/new?objeto_tipo=beat&amp;objeto_id=<%= encodeURIComponent(beat.id) %>">Denunciar beat</a><% } %>
 </article>

@@ -28,7 +28,7 @@
     location.hash === "#cadastro-obra" &&
     document.getElementById("cadastro-obra")
   )
-    location.replace("/works/new");
+    location.replace("/obras/novo");
   const filtro = document.querySelector(".et-filter");
   if (!filtro) return;
   const busca = filtro.elements.q;

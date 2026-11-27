@@ -52,14 +52,14 @@ export function alvoInteracao(
   if (!item) return null;
   const chave = encodeURIComponent(id);
   const perfil =
-    "/p/" + encodeURIComponent((item.identificador ?? "").replace(/^@/, ""));
+    "/artistas/" + encodeURIComponent((item.identificador ?? "").replace(/^@/, ""));
   const links = {
     perfil,
     obra: enderecoObra(item.identificador ?? "", id),
-    beat: item.demonstracao ? "/beats#beat-" + chave : "/beats/" + chave,
-    evento: item.demonstracao ? "/events#evento-" + chave : "/events/" + chave,
-    projeto: "/work-projects/" + chave,
-    oportunidade: "/opportunities/" + chave,
+    beat: item.demonstracao ? "/banco-de-beats#beat-" + chave : "/banco-de-beats/" + chave,
+    evento: item.demonstracao ? "/eventos#evento-" + chave : "/eventos/" + chave,
+    projeto: "/trabalhos-e-galerias/" + chave,
+    oportunidade: "/oportunidades/" + chave,
   };
   return { ...item, id, tipo, rotulo: nomesInteracoes[tipo], url: links[tipo] };
 }

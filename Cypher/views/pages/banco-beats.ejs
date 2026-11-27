@@ -2,7 +2,7 @@
 <%
   function urlGenero(valor, pag = 1) {
     const parametros = new URLSearchParams(Object.entries({ ...filtros, genero: valor, ordem: ordem === 'original' ? '' : ordem, pagina: pag > 1 ? pag : '' }).filter(([, valor]) => valor));
-    return '/beats' + (parametros.size ? '?' + parametros : '');
+    return '/banco-de-beats' + (parametros.size ? '?' + parametros : '');
   }
 
   const mensagens = {
@@ -32,7 +32,7 @@
             <p>Batidas com identidade pra quem tem algo a dizer. Explore a cena e encontre o som da sua próxima ideia.</p>
             <div class="beats-studio-actions">
               <a class="dc-primary" href="#catalogo-beats">Encontrar meu beat <span aria-hidden="true"><%- icones.arrowRight %></span></a>
-              <% if (podeCadastrarBeat) { %><a class="beats-link" href="/beats/new">Publicar meu som <span aria-hidden="true"><%- icones.plus %></span></a><% } %>
+              <% if (podeCadastrarBeat) { %><a class="beats-link" href="/banco-de-beats/novo">Publicar meu som <span aria-hidden="true"><%- icones.plus %></span></a><% } %>
             </div>
             <div class="beats-studio-note"><span aria-hidden="true"><%- icones.headphones %></span> Produção independente. Identidade de sobra.</div>
           </div>
@@ -44,7 +44,7 @@
                 <img src="/img/<%= imagemPublicacaoDemo(destaque.id) %>" alt="Capa de <%= destaque.title %>" decoding="async" fetchpriority="high">
                 <span class="beats-spotlight-sticker" aria-hidden="true">FEITO<br>PRA RIMAR.</span>
               </div>
-              <div class="beats-spotlight-info"><div><h3><%= destaque.title %></h3><p><%= destaque.producer %> · <%= destaque.genre %> · <%= destaque.bpm %> BPM</p></div><a href="/beats?beat=<%= encodeURIComponent(destaque.id) %>#beat-<%= encodeURIComponent(destaque.id) %>" aria-label="Ver detalhes de <%= destaque.title %>"><%- icones.arrowUpRight %></a></div>
+              <div class="beats-spotlight-info"><div><h3><%= destaque.title %></h3><p><%= destaque.producer %> · <%= destaque.genre %> · <%= destaque.bpm %> BPM</p></div><a href="/banco-de-beats?beat=<%= encodeURIComponent(destaque.id) %>#beat-<%= encodeURIComponent(destaque.id) %>" aria-label="Ver detalhes de <%= destaque.title %>"><%- icones.arrowUpRight %></a></div>
               <%- include('../partials/componentes/player-previa-beat', { beat: destaque }) %>
             </div>
           <% } else { %>
@@ -58,7 +58,7 @@
           <div><span class="beats-eyebrow">Escolha a sua frequência</span><h2 id="titulo-catalogo-beats"><%= q ? 'Resultados para “' + q + '”' : 'Dê play na sua próxima ideia' %></h2></div>
           <div class="beats-heading-actions">
             <span class="cy-count-sticker" data-beats-count><%= total %> <%= total === 1 ? 'beat' : 'beats' %></span>
-            <% if (filtrado) { %><a href="/beats">Limpar filtros <span aria-hidden="true"><%- icones.x %></span></a><% } %>
+            <% if (filtrado) { %><a href="/banco-de-beats">Limpar filtros <span aria-hidden="true"><%- icones.x %></span></a><% } %>
           </div>
         </header>
 
@@ -69,7 +69,7 @@
               <% generos.forEach(opcao => { %><a href="<%= urlGenero(opcao) %>"<% if (opcao === genero) { %> aria-current="page"<% } %>><%= opcao %></a><% }) %>
             </nav>
           <% } %>
-          <form class="beats-search-filters" action="/beats#catalogo-beats" method="get" aria-label="Buscar e filtrar beats">
+          <form class="beats-search-filters" action="/banco-de-beats#catalogo-beats" method="get" aria-label="Buscar e filtrar beats">
             <% if (genero) { %><input type="hidden" name="genero" value="<%= genero %>"><% } %>
             <label class="beats-query-label sr-only" for="beats-query">Título ou produtor</label>
             <div class="beats-search-row"><input id="beats-query" name="q" type="search" value="<%= q %>" maxlength="120" placeholder="Título ou produtor"><button class="dc-primary" type="submit" aria-label="Buscar beats"><%- icones.search %></button></div>
@@ -104,7 +104,7 @@
           </details>
           </form>
           <a class="ci-button beats-collection-link" href="/colecoes">Minha coleção</a>
-          <% if (podeCadastrarBeat && filtrado) { %><a class="dc-primary beats-publish" href="/beats/new"><span aria-hidden="true"><%- icones.plus %></span> Cadastrar beat</a><% } %>
+          <% if (podeCadastrarBeat && filtrado) { %><a class="dc-primary beats-publish" href="/banco-de-beats/novo"><span aria-hidden="true"><%- icones.plus %></span> Cadastrar beat</a><% } %>
           <button type="button" class="ci-button" data-importar-favoritos hidden>Importar favoritos deste navegador</button>
         </div>
 
@@ -129,7 +129,7 @@
       </section>
       <p class="sr-only" role="status" aria-live="polite" data-beats-status></p>
     </main>
-    <%- include('../partials/navegacao-mobile', { rotaAtual: '/beats' }) %>
+    <%- include('../partials/navegacao-mobile', { rotaAtual: '/banco-de-beats' }) %>
   </div>
 
   <dialog class="detail-dialog beats-detail" id="detalhe-beat" aria-labelledby="detalhe-beat-titulo">

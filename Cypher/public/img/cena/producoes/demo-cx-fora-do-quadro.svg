@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 390">
+<defs><pattern id="r" width="6" height="6" patternUnits="userSpaceOnUse"><path stroke="#ece6bf" stroke-width="1" opacity=".09" d="M0 3h6"/></pattern></defs>
+<path fill="#332c41" d="M0 0h640v390H0z"/><path fill="url(#r)" d="M0 0h640v390H0z"/>
+<g fill="#191921" stroke="#c6bcab" stroke-width="2"><rect x="30" y="146" width="182" height="155"/><rect x="229" y="146" width="182" height="155"/><rect x="428" y="146" width="182" height="155"/></g>
+<g fill="none" stroke="#5e5772" stroke-width="2"><path d="M36 275l169-86m-169 32 169 68M234 275l171-86m-171 32 171 68M434 275l170-86m-170 32 170 68"/></g>
+<g fill="none" stroke="#eaa97a" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"><path d="m121 204-12 35 25 3 15 27m-40-30-25 28m37-63 26 11m-26-11-27 12"/><path d="m318 195 17 35-24 28-25 11m49-39 35 25m-52-60 29-17m-29 17-31 24"/><path d="m523 201-10 33 35 6 12 30m-47-36-37 22m47-55 24-20m-24 20-29-17"/></g>
+<g fill="#eaa97a"><circle cx="126" cy="184" r="10"/><circle cx="310" cy="176" r="10"/><circle cx="527" cy="180" r="10"/></g>
+<g fill="#efe4ce" font-family="monospace" font-size="15"><text x="32" y="329">01 / TRAVESSIA</text><text x="231" y="329">02 / EIXO</text><text x="429" y="329">03 / SAÍDA</text></g><text x="28" y="108" fill="#efe4ce" font-family="sans-serif" font-weight="900" font-size="55">FORA DO QUADRO</text>
+</svg>

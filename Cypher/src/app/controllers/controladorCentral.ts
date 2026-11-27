@@ -108,7 +108,7 @@ export const editar: Acao = (req, res) =>
 export const salvar: Acao = (req, res) => {
   try {
     const id = m.salvarArtigo(uid(res), req.body, req.params.id);
-    return res.redirect(303, "/admin/central/" + id + "/edit");
+    return res.redirect(303, "/admin/central/" + id + "/editar");
   } catch (e) {
     if (e instanceof m.ErroCentral && e.status === 400) {
       const artigo = req.params.id
@@ -173,7 +173,7 @@ export const transicionar: Acao = (req, res) => {
   m.transicionarArtigo(uid(res), req.params.id!, req.body);
   res.redirect(
     303,
-    "/admin/central/" + encodeURIComponent(req.params.id!) + "/edit"
+    "/admin/central/" + encodeURIComponent(req.params.id!) + "/editar"
   );
 };
 export const qualidade: Acao = (req, res) =>

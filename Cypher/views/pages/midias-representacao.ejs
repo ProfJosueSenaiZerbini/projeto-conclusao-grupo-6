@@ -8,15 +8,18 @@
   <p role="alert">
     <%= erro %>
   </p>
-  <a href="/profile">
+  <a href="/perfil">
     Voltar ao perfil
   </a>
 <% } %>
 <% if(tela==='midias'){ %>
-  <% const voltarMidia=tipo==='perfil'?'/profile':tipo==='beat'?'/beats/'+encodeURIComponent(id)+'/manage':tipo==='evento'?'/events/'+encodeURIComponent(id):tipo==='projeto'?'/work-projects/'+encodeURIComponent(id):'/espaco-de-trabalho/obra/'+encodeURIComponent(id); %>
+  <% const voltarMidia=tipo==='perfil'?'/perfil':tipo==='beat'?'/banco-de-beats/'+encodeURIComponent(id)+'/gestao':tipo==='evento'?'/eventos/'+encodeURIComponent(id):tipo==='projeto'?'/trabalhos-e-galerias/'+encodeURIComponent(id):'/espaco-de-trabalho/obra/'+encodeURIComponent(id); %>
   <a class="button button-outline" href="<%= voltarMidia %>">
     <%= 'Voltar ao '+(tipo==='perfil'?'perfil':tipo==='beat'?'beat':tipo==='evento'?'evento':'trabalho') %>
   </a>
+  <% if(tipo === "perfil"){ %>
+    <section class="mr-panel"><h2>Foto e capa</h2><%- include("../partials/componentes/perfil-imagens", { arquivos }) %></section>
+  <% } else { %>
   <section class="mr-panel">
     <p class="eyebrow">
     <%= ({perfil:'Identidade',beat:'Banco de Beats',evento:'Agenda',obra:'Obras',projeto:'Espaço de Trabalho'})[tipo] %>
@@ -32,9 +35,8 @@
       Finalidade
       <select name="finalidade">
         <option value="imagem">
-          <%= tipo==='perfil'?'Foto de perfil':tipo==='evento'?'Cartaz':'Capa' %>
+          <%= tipo==='evento'?'Cartaz':'Capa' %>
         </option>
-        <% if(tipo==='perfil'){ %><option value="capa">Capa do perfil</option><% } %>
         <% if(['obra','projeto'].includes(tipo)){ %>
           <option value="audio">
             Áudio
@@ -52,13 +54,6 @@
       Arquivo
       <input type="file" name="arquivo" required accept=".png,.jpg,.jpeg,.mp3,.wav,.ogg,.mp4,.webm,.txt">
     </label>
-    <% if(tipo==='perfil'){ %>
-    <div class="mr-crop" data-profile-crop hidden>
-      <p>Arraste a imagem para posicionar o recorte.</p>
-      <div class="mr-crop-frame"><img alt="Prévia do recorte"></div>
-      <label>Zoom <input type="range" min="1" max="3" step="0.01" value="1"></label>
-    </div>
-    <% } %>
     <label class="mr-consent">
       <input type="checkbox" name="autorizacao" required>
       Tenho direitos ou autorização para compartilhar este arquivo nesta publicação.
@@ -91,10 +86,10 @@
 <% } %>
 <% for(const a of arquivos){ %>
   <div class="mr-file">
-    <a href="/publication-media/<%= a.id %>">
+    <a href="/midias-de-publicacao/<%= a.id %>">
       <%= a.nome %>
     </a>
-    <form method="post" action="/publication-media/<%= a.id %>/retirar">
+    <form method="post" action="/midias-de-publicacao/<%= a.id %>/retirar">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
       <button class="ci-button">
         Retirar
@@ -104,6 +99,7 @@
 <% } %>
 </section>
 <% } %>
+  <% } %>
 <% if(tela==='representacoes'){ %>
 <section class="mr-panel">
 <h2>

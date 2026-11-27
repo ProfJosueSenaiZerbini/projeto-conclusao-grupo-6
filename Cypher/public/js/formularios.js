@@ -17,15 +17,40 @@
     if (control.matches("input:not([type=date]),textarea") && !control.hasAttribute("placeholder")) control.placeholder = " ";
   }
 
+  const controlesCriacao = "input:not([type=checkbox],[type=radio],[type=hidden],[type=button],[type=submit],[type=reset],[type=image],[type=range],[type=color]),select,textarea";
+  function prepararCampoCriacao(label) {
+    if (label.classList.contains("cy-create-field")) return;
+    const campo = [...label.children].find(el => el.matches(controlesCriacao));
+    if (!campo || label.querySelector("label")) return;
+    const antes = [...label.childNodes].slice(0, [...label.childNodes].indexOf(campo));
+    const candidatos = antes.filter(nodo =>
+      nodo.nodeType === Node.TEXT_NODE ? nodo.textContent.trim() :
+        nodo instanceof HTMLElement && !nodo.matches("small, [data-event-category-other-required], .op-field-error")
+    );
+    if (!candidatos.some(nodo => nodo.textContent.trim())) return;
+    const titulo = document.createElement("span");
+    titulo.className = "cy-create-caption";
+    titulo.append(...candidatos);
+
+    const ajuda = document.createElement("span");
+    ajuda.className = "cy-create-hint";
+    ajuda.append(...[...label.children].filter(nodo => nodo !== campo));
+    label.classList.add("cy-create-field");
+    label.prepend(titulo);
+    if (ajuda.childNodes.length) label.append(ajuda);
+  }
+
   for (const form of document.forms) {
-    form.querySelectorAll("label").forEach(prepareField);
-    if (!form.matches("[data-work-form], [data-event-form], [data-beat-form]")) continue;
+    const criacao = form.matches("[data-cy-wizard], [data-cy-fields]");
+    const preparar = criacao ? prepararCampoCriacao : prepareField;
+    form.querySelectorAll("label").forEach(preparar);
+    if (!criacao && !form.matches("[data-work-form], [data-event-form], [data-beat-form]")) continue;
     new MutationObserver(records => {
       for (const record of records) {
         for (const node of record.addedNodes) {
           if (!(node instanceof Element)) continue;
-          if (node.matches("label")) prepareField(node);
-          else node.querySelectorAll("label").forEach(prepareField);
+          if (node.matches("label")) preparar(node);
+          else node.querySelectorAll("label").forEach(preparar);
         }
       }
     }).observe(form, { childList: true, subtree: true });

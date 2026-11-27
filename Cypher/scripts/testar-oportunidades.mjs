@@ -103,6 +103,20 @@ try {
   const audioWebm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.from("webm audio gravado", "ascii")]);
   const mensagemAudio = contato.enviarAnexo("autor", conversaLezin, "audio.weba", audioWebm, "", "anexo-audio-teste-12345");
   ok(() => assert.equal(contato.conversa(conversaLezin, "autor").mensagens.find(m => m.id === mensagemAudio)?.anexo?.mime, "audio/webm"));
+  const idMensagemTexto = contato.conversa(conversaLezin, "lezin").mensagens.find(m => m.texto === "Conversa com Lezin").id;
+  const urlMensagem = id => `/mensagens/${conversaLezin}#mensagem-${id}`;
+  function avisoMensagem(id) {
+    return banco.listarNotificacoesCypher("lezin", 50).find(n => n.url === urlMensagem(id));
+  }
+  ok(() => {
+    assert.equal(avisoMensagem(idMensagemTexto)?.titulo, contato.conversa(conversaLezin, "lezin").interlocutor);
+    assert.equal(avisoMensagem(idMensagemTexto)?.mensagem, "Conversa com Lezin");
+    assert.equal(avisoMensagem(mensagemAnexo)?.mensagem, "Legenda do arquivo");
+    assert.equal(avisoMensagem(mensagemImagem)?.mensagem, "Foto · foto.jpg");
+    assert.equal(avisoMensagem(mensagemAudio)?.mensagem, "Áudio · audio.weba");
+    assert.equal(avisoMensagem(mensagemPdf)?.mensagem, "Arquivo · arquivo.pdf");
+    assert.ok(!banco.listarNotificacoesCypher("terceiro", 50).some(n => n.url === urlMensagem(idMensagemTexto)));
+  });
   contato.bloquear("lezin", "autor", true);
   ok(() => assert.equal(contato.arquivoAnexo("lezin", idAnexo).nome, "nota.md"));
   ok(() => assert.throws(() => contato.enviarAnexo("autor", conversaLezin, "novo.txt", textoAnexo, "", "anexo-bloqueado-12345")));
@@ -115,7 +129,7 @@ try {
   fs.writeFileSync(path.join(pasta, "midias-publicacoes", fotoContatoId), fotoContato);
   db.prepare("INSERT INTO midias_publicacoes(id,autor_id,objeto_tipo,objeto_id,finalidade,nome,mime,bytes,criado_em,posicao) VALUES(?,?,'perfil',?,'imagem','foto.png','image/png',?,?,'principal')")
     .run(fotoContatoId, "novo-contato", "novo-contato", fotoContato.length, Date.now());
-  ok(() => assert.equal(contato.listarContatosDisponiveis("autor").find(p => p.usuario_id === "novo-contato")?.foto, `/publication-media/${fotoContatoId}`));
+  ok(() => assert.equal(contato.listarContatosDisponiveis("autor").find(p => p.usuario_id === "novo-contato")?.foto, `/midias-de-publicacao/${fotoContatoId}`));
   ok(() => assert.ok(contato.listarContatosDisponiveis("autor").some(p => p.usuario_id === "novo-contato")));
   ok(() => assert.ok(contato.listarContatosDisponiveis("autor", "@novo-contato").some(p => p.usuario_id === "novo-contato")));
   ok(() => assert.ok(!contato.listarContatosDisponiveis("ouvinte").some(p => p.usuario_id === "novo-contato")));
@@ -422,6 +436,15 @@ try {
   m.responderProposta("candidato", restritaC, restritaP, "recusar");
   ok(() => assert.equal(m.candidatura(restritaC, "candidato").estado, "recusada"));
   db.prepare("UPDATE suporte_medidas SET revogada_em=? WHERE id='contato-candidato'").run(Date.now());
+  const avisoAntesDeOcultar = avisoMensagem(idMensagemTexto);
+  medida("mensagem-oculta", "ocultar", "mensagem", idMensagemTexto);
+  ok(() => {
+    const avisoOculto = banco.listarNotificacoesCypher("lezin", 50).find(n => n.id === avisoAntesDeOcultar.id);
+    assert.equal(avisoOculto.titulo, "Mensagem indisponível");
+    assert.equal(avisoOculto.mensagem, "");
+    assert.equal(avisoOculto.url, "");
+  });
+  db.prepare("UPDATE suporte_medidas SET revogada_em=? WHERE id='mensagem-oculta'").run(Date.now());
   medida("projeto-oculto", "ocultar", "projeto", projeto);
   const vinculada = m.salvarChamada("autor", { ...dados(), evento_id: evento });
   medida("evento-oculto", "ocultar", "evento", evento);
@@ -453,6 +476,7 @@ try {
   const { protegerEscrita } =
     await import("../dist/src/app/middlewares/seguranca.js");
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.use("/css", express.static("public/css"));
   app.use("/js", express.static("public/js"));
   app.use("/img", express.static("public/img"));
@@ -512,42 +536,85 @@ try {
       `cypher_csrf=${csrf}; ${u === "admin" || u === "editor" ? "cypher_admin_session" : "cypher_session"}=${iniciarSessao(u)}`,
     ])
   );
-  const uploadHttp = await fetch(host + `/messages/${conversaLezin}/attachments`, {
+  const urlBuscaMensagem = "/mensagens?q=conversa+com+lezin";
+  const buscarCaixa = async (usuario, url) => {
+    const r = await fetch(host + url, { headers: { cookie: cookies[usuario] } });
+    assert.equal(r.status, 200, url);
+    return r.text();
+  };
+  const htmlBuscaMensagem = await buscarCaixa("autor", urlBuscaMensagem);
+  ok(() => {
+    assert.match(htmlBuscaMensagem, /Filtros de Mensagens/);
+    assert.ok(htmlBuscaMensagem.includes("#mensagem-" + idMensagemTexto));
+    assert.equal((htmlBuscaMensagem.match(/data-msg-filter/g) || []).length, 3);
+    assert.ok(htmlBuscaMensagem.includes('id="msg-new-title"'));
+  });
+  ok(() => {
+    assert.ok(contato.buscarNoHistorico("autor", "cónversa com lezin").some(r => r.id === idMensagemTexto));
+    assert.equal(contato.buscarNoHistorico("terceiro", "Conversa com Lezin").length, 0);
+    assert.ok(contato.buscarNoHistorico("autor", "foto.jpg").some(r => r.id === mensagemImagem));
+    assert.equal(contato.buscarNoHistorico("autor", "%").length, 0);
+  });
+  const htmlAnexos = await buscarCaixa("autor", "/mensagens?q=foto.jpg");
+  ok(() => assert.ok(htmlAnexos.includes("#mensagem-" + mensagemImagem)));
+  const htmlPessoas = await buscarCaixa("autor", "/mensagens?q=2funflow");
+  ok(() => assert.ok(htmlPessoas.includes('href="/artistas/2funflow"')));
+  const htmlAmigosUnilateral = await buscarCaixa("autor", "/mensagens?filtro=amigos&q=Lezin");
+  ok(() => {
+    assert.match(htmlAmigosUnilateral, /aria-current="page">Amigos/);
+    assert.match(htmlAmigosUnilateral, /Nenhum amigo encontrado/);
+    assert.ok(!contato.listarConversas("lezin", true).some(c => c.id === conversaLezin));
+    assert.ok(!htmlAmigosUnilateral.includes('id="msg-new-title"'));
+  });
+  const htmlAmigosSemInteracao = await buscarCaixa("autor", "/mensagens?filtro=amigos&q=2funflow");
+  ok(() => assert.match(htmlAmigosSemInteracao, /Nenhum amigo encontrado/));
+  const htmlNaoLidas = await buscarCaixa("autor", "/mensagens?filtro=nao-lidas&q=Lezin");
+  ok(() => assert.match(htmlNaoLidas, /Nenhuma conversa não lida/));
+  const htmlAlvo = await buscarCaixa("autor", "/mensagens/" + conversaLezin + "?filtro=nao-lidas&q=Lezin");
+  ok(() => assert.match(htmlAlvo, new RegExp('id="mensagem-' + idMensagemTexto + '"')));
+  contato.enviarMensagem("lezin", conversaLezin, "Resposta ao autor", "resposta-amigos-12345");
+  const htmlAmigosReciproco = await buscarCaixa("autor", "/mensagens?filtro=amigos&q=Lezin");
+  ok(() => {
+    assert.ok(htmlAmigosReciproco.includes("Abrir conversa com"));
+    assert.ok(contato.listarConversas("lezin", true).some(c => c.id === conversaLezin));
+  });
+  contato.registrarLeitura(contato.conversa(conversaLezin, "autor"), "autor");
+  const uploadHttp = await fetch(host + `/mensagens/${conversaLezin}/anexos`, {
     method: "POST", headers: {
       cookie: cookies.autor, "content-type": "application/octet-stream", "x-csrf-token": csrf,
       "x-file-name": "nota.txt", "x-message-key": "anexo-http-teste-12345", "x-message-text": "",
     }, body: Buffer.from("Outro documento privado", "utf8"),
   });
   ok(() => assert.equal(uploadHttp.status, 201));
-  const arquivoHttp = await fetch(host + `/messages/attachments/${idAnexo}`, { headers: { cookie: cookies.autor } });
+  const arquivoHttp = await fetch(host + `/mensagens/anexos/${idAnexo}`, { headers: { cookie: cookies.autor } });
   ok(() => assert.equal(arquivoHttp.status, 200));
   ok(() => assert.match(arquivoHttp.headers.get("content-disposition") || "", /attachment/i));
-  const arquivoTerceiro = await fetch(host + `/messages/attachments/${idAnexo}`, { headers: { cookie: cookies.terceiro } });
+  const arquivoTerceiro = await fetch(host + `/mensagens/anexos/${idAnexo}`, { headers: { cookie: cookies.terceiro } });
   ok(() => assert.equal(arquivoTerceiro.status, 404));
   for (const [u, url] of [
-    ["autor", "/opportunities"],
-    ["autor", "/opportunities/new"],
-    ["autor", "/my-opportunities"],
-    ["autor", "/my-applications"],
-    ["autor", `/opportunities/${retir}`],
-    ["autor", `/opportunities/${retir}/edit`],
-    ["candidato", `/opportunities/applications/${c}`],
-    ["autor", "/messages"],
-    ["autor", "/messages?q=novo-contato"],
-    ["autor", "/messages?q=2funflow"],
-    ["autor", `/messages/${conversaLezin}`],
-    ["autor", "/p/lezin"],
-    ["autor", `/messages/${conv}`],
-    ["menor-a", "/messages/conversa-etaria-adulto"],
-    ["ouvinte", "/service-requests"],
-    ["ouvinte", "/service-requests/new"],
-    ["ouvinte", `/service-requests/${ped}`],
-    ["ouvinte", "/service-mediation"],
+    ["autor", "/oportunidades"],
+    ["autor", "/oportunidades/novo"],
+    ["autor", "/minhas-oportunidades"],
+    ["autor", "/minhas-candidaturas"],
+    ["autor", `/oportunidades/${retir}`],
+    ["autor", `/oportunidades/${retir}/editar`],
+    ["candidato", `/oportunidades/candidaturas/${c}`],
+    ["autor", "/mensagens"],
+    ["autor", "/mensagens?q=novo-contato"],
+    ["autor", "/mensagens?q=2funflow"],
+    ["autor", `/mensagens/${conversaLezin}`],
+    ["autor", "/artistas/lezin"],
+    ["autor", `/mensagens/${conv}`],
+    ["menor-a", "/mensagens/conversa-etaria-adulto"],
+    ["ouvinte", "/solicitacoes-de-servico"],
+    ["ouvinte", "/solicitacoes-de-servico/novo"],
+    ["ouvinte", `/solicitacoes-de-servico/${ped}`],
+    ["ouvinte", "/mediacao-de-servicos"],
     ["admin", "/admin/oportunidades"],
     ["admin", `/admin/oportunidades/pedidos/${ped}`],
     ["admin", `/admin/oportunidades/${ep}`],
-    ["autor", "/work-projects"],
-    ["autor", `/work-projects/${projeto}`],
+    ["autor", "/trabalhos-e-galerias"],
+    ["autor", `/trabalhos-e-galerias/${projeto}`],
   ]) {
     const r = await fetch(host + url, {
       headers: { cookie: cookies[u] },
@@ -557,31 +624,33 @@ try {
     assert.equal(r.status, 200, `${url}: ${html.slice(0, 1500)}`);
     checks++;
     assert.ok(!html.includes("[object Object]"), url);
-    if (url === "/messages?q=novo-contato")
-      ok(() => assert.ok(html.includes(`/publication-media/${fotoContatoId}`)));
-    if (url === "/messages?q=2funflow")
+    if (url === "/mensagens?q=novo-contato")
+      ok(() => assert.ok(html.includes(`/midias-de-publicacao/${fotoContatoId}`)));
+    if (url === "/mensagens?q=2funflow")
       ok(() => {
         assert.ok(html.includes('/img/cena/perfis/2funflow.jpg'));
-        assert.ok(html.includes('href="/p/2funflow"'));
+        assert.ok(html.includes('href="/artistas/2funflow"'));
       });
-    if (url === "/messages")
+    if (url === "/mensagens")
       ok(() => {
+        assert.match(html, /<main class="dc-content op-content"/);
         assert.ok(html.includes('class="msg-more-contacts"'));
         assert.ok(html.includes('data-message-search'));
         assert.ok(html.includes('/img/Rappers/LEZIN.jpg'));
-        assert.ok(html.includes('href="/p/lezin"'));
+        assert.ok(html.includes('href="/artistas/lezin"'));
         assert.ok(html.includes('class="msg-settings-form"'));
       });
-    if (url === `/messages/${conversaLezin}`)
+    if (url === `/mensagens/${conversaLezin}`)
       ok(() => {
         assert.ok(html.includes('/img/Rappers/LEZIN.jpg'));
-        assert.ok(html.includes('href="/p/lezin"'));
+        assert.ok(html.includes('href="/artistas/lezin"'));
+        assert.ok(html.includes('id="mensagem-' + idMensagemTexto + '"'));
         assert.ok(html.includes('class="msg-record-button"'));
         assert.ok(html.includes('data-attachment="image"'));
         assert.ok(html.includes('data-attachment="video"'));
         assert.ok(html.includes('data-attachment="file"'));
       });
-    if (url === `/messages/${conv}`)
+    if (url === `/mensagens/${conv}`)
       ok(() => {
         assert.ok(html.includes('class="msg-send-button"'));
         assert.ok(html.includes('class="msg-day-divider"'));
@@ -589,11 +658,11 @@ try {
         assert.ok(!html.includes("Enter envia"));
       });
     const qa = {
-      "/opportunities": "lista",
-      "/opportunities/new": "formulario",
-      [`/opportunities/${retir}`]: "ficha",
-      [`/opportunities/applications/${c}`]: "negociacao",
-      "/messages/conversa-etaria-adulto": "mensagem-bloqueada",
+      "/oportunidades": "lista",
+      "/oportunidades/novo": "formulario",
+      [`/oportunidades/${retir}`]: "ficha",
+      [`/oportunidades/candidaturas/${c}`]: "negociacao",
+      "/mensagens/conversa-etaria-adulto": "mensagem-bloqueada",
     }[url];
     if (qa) {
       fs.mkdirSync("artifacts/opportunities-qa", { recursive: true });
@@ -606,7 +675,7 @@ try {
       );
     }
   }
-  const fotoResposta = await fetch(host + "/publication-media/" + fotoContatoId, {
+  const fotoResposta = await fetch(host + "/midias-de-publicacao/" + fotoContatoId, {
     headers: { cookie: cookies.autor },
   });
   ok(() => assert.equal(fotoResposta.status, 200));
@@ -615,16 +684,16 @@ try {
   ok(() =>
     assert.ok(db.prepare("SELECT COUNT(*) n FROM notificacoes").get().n > 0)
   );
-  const anon = await fetch(host + "/opportunities", { redirect: "manual" });
+  const anon = await fetch(host + "/oportunidades", { redirect: "manual" });
   ok(() => assert.equal(anon.status, 302));
-  const csrfFail = await fetch(host + "/opportunities", {
+  const csrfFail = await fetch(host + "/oportunidades", {
     method: "POST",
     headers: { cookie: cookies.autor, "Content-Type": "application/json" },
     body: JSON.stringify(dados()),
     redirect: "manual",
   });
   ok(() => assert.equal(csrfFail.status, 403));
-  const denied = await fetch(host + "/opportunities", {
+  const denied = await fetch(host + "/oportunidades", {
     method: "POST",
     headers: {
       cookie: cookies.ouvinte,
@@ -635,7 +704,7 @@ try {
     redirect: "manual",
   });
   ok(() => assert.equal(denied.status, 403));
-  const invalid = await fetch(host + "/opportunities", {
+  const invalid = await fetch(host + "/oportunidades", {
     method: "POST",
     headers: {
       cookie: cookies.autor,

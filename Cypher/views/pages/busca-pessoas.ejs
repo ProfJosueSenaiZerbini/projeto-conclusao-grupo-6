@@ -25,7 +25,7 @@
       </nav>
       <% if (tipo !== 'tudo') { %>
         <details class="dc-filter cy-filter-panel search-filter-panel" <%= filtrosAtivos ? 'open' : '' %>><summary aria-label="Refinar resultados"><%- icones.sliders %><span>Filtros<%= filtrosAtivos ? ' ativos' : '' %></span></summary>
-        <form class="search-filters" action="/search" method="get" aria-label="Filtrar <%= categorias.find(c => c.id === tipo).nome %>">
+        <form class="search-filters" action="/busca" method="get" aria-label="Filtrar <%= categorias.find(c => c.id === tipo).nome %>">
           <input type="hidden" name="q" value="<%= q %>"><input type="hidden" name="tipo" value="<%= tipo %>">
           <% const campos = [
             { nome: 'categoria', rotulo: tipo === 'pessoas' ? 'Profissão' : tipo === 'eventos' ? 'Tipo de evento' : 'Formato', todas: tipo === 'pessoas' ? 'Todas as profissões' : 'Todos os formatos', opcoes: opcoes.categorias },
@@ -63,7 +63,7 @@
           </section>
         <% }) %>
         <% if (!total) { %>
-          <div class="dc-empty search-empty"><span aria-hidden="true"><%- icones.search %></span><div><h3><%= q || filtrosAtivos ? 'Essa conexão ainda não apareceu.' : 'A cena começa com quem chega.' %></h3><p><%= q || filtrosAtivos ? 'Tente outro nome, termo ou combinação de filtros. Você também pode explorar outras categorias.' : 'Os perfis e trabalhos públicos da comunidade aparecerão aqui.' %></p><% if (filtrosAtivos) { %><a class="dc-primary" href="<%= limpar %>" data-search-navigation>Limpar filtros</a><% } else if (q) { %><a class="dc-primary" href="/search" data-search-navigation>Explorar a cena</a><% } %></div></div>
+          <div class="dc-empty search-empty"><span aria-hidden="true"><%- icones.search %></span><div><h3><%= q || filtrosAtivos ? 'Essa conexão ainda não apareceu.' : 'A cena começa com quem chega.' %></h3><p><%= q || filtrosAtivos ? 'Tente outro nome, termo ou combinação de filtros. Você também pode explorar outras categorias.' : 'Os perfis e trabalhos públicos da comunidade aparecerão aqui.' %></p><% if (filtrosAtivos) { %><a class="dc-primary" href="<%= limpar %>" data-search-navigation>Limpar filtros</a><% } else if (q) { %><a class="dc-primary" href="/busca" data-search-navigation>Explorar a cena</a><% } %></div></div>
         <% } %>
         <% if (tipo !== 'tudo' && paginas > 1) { %>
           <nav class="search-pagination" aria-label="Paginação dos resultados"><% if (pagina > 1) { %><a href="<%= urlBusca({ ...contexto, pagina: pagina - 1 }) %>" data-search-navigation>← Anterior</a><% } %><span>Página <%= pagina %> de <%= paginas %></span><% if (pagina < paginas) { %><a href="<%= urlBusca({ ...contexto, pagina: pagina + 1 }) %>" data-search-navigation>Próxima →</a><% } %></nav>
@@ -72,7 +72,7 @@
       <footer class="search-note"><span aria-hidden="true"><%- icones.users %></span> Uma pessoa, muitas atuações. Encontre quem soma à sua ideia.</footer>
       <p class="sr-only" role="status" aria-live="polite" data-search-status></p>
     </main>
-    <%- include('../partials/navegacao-mobile', { rotaAtual: '/search' }) %>
+    <%- include('../partials/navegacao-mobile', { rotaAtual: '/busca' }) %>
   </div>
 </div>
 <%- include('../partials/fim-pagina') %>

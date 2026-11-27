@@ -2,49 +2,49 @@ import { Router, raw } from "express";
 import * as c from "../controllers/controladorOportunidades.js";
 const r = Router(),
   s = c.seguro;
-r.get("/opportunities", s(c.explorar));
-r.get("/my-opportunities", s(c.explorar));
-r.get("/my-applications", s(c.explorar));
-r.get("/opportunities/new", s(c.novo));
-r.post("/opportunities", s(c.salvar));
-r.get("/opportunities/:id/edit", s(c.editar));
-r.post("/opportunities/:id/edit", s(c.salvar));
-r.get("/opportunities/:id", s(c.detalhe));
-r.post("/opportunities/:id/state", s(c.estado));
-r.post("/opportunities/:id/applications", s(c.aplicar));
+r.get("/oportunidades", s(c.explorar));
+r.get("/minhas-oportunidades", s(c.explorar));
+r.get("/minhas-candidaturas", s(c.explorar));
+r.get("/oportunidades/novo", s(c.novo));
+r.post("/oportunidades", s(c.salvar));
+r.get("/oportunidades/:id/editar", s(c.editar));
+r.post("/oportunidades/:id/editar", s(c.salvar));
+r.get("/oportunidades/:id", s(c.detalhe));
+r.post("/oportunidades/:id/estado", s(c.estado));
+r.post("/oportunidades/:id/candidaturas", s(c.aplicar));
 for (const base of [
-  "/opportunities/applications",
+  "/oportunidades/candidaturas",
   "/admin/oportunidades/candidaturas",
 ]) {
   r.get(base + "/:id", s(c.negociacao));
-  r.post(base + "/:id/decision", s(c.decisao));
-  r.post(base + "/:id/proposals", s(c.proposta));
-  r.post(base + "/:id/response", s(c.aceite));
-  r.post(base + "/:id/release", s(c.desistir));
+  r.post(base + "/:id/decisao", s(c.decisao));
+  r.post(base + "/:id/propostas", s(c.proposta));
+  r.post(base + "/:id/resposta", s(c.aceite));
+  r.post(base + "/:id/desistir", s(c.desistir));
 }
-r.get("/service-requests", s(c.pedidos));
-r.get("/service-requests/new", s(c.novo));
-r.post("/service-requests", s(c.solicitar));
-r.get("/service-requests/:id", s(c.pedido));
-r.post("/service-requests/:id", s(c.esclarecer));
+r.get("/solicitacoes-de-servico", s(c.pedidos));
+r.get("/solicitacoes-de-servico/novo", s(c.novo));
+r.post("/solicitacoes-de-servico", s(c.solicitar));
+r.get("/solicitacoes-de-servico/:id", s(c.pedido));
+r.post("/solicitacoes-de-servico/:id", s(c.esclarecer));
 r.get("/admin/oportunidades", s(c.pedidos));
 r.get("/admin/oportunidades/pedidos/:id", s(c.pedido));
 r.post("/admin/oportunidades/pedidos/:id", s(c.revisar));
 r.get("/admin/oportunidades/:id", s(c.detalhe));
-r.post("/admin/oportunidades/:id/state", s(c.estado));
-r.get("/messages", s(c.mensagens));
-r.post("/messages/preferences", s(c.preferencias));
-r.post("/messages/block", s(c.bloquear));
-r.post("/messages/start", s(c.iniciarMensagem));
-r.post("/messages/:id/hide", s(c.ocultarMensagem));
-for (const base of ["/messages", "/admin/oportunidades/mensagens"]) {
-  r.get(base + "/attachments/:attachmentId", s(c.baixarAnexo));
-  r.post(base + "/:id/attachments", raw({ type: "application/octet-stream", limit: "25mb" }), s(c.anexarMensagem));
+r.post("/admin/oportunidades/:id/estado", s(c.estado));
+r.get("/mensagens", s(c.mensagens));
+r.post("/mensagens/preferencias", s(c.preferencias));
+r.post("/mensagens/bloquear", s(c.bloquear));
+r.post("/mensagens/iniciar", s(c.iniciarMensagem));
+r.post("/mensagens/:id/ocultar", s(c.ocultarMensagem));
+for (const base of ["/mensagens", "/admin/oportunidades/mensagens"]) {
+  r.get(base + "/anexos/:attachmentId", s(c.baixarAnexo));
+  r.post(base + "/:id/anexos", raw({ type: "application/octet-stream", limit: "25mb" }), s(c.anexarMensagem));
 }
-for (const base of ["/messages", "/admin/oportunidades/mensagens"]) {
+for (const base of ["/mensagens", "/admin/oportunidades/mensagens"]) {
   r.get(base + "/:id", s(c.mensagem));
   r.post(base + "/:id", s(c.enviar));
 }
-r.get("/service-mediation", s(c.mediadores));
-r.post("/service-mediation", s(c.mediar));
+r.get("/mediacao-de-servicos", s(c.mediadores));
+r.post("/mediacao-de-servicos", s(c.mediar));
 export default r;

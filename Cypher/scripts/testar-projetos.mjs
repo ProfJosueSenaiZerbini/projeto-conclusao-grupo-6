@@ -203,6 +203,7 @@ try {
   assert.equal(m.projetoTrabalho("foto", p).titulo, "Ensaio da cena");
   db.prepare("UPDATE profissoes_usuario SET estado='ativa' WHERE usuario_id='foto'").run();
   const app = express();
+  app.locals.iconeCategoriaProfissional = () => "<svg></svg>";
   app.set("view engine", "ejs");
   app.set("views", path.resolve("views"));
   app.locals.icones = new Proxy({}, { get: () => "<svg></svg>" });
@@ -233,11 +234,12 @@ try {
   const foto = cookies("foto"),
     outro = cookies("outro"),
     ouvinte = cookies("ouvinte");
+  const acoes = new Map();
   for (const url of [
-    "/work-projects",
-    "/work-projects/new",
-    "/work-projects/" + p,
-    "/work-projects/" + p + "/edit",
+    "/trabalhos-e-galerias",
+    "/trabalhos-e-galerias/novo",
+    "/trabalhos-e-galerias/" + p,
+    "/trabalhos-e-galerias/" + p + "/editar",
     "/espaco-de-trabalho?modalidade=projeto",
   ]) {
     const r = await fetch(host + url, {
@@ -247,18 +249,26 @@ try {
     const html = await r.text();
     assert.equal(r.status, 200, url + ": " + html.slice(0, 400));
     assert.ok(!html.includes("[object Object]"));
+    if (url.endsWith("/novo") || url.endsWith("/editar")) {
+      const acao = html.match(/<form\b[^>]*\baction="([^"]+)"[^>]*\bid="pt-form"/)?.[1];
+      assert.equal(acao, url.endsWith("/novo") ? "/trabalhos-e-galerias" : url);
+      acoes.set(url, acao);
+    }
+    if (url === "/trabalhos-e-galerias/" + p) {
+      assert.match(html, /href="\/trabalhos-e-galerias\?meus=sim">← Voltar aos trabalhos<\/a>/);
+    }
     if (process.env.CYPHER_QA_OUTPUT) {
       const dir = path.resolve(process.env.CYPHER_QA_OUTPUT);
       fs.mkdirSync(dir, { recursive: true });
       const { pathToFileURL } = await import("node:url");
       const raiz = pathToFileURL(path.resolve("public")).href + "/";
-      const nome = url.endsWith("/new")
+      const nome = url.endsWith("/novo")
         ? "formulario"
-        : url.includes("/edit")
+        : url.includes("/editar")
           ? "edicao"
           : url.includes("espaco-de-trabalho")
             ? "espaco"
-            : url === "/work-projects"
+            : url === "/trabalhos-e-galerias"
               ? "lista"
               : "ficha";
       fs.writeFileSync(
@@ -274,13 +284,13 @@ try {
     }
   }
   assert.equal(
-    (await fetch(host + "/work-projects/new", { headers: { cookie: ouvinte } }))
+    (await fetch(host + "/trabalhos-e-galerias/novo", { headers: { cookie: ouvinte } }))
       .status,
     403
   );
   assert.equal(
     (
-      await fetch(host + "/work-projects/" + p + "/edit", {
+      await fetch(host + "/trabalhos-e-galerias/" + p + "/editar", {
         headers: { cookie: outro },
       })
     ).status,
@@ -288,20 +298,20 @@ try {
   );
   assert.equal(
     (
-      await fetch(host + "/work-media/" + media.id, {
+      await fetch(host + "/midias-de-trabalho/" + media.id, {
         headers: { cookie: outro },
       })
     ).status,
     404
   );
   assert.equal(
-    (await fetch(host + "/work-media/" + media.id, { redirect: "manual" }))
+    (await fetch(host + "/midias-de-trabalho/" + media.id, { redirect: "manual" }))
       .status,
     302
   );
   assert.equal(
     (
-      await fetch(host + "/work-media/" + media.id, {
+      await fetch(host + "/midias-de-trabalho/" + media.id, {
         headers: { cookie: foto },
       })
     ).status,
@@ -309,7 +319,7 @@ try {
   );
   assert.equal(
     (
-      await fetch(host + "/work-projects", {
+      await fetch(host + "/trabalhos-e-galerias", {
         method: "POST",
         headers: { cookie: foto, "content-type": "application/json" },
         body: JSON.stringify(dados()),
@@ -317,7 +327,20 @@ try {
     ).status,
     403
   );
-  const upload = await fetch(host + "/work-media", {
+  const criadoPeloFormulario = await fetch(host + acoes.get("/trabalhos-e-galerias/novo"), {
+    method: "POST",
+    redirect: "manual",
+    headers: { cookie: foto, "x-csrf-token": csrf },
+    body: new URLSearchParams({ ...dados(), titulo: "Projeto criado pelo formulário" }),
+  });
+  assert.equal(criadoPeloFormulario.status, 303, await criadoPeloFormulario.text());
+  const urlCriado = criadoPeloFormulario.headers.get("location");
+  assert.match(urlCriado, /^\/trabalhos-e-galerias\/[^?]+\?salvo=1$/);
+  const fichaCriada = await fetch(host + urlCriado, { headers: { cookie: foto } });
+  assert.equal(fichaCriada.status, 200);
+  assert.match(await fichaCriada.text(), /Projeto criado pelo formulário/);
+
+  const upload = await fetch(host + "/midias-de-trabalho", {
     method: "POST",
     headers: {
       cookie: outro,
@@ -329,7 +352,7 @@ try {
   });
   assert.equal(upload.status, 201);
   assert.ok((await upload.json()).id);
-  const invalido = await fetch(host + "/work-projects/" + p + "/edit", {
+  const invalido = await fetch(host + acoes.get("/trabalhos-e-galerias/" + p + "/editar"), {
     method: "POST",
     headers: {
       cookie: foto,

@@ -25,16 +25,16 @@
   <% } %>
   <% if (creditos.length) { %><h2>Créditos</h2><ul><% creditos.forEach(c => { %><li><strong><%= c.name %></strong> · <%= [c.role,c.participation].filter(Boolean).join(' · ') %> · <%= c.userId ? (c.verified ? 'Confirmado' : 'Aguardando confirmação') : 'Menção externa' %></li><% }) %></ul><% } %>
   <% if (item.modalidade === 'obra' && !item.proprio) { %>
-    <a class="et-more" href="/portfolio/edit">Organizar esta participação no portfólio <%- icones.arrowRight %></a>
+    <a class="et-more" href="/portfolio/editar">Organizar esta participação no portfólio <%- icones.arrowRight %></a>
   <% } %>
   <% if (ofertas.length) { %><h2>Ofertas de licença</h2><ul><% ofertas.forEach(o => { %><li><strong><%= o.tipo %></strong><%= o.precoCentavos == null ? '' : ' · '+(o.precoCentavos/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) %><%= o.descricao ? ' · '+o.descricao : '' %></li><% }) %></ul><% } %>
   <% if (item.link) { %><a class="et-more" href="<%= item.link %>" target="_blank" rel="noopener noreferrer">Abrir link de escuta <%- icones.externalLink %></a><% } %>
-  <% if (item.modalidade === 'evento') { %><a class="et-more" href="/events?localizacao=#evento-<%= encodeURIComponent(item.id) %>">Abrir evento <%- icones.arrowRight %></a><% } %>
+  <% if (item.modalidade === 'evento') { %><a class="et-more" href="/eventos?localizacao=#evento-<%= encodeURIComponent(item.id) %>">Abrir evento <%- icones.arrowRight %></a><% } %>
   <% if (item.proprio) { %><footer class="et-sheet-actions">
     <% if (['obra','beat','evento'].includes(item.modalidade)) { %><a class="et-action" href="/creditos/gerir/<%= item.modalidade %>/<%= encodeURIComponent(item.id) %>">Gerenciar créditos</a><% } %>
     <a class="et-action" href="/publicacoes/<%= item.modalidade %>/<%= encodeURIComponent(item.id) %>/midias">Gerenciar mídias</a>
-    <a class="et-action" href="<%= item.base %>/edit?origem=espaco">Editar <%= item.modalidade %></a>
-    <details><summary>Excluir <%= item.modalidade %></summary><form action="<%= item.base %>/delete" method="post">
+    <a class="et-action" href="<%= item.base %>/editar?origem=espaco">Editar <%= item.modalidade %></a>
+    <details><summary>Excluir <%= item.modalidade %></summary><form action="<%= item.base %>/excluir" method="post">
       <p>Excluir “<%= item.titulo %>” permanentemente?</p><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="origem" value="espaco"><button class="et-danger" type="submit">Confirmar exclusão</button>
     </form></details>
   </footer><% } %>

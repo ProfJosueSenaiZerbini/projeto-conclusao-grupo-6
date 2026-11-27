@@ -24,11 +24,7 @@ function contaAtiva(id: string): Credenciais {
 }
 async function avisarSenha(email: string) {
   try {
-    await entregarEmail(
-      email,
-      "Senha alterada na Cypher",
-      "A senha de acesso à sua conta foi alterada e todas as sessões anteriores foram encerradas. Se você não reconhece esta ação, solicite uma recuperação de acesso e procure o suporte da Cypher."
-    );
+    await entregarEmail(email, "senhaAlterada");
   } catch {
     console.error("Não foi possível entregar o aviso de alteração de senha.");
   }
@@ -117,11 +113,7 @@ export async function solicitarRecuperacaoSenha(email: string) {
     );
   })();
   try {
-    await entregarEmail(
-      conta.email,
-      "Recupere seu acesso à Cypher",
-      `Crie uma nova senha pelo link abaixo. Ele vale por 30 minutos e pode ser usado uma única vez.\n\n${url.href}\n\nSe você não solicitou, ignore esta mensagem: sua senha continua a mesma.`
-    );
+    await entregarEmail(conta.email, "recuperacao", url.href);
   } catch {
     db.prepare(
       "UPDATE tokens_recuperacao_senha SET usado_em=? WHERE token_hash=?"
@@ -224,11 +216,7 @@ export async function encerrarConta(id: string, senha: string) {
     ).run(id);
   })();
   try {
-    await entregarEmail(
-      conta.email,
-      "Conta encerrada na Cypher",
-      "O encerramento solicitado foi concluído: seu acesso foi revogado, seu perfil foi desativado e os dados pessoais de apresentação foram removidos. Registros compartilhados necessários à proteção de créditos, acordos, compras e direitos de terceiros são preservados com acesso restrito. Seu identificador permanece reservado."
-    );
+    await entregarEmail(conta.email, "encerramento");
   } catch {
     console.error("Não foi possível entregar o comprovante de encerramento.");
   }

@@ -9,8 +9,8 @@ import path from "node:path";
 import { caminhoBancoCypher, conexaoInternaCypher } from "./bancoDados.js";
 import { detectarMidia } from "./projetosTrabalho.js";
 import { contatoEtarioPermitido } from "./protecoesConta.js";
-import { capaPublicacao } from "./midiasPublicacoes.js";
-import { imagemPerfilDemo } from "./catalogoDemonstrativo.js";
+import { normalizarBusca } from "./espacoTrabalho.js";
+import { fotoPerfilVisivel } from "./midiasPublicacoes.js";
 import {
   conta,
   profissional,
@@ -101,37 +101,67 @@ export function iniciarConversa(ator: string, alvo: string) {
     })
     .immediate();
 }
-function fotoPerfilVisivel(ator: string, alvo: string, identificador?: string) {
-  if (!identificador || !objetoDisponivel(db(), "perfil", alvo, ator)) return "";
-  const enviada = capaPublicacao(ator, "perfil", alvo);
-  const catalogo = !enviada ? imagemPerfilDemo(identificador) : "";
-  return enviada
-    ? `/publication-media/${encodeURIComponent(enviada)}`
-    : catalogo ? `/img/${catalogo}` : "";
-}
-export function listarConversas(ator: string) {
+const mensagemVisivelSql = `NOT EXISTS (
+  SELECT 1 FROM suporte_medidas sm
+  WHERE sm.alvo_tipo='mensagem' AND sm.alvo_id=m.id AND sm.acao IN ('ocultar','remover')
+    AND sm.revogada_em IS NULL AND (sm.ate IS NULL OR sm.ate>@agora)
+)`;
+export function listarConversas(ator: string, somenteReciprocas = false) {
   return todos(
     `
     SELECT c.id, c.contexto, coalesce(p.nome,a.nome,'Conta') interlocutor,
       p.identificador, p.iniciais,
       CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END outro_id,
       (SELECT coalesce(nullif(m.texto,''),(SELECT 'Anexo: '||a.nome FROM mensagens_anexos a WHERE a.mensagem_id=m.id))
-        FROM mensagens m WHERE m.conversa_id=c.id ORDER BY m.criada_em DESC,m.rowid DESC LIMIT 1) ultima_mensagem,
-      (SELECT criada_em FROM mensagens WHERE conversa_id=c.id ORDER BY criada_em DESC,rowid DESC LIMIT 1) ultima_data,
+        FROM mensagens m WHERE m.conversa_id=c.id AND ${mensagemVisivelSql} ORDER BY m.criada_em DESC,m.rowid DESC LIMIT 1) ultima_mensagem,
+      (SELECT m.criada_em FROM mensagens m WHERE m.conversa_id=c.id AND ${mensagemVisivelSql} ORDER BY m.criada_em DESC,m.rowid DESC LIMIT 1) ultima_data,
       (SELECT count(*) FROM mensagens m LEFT JOIN mensagens_leituras l ON l.mensagem_id=m.id
-        WHERE m.conversa_id=c.id AND m.autor_id<>@ator AND l.mensagem_id IS NULL) nao_lidas
+        WHERE m.conversa_id=c.id AND m.autor_id<>@ator AND l.mensagem_id IS NULL AND ${mensagemVisivelSql}) nao_lidas
     FROM conversas c
     LEFT JOIN perfis p ON p.usuario_id=CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END
     LEFT JOIN administradores a ON a.usuario_id=CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END
     WHERE (c.participante_a=@ator OR c.participante_b=@ator)
       AND NOT EXISTS (SELECT 1 FROM conversas_ocultas o WHERE o.conversa_id=c.id AND o.usuario_id=@ator)
-    ORDER BY coalesce((SELECT max(criada_em) FROM mensagens WHERE conversa_id=c.id),c.criada_em) DESC,c.id
+      AND (@somenteReciprocas=0 OR (
+        EXISTS (SELECT 1 FROM mensagens m WHERE m.conversa_id=c.id AND m.autor_id=@ator AND ${mensagemVisivelSql})
+        AND EXISTS (SELECT 1 FROM mensagens m WHERE m.conversa_id=c.id
+          AND m.autor_id=CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END
+          AND ${mensagemVisivelSql})
+      ))
+    ORDER BY coalesce(ultima_data,c.criada_em) DESC,c.id
   `,
-    { ator }
+    { ator, somenteReciprocas: Number(somenteReciprocas), agora: Date.now() }
   ).map(c => ({
     ...c,
     foto: fotoPerfilVisivel(ator, c.outro_id, c.identificador),
   }) as Linha);
+}
+const basesBuscaMensagens = new WeakSet<ReturnType<typeof db>>();
+export function buscarNoHistorico(ator: string, busca: string) {
+  const termo = normalizarBusca(busca.trim().slice(0, 100));
+  if (!termo) return [];
+  const banco = db();
+  if (!basesBuscaMensagens.has(banco)) {
+    banco.function("cypher_texto_mensagem", { deterministic: true }, (valor: unknown) =>
+      typeof valor === "string" ? normalizarBusca(valor) : "");
+    basesBuscaMensagens.add(banco);
+  }
+  return todos(`
+    SELECT m.id, c.id AS conversa_id, m.texto, m.criada_em, a.nome AS arquivo,
+           CASE WHEN m.autor_id=@ator THEN 'Você' ELSE coalesce(r.nome, ar.nome, 'Conta') END AS remetente,
+           coalesce(p.nome, ap.nome, 'Conta') AS interlocutor
+    FROM conversas c JOIN mensagens m ON m.conversa_id=c.id
+    LEFT JOIN mensagens_anexos a ON a.mensagem_id=m.id
+    LEFT JOIN perfis r ON r.usuario_id=m.autor_id
+    LEFT JOIN administradores ar ON ar.usuario_id=m.autor_id
+    LEFT JOIN perfis p ON p.usuario_id=CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END
+    LEFT JOIN administradores ap ON ap.usuario_id=CASE WHEN c.participante_a=@ator THEN c.participante_b ELSE c.participante_a END
+    WHERE @ator IN (c.participante_a,c.participante_b)
+      AND NOT EXISTS (SELECT 1 FROM conversas_ocultas o WHERE o.usuario_id=@ator AND o.conversa_id=c.id)
+      AND ${mensagemVisivelSql}
+      AND (instr(cypher_texto_mensagem(m.texto),@termo)>0 OR instr(cypher_texto_mensagem(a.nome),@termo)>0)
+    ORDER BY m.criada_em DESC,m.rowid DESC LIMIT 40
+  `, { ator, termo, agora: Date.now() });
 }
 export function listarContatosDisponiveis(ator: string, busca = "") {
   const termo = busca.trim().slice(0, 100);
@@ -268,7 +298,7 @@ export function enviarMensagem(
           "Nova mensagem",
           conta(c.outro).tipo_conta === "administrativo"
             ? `/admin/oportunidades/mensagens/${id}`
-            : `/messages/${id}`,
+            : `/mensagens/${id}`,
           `mensagem:${mid}`,
           "mensagem"
         );
@@ -341,7 +371,7 @@ export function enviarAnexo(ator: string, conversaId: string, nome: string, arqu
       db().prepare("DELETE FROM conversas_ocultas WHERE conversa_id=?").run(conversaId);
       notificar(c.outro, "Nova mensagem",
         conta(c.outro).tipo_conta === "administrativo"
-          ? `/admin/oportunidades/mensagens/${conversaId}` : `/messages/${conversaId}`,
+          ? `/admin/oportunidades/mensagens/${conversaId}` : `/mensagens/${conversaId}`,
         `mensagem:${id}`, "mensagem");
     }).immediate();
   } catch (erro) {
@@ -591,7 +621,7 @@ export function revisarPedido(
       notificar(
         p.solicitante_id,
         `Pedido de serviço: ${acao}`,
-        `/service-requests/${id}`,
+        `/solicitacoes-de-servico/${id}`,
         `revisao:${id}:${randomUUID()}`
       );
       return oid;

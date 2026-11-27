@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 390">
+<defs><pattern id="argamassa" width="86" height="48" patternUnits="userSpaceOnUse"><path d="M0 1h86M0 24h86M17 0v24m43 0v24" fill="none" stroke="#f8d6a1" opacity=".16" stroke-width="2"/></pattern></defs>
+<path fill="#332f2a" d="M0 0h640v390H0z"/><path fill="url(#argamassa)" d="M0 0h640v390H0z"/>
+<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M-10 271 122 111l48 180 84-190 88 165 83-148 91 162L640 99" stroke="#bd694e" stroke-width="62"/><path d="M-19 129 87 283l91-144 98 144 77-151 85 133 92-135 117 104" stroke="#e3b75e" stroke-width="32"/><path d="M-19 128 87 282l91-144 98 144 77-151 85 133 92-135 117 104" stroke="#f4d39a" stroke-width="4"/></g>
+<g fill="#f4d39a"><circle cx="49" cy="88" r="4"/><circle cx="188" cy="76" r="7"/><circle cx="229" cy="329" r="4"/><circle cx="394" cy="61" r="5"/><circle cx="545" cy="328" r="7"/><circle cx="593" cy="75" r="5"/></g>
+</svg>

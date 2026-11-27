@@ -48,7 +48,7 @@ function exigirCapacidadeBeat(
   usuario: UsuarioDaSessao | undefined
 ): usuario is UsuarioDaSessao {
   if (!usuario || usuario.demonstracao || !podePublicar(usuario,"beat")) {
-    res.redirect("/beats?erro=permissao");
+    res.redirect("/banco-de-beats?erro=permissao");
     return false;
   }
   return true;
@@ -155,7 +155,7 @@ function renderizarFormularioBeat(
 ) {
   return res.status(opcoes.erro ? 422 : 200).render("pages/cadastro-beat", {
     title: opcoes.editando ? "Editar beat" : "Cadastrar beat",
-    path: res.locals.origemEspaco ? "/espaco-de-trabalho" : "/beats",
+    path: res.locals.origemEspaco ? "/espaco-de-trabalho" : "/banco-de-beats",
     stylesheet: "beats-licencas",
     authenticated: true,
     valores: dados,
@@ -179,7 +179,7 @@ export function bancoBeats(req: Request, res: Response) {
     compradorExclusivo: cena?.comprador||'',
     valorExclusivo: cena?.preco||null,
     disponibilidade: cena?.vendidoPara ? "vendido" : !beat.disponivel ? "pausado" : beat.ofertas.some(o => o.modalidade === "free" || o.modalidade === "premium") ? "disponivel" : "sem_oferta",
-    previewUrl: beat.demonstracao ? audioCatalogoLocal[beat.id] || "" : beat.previaId ? `/beats/${beat.id}/preview` : "",
+    previewUrl: beat.demonstracao ? audioCatalogoLocal[beat.id] || "" : beat.previaId ? `/banco-de-beats/${beat.id}/previa` : "",
   };}))();
   const opcoes = (campo: "genre" | "license" | "key") =>
     [...new Set(catalogo.map(beat => beat[campo]).filter(Boolean))].sort((a, b) =>
@@ -206,7 +206,7 @@ export function bancoBeats(req: Request, res: Response) {
 
   return res.render("pages/banco-beats", {
     title: "Banco de Beats",
-    path: "/beats",
+    path: "/banco-de-beats",
     stylesheet: "banco-beats",
     authenticated: Boolean(usuario),
     beats: selecionados.slice(inicioPagina, inicioPagina + porPagina),
@@ -258,12 +258,12 @@ export function criarBeat(req: Request, res: Response) {
     tipo: "beat_criado",
     titulo: "Novo Beat cadastrado",
     mensagem: `“${dados.title}” foi adicionado ao Banco de Beats.`,
-    url: "/beats",
+    url: "/banco-de-beats",
     entidadeTipo: "beat",
     entidadeId: beatId,
     chaveOrigem: `beat-criado:${beatId}`,
   });
-  return res.redirect(303, `/beats/${beatId}/manage`);
+  return res.redirect(303, `/banco-de-beats/${beatId}/gestao`);
 }
 
 export function editarBeat(req: Request, res: Response) {
@@ -319,12 +319,12 @@ export function atualizarBeat(req: Request, res: Response) {
     tipo: "beat_atualizado",
     titulo: "Beat atualizado",
     mensagem: `As informações de “${dados.title}” foram salvas.`,
-    url: "/beats",
+    url: "/banco-de-beats",
     entidadeTipo: "beat",
     entidadeId: req.params.id ?? "",
     chaveOrigem: `beat-atualizado:${req.params.id}:${dados.title}:${dados.license}`,
   });
-  return res.redirect(303, res.locals.origemEspaco ? "/espaco-de-trabalho?resultado=beatAtualizado" : "/beats?resultado=atualizado");
+  return res.redirect(303, res.locals.origemEspaco ? "/espaco-de-trabalho?resultado=beatAtualizado" : "/banco-de-beats?resultado=atualizado");
 }
 
 export function excluirBeat(req: Request, res: Response) {
@@ -332,7 +332,7 @@ export function excluirBeat(req: Request, res: Response) {
   if (!usuario || usuario.demonstracao || usuario.tipoConta !== "profissional") return res.sendStatus(403);
   const excluido = CypherModel.excluirBeat(req.params.id ?? "", usuario.id);
   if (!excluido) return res.sendStatus(404);
-  return res.redirect(303, res.locals.origemEspaco ? "/espaco-de-trabalho?resultado=beatExcluido" : "/beats?resultado=excluido");
+  return res.redirect(303, res.locals.origemEspaco ? "/espaco-de-trabalho?resultado=beatExcluido" : "/banco-de-beats?resultado=excluido");
 }
 
 export { licencasBeat };

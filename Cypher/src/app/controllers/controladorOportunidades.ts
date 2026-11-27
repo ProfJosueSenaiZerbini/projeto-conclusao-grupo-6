@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import * as m from "../models/oportunidades.js";
 import * as contato from "../models/contatosOportunidades.js";
 import { agruparMensagensPorDia, horaMensagem, rotuloDataConversa } from "../models/tempoMensagens.js";
+import { normalizarBusca } from "../models/espacoTrabalho.js";
 import { conexaoInternaCypher } from "../models/bancoDados.js";
 import {
   objetoDisponivel,
@@ -27,7 +28,7 @@ import {
 type Handler = (req: Request, res: Response) => unknown;
 const uid = (res: Response) => res.locals.usuario.id as string;
 const prefixo = (req: Request) =>
-  req.path.startsWith("/admin/") ? "/admin/oportunidades" : "/opportunities";
+  req.path.startsWith("/admin/") ? "/admin/oportunidades" : "/oportunidades";
 function render(
   req: Request,
   res: Response,
@@ -37,7 +38,7 @@ function render(
   return res.render("pages/chamadas", {
     title: tela === "mensagens" ? "Mensagens" : "Oportunidades",
     stylesheet: "chamadas",
-    path: req.path.startsWith("/admin/") ? req.path : tela === "mensagens" ? "/messages" : "/opportunities",
+    path: req.path.startsWith("/admin/") ? req.path : tela === "mensagens" ? "/mensagens" : "/oportunidades",
     authenticated: true,
     tela,
     profissional: res.locals.usuario.tipoConta === "profissional",
@@ -84,13 +85,13 @@ export function seguro(fn: Handler) {
       return fn(req, res);
     } catch (e) {
       if (e instanceof ErroOportunidade)
-        if (req.path.includes("/attachments")) return res.status(e.status).json({ erro: e.message });
+        if (req.path.includes("/anexos")) return res.status(e.status).json({ erro: e.message });
       if (e instanceof ErroOportunidade)
         return res.status(e.status).render("pages/chamadas", {
           ...res.locals,
           title: "Oportunidades",
           stylesheet: "chamadas",
-          path: "/opportunities",
+          path: "/oportunidades",
           authenticated: true,
           tela: "erro",
           erro: e.message,
@@ -112,9 +113,9 @@ export function seguro(fn: Handler) {
 }
 export const explorar: Handler = (req, res) => {
   const contexto =
-    req.path === "/my-opportunities"
+    req.path === "/minhas-oportunidades"
       ? "minhas"
-      : req.path === "/my-applications"
+      : req.path === "/minhas-candidaturas"
         ? "candidaturas"
         : "explorar";
   const filtros = Object.fromEntries(
@@ -143,7 +144,7 @@ function form(
   erro = "",
   campos = {}
 ) {
-  const consumidor = req.path.startsWith("/service-requests");
+  const consumidor = req.path.startsWith("/solicitacoes-de-servico");
   if (consumidor)
     exigir(
       res.locals.usuario.tipoConta === "consumidor",
@@ -194,7 +195,7 @@ export const editar: Handler = (req, res) => {
 export const salvar: Handler = (req, res) => {
   try {
     const id = m.salvarChamada(uid(res), req.body, req.params.id);
-    res.redirect(303, `/opportunities/${id}?ok=1`);
+    res.redirect(303, `/oportunidades/${id}?ok=1`);
   } catch (e) {
     if (e instanceof ErroOportunidade && e.status === 400)
       return (
@@ -232,7 +233,7 @@ export const estado: Handler = (req, res) => {
 };
 export const aplicar: Handler = (req, res) => {
   const id = m.candidatar(uid(res), req.params.id!, req.body);
-  res.redirect(303, `/opportunities/applications/${id}?ok=1`);
+  res.redirect(303, `/oportunidades/candidaturas/${id}?ok=1`);
 };
 export const negociacao: Handler = (req, res) => {
   const c = m.candidatura(req.params.id!, uid(res));
@@ -243,16 +244,16 @@ export const negociacao: Handler = (req, res) => {
     conversa,
     negBase: req.path.startsWith("/admin/")
       ? "/admin/oportunidades/candidaturas"
-      : "/opportunities/applications",
+      : "/oportunidades/candidaturas",
   });
 };
 export const decisao: Handler = (req, res) => {
   m.decidirCandidatura(uid(res), req.params.id!, String(req.body.estado));
-  res.redirect(303, req.path.replace(/\/decision$/, "") + "?ok=1");
+  res.redirect(303, req.path.replace(/\/decisao$/, "") + "?ok=1");
 };
 export const proposta: Handler = (req, res) => {
   m.propor(uid(res), req.params.id!, req.body);
-  res.redirect(303, req.path.replace(/\/proposals$/, "") + "?ok=1");
+  res.redirect(303, req.path.replace(/\/propostas$/, "") + "?ok=1");
 };
 export const aceite: Handler = (req, res) => {
   exigir(req.body.confirmacao === "sim", "Confirme expressamente sua decisão.");
@@ -262,16 +263,16 @@ export const aceite: Handler = (req, res) => {
     String(req.body.proposta_id),
     String(req.body.acao)
   );
-  res.redirect(303, req.path.replace(/\/response$/, "") + "?ok=1");
+  res.redirect(303, req.path.replace(/\/resposta$/, "") + "?ok=1");
 };
 export const desistir: Handler = (req, res) => {
   m.desistirAcordo(uid(res), req.params.id!, req.body.motivo);
-  res.redirect(303, req.path.replace(/\/release$/, "") + "?ok=1");
+  res.redirect(303, req.path.replace(/\/desistir$/, "") + "?ok=1");
 };
 export const solicitar: Handler = (req, res) => {
   try {
     const id = contato.solicitarPedido(uid(res), req.body);
-    res.redirect(303, `/service-requests/${id}?ok=1`);
+    res.redirect(303, `/solicitacoes-de-servico/${id}?ok=1`);
   } catch (e) {
     if (e instanceof ErroOportunidade && e.status === 400)
       return (
@@ -319,56 +320,67 @@ export const revisar: Handler = (req, res) => {
 };
 export const esclarecer: Handler = (req, res) => {
   contato.responderPedido(uid(res), req.params.id!, req.body.mensagem);
-  res.redirect(303, `/service-requests/${req.params.id}?ok=1`);
+  res.redirect(303, `/solicitacoes-de-servico/${req.params.id}?ok=1`);
 };
-export const mensagens: Handler = (req, res) => {
-  const busca = String(req.query.q ?? "").trim().slice(0, 100);
-  res.set("Cache-Control", "private, no-store");
-  return render(req, res, "mensagens", {
-    conversa: null,
-    conversas: contato.listarConversas(uid(res)).filter(c =>
+function caixaMensagens(req: Request, res: Response) {
+  const ator = uid(res);
+  const busca = typeof req.query.q === "string" ? req.query.q.trim().slice(0, 100) : "";
+  const filtro = req.query.filtro === "nao-lidas" || req.query.filtro === "amigos" ? req.query.filtro : "tudo";
+  const termo = normalizarBusca(busca);
+  const mostrarPessoas = filtro === "tudo";
+  const parametros = (id = filtro, q = busca) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (id !== "tudo") params.set("filtro", id);
+    return params.size ? "?" + params.toString() : "";
+  };
+  const vistos = new Set<string>();
+  return {
+    busca, filtro, mostrarPessoas,
+    urlCaixa: "/mensagens" + parametros(),
+    urlLimpar: "/mensagens" + parametros(filtro, ""),
+    urlTudo: "/mensagens" + parametros("tudo"),
+    urlNaoLidas: "/mensagens" + parametros("nao-lidas"),
+    urlAmigos: "/mensagens" + parametros("amigos"),
+    urlConversa: (id: string, mensagem?: string) => "/mensagens/" + encodeURIComponent(id) + parametros() +
+      (mensagem ? "#mensagem-" + encodeURIComponent(mensagem) : ""),
+    conversas: contato.listarConversas(ator, filtro === "amigos").filter(c =>
       (c.ultima_mensagem || c.contexto !== "Conversa direta") &&
-      (!busca || `${c.interlocutor} ${c.identificador ?? ""}`.toLocaleLowerCase("pt-BR").includes(busca.toLocaleLowerCase("pt-BR")))),
-    contatos: contato.listarContatosDisponiveis(uid(res), busca),
-    busca,
-    preferencias: m.um(
-      "SELECT * FROM preferencias_contato WHERE usuario_id=?",
-      uid(res)
-    ) ?? { profissionais: 1, consumidores: 0 },
+      (filtro !== "nao-lidas" || c.nao_lidas > 0) &&
+      (!termo || normalizarBusca(`${c.interlocutor} ${c.identificador ?? ""}`).includes(termo))).filter(c => {
+        if (filtro !== "amigos") return true;
+        if (!c.ultima_data || vistos.has(c.outro_id)) return false;
+        vistos.add(c.outro_id);
+        return true;
+      }),
+    contatos: mostrarPessoas ? contato.listarContatosDisponiveis(ator, busca) : [],
+    resultadosHistorico: filtro === "tudo" && termo ? contato.buscarNoHistorico(ator, busca) : [],
+    preferencias: m.um("SELECT * FROM preferencias_contato WHERE usuario_id=?", ator) ?? { profissionais: 1, consumidores: 0 },
     bloqueados: m.todos(
-      "SELECT b.alvo_id,p.nome FROM bloqueios_usuarios b LEFT JOIN perfis p ON p.usuario_id=b.alvo_id WHERE b.autor_id=?",
-      uid(res)
+      "SELECT b.alvo_id,p.nome FROM bloqueios_usuarios b LEFT JOIN perfis p ON p.usuario_id=b.alvo_id WHERE b.autor_id=?", ator
     ),
-  });
+  };
+}
+export const mensagens: Handler = (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  return render(req, res, "mensagens", { ...caixaMensagens(req, res), conversa: null });
 };
 export const mensagem: Handler = (req, res) => {
   const conversa = contato.conversa(req.params.id!, uid(res));
   contato.registrarLeitura(conversa, uid(res));
   res.set("Cache-Control", "private, no-store");
   return render(req, res, "mensagens", {
-    conversa,
+    ...caixaMensagens(req, res), conversa,
     gruposMensagens: agruparMensagensPorDia(conversa.mensagens),
-    conversas: contato.listarConversas(uid(res)).filter(c =>
-      c.ultima_mensagem || c.contexto !== "Conversa direta"),
-    contatos: contato.listarContatosDisponiveis(uid(res)),
-    busca: "",
-    preferencias: m.um(
-      "SELECT * FROM preferencias_contato WHERE usuario_id=?",
-      uid(res)
-    ) ?? { profissionais: 1, consumidores: 0 },
-    bloqueados: m.todos(
-      "SELECT b.alvo_id,p.nome FROM bloqueios_usuarios b LEFT JOIN perfis p ON p.usuario_id=b.alvo_id WHERE b.autor_id=?",
-      uid(res)
-    ),
   });
 };
 export const iniciarMensagem: Handler = (req, res) => {
   const id = contato.iniciarConversa(uid(res), String(req.body.alvo_id ?? ""));
-  return res.redirect(303, "/messages/" + encodeURIComponent(id));
+  return res.redirect(303, "/mensagens/" + encodeURIComponent(id));
 };
 export const ocultarMensagem: Handler = (req, res) => {
   contato.ocultarConversa(uid(res), req.params.id!);
-  return res.redirect(303, "/messages?ok=1");
+  return res.redirect(303, "/mensagens?ok=1");
 };
 export const enviar: Handler = (req, res) => {
   contato.enviarMensagem(
@@ -399,7 +411,7 @@ export const baixarAnexo: Handler = (req, res) => {
 };
 export const preferencias: Handler = (req, res) => {
   contato.preferenciasContato(uid(res), req.body);
-  res.redirect(303, "/messages?ok=1");
+  res.redirect(303, "/mensagens?ok=1");
 };
 export const bloquear: Handler = (req, res) => {
   contato.bloquear(
@@ -407,7 +419,7 @@ export const bloquear: Handler = (req, res) => {
     String(req.body.alvo_id),
     req.body.acao === "bloquear"
   );
-  res.redirect(303, "/messages?ok=1");
+  res.redirect(303, "/mensagens?ok=1");
 };
 export const mediadores: Handler = (req, res) => {
   exigir(
@@ -444,5 +456,5 @@ export const mediar: Handler = (req, res) => {
     req.body.mensagem,
     req.body.chave
   );
-  res.redirect(303, `/messages/${id}?ok=1`);
+  res.redirect(303, `/mensagens/${id}?ok=1`);
 };

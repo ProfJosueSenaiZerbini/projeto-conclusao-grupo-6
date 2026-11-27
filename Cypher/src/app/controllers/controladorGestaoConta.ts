@@ -98,7 +98,7 @@ export async function alterarSenha(req: Request, res: Response) {
   } catch (erro) {
     return res.redirect(
       303,
-      `/settings?erro=${encodeURIComponent((erro as Error).message)}#senha`
+      `/configuracoes?erro=${encodeURIComponent((erro as Error).message)}#senha`
     );
   }
 }
@@ -113,12 +113,12 @@ export async function fecharConta(req: Request, res: Response) {
     limparSessao(req, res);
     return renderizar(res, "encerrada");
   } catch (erro) {
-    return res.redirect(303, `/settings/encerramento?erro=${encodeURIComponent((erro as Error).message)}`);
+    return res.redirect(303, `/configuracoes/encerramento?erro=${encodeURIComponent((erro as Error).message)}`);
   }
 }
 export function paginaEncerramento(req: Request, res: Response) {
   res.set("Cache-Control", "no-store");
-  return res.render("pages/encerrar-conta", { title: "Encerrar conta", stylesheet: "configuracoes", path: "/settings", erro: texto(req.query.erro) || null });
+  return res.render("pages/encerrar-conta", { title: "Encerrar conta", stylesheet: "configuracoes", path: "/configuracoes", erro: texto(req.query.erro) || null });
 }
 export function termosConta(req: Request, res: Response) {
   res.set("Cache-Control", "no-store");

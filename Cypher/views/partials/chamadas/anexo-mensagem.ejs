@@ -1,4 +1,4 @@
-<% if (m.anexo) { const anexo = m.anexo; const urlAnexo = (administrativo ? '/admin/oportunidades/mensagens' : '/messages') + '/attachments/' + encodeURIComponent(anexo.id); %>
+<% if (m.anexo) { const anexo = m.anexo; const urlAnexo = (administrativo ? '/admin/oportunidades/mensagens' : '/mensagens') + '/anexos/' + encodeURIComponent(anexo.id); %>
   <div class="msg-attachment" data-type="<%= anexo.mime.startsWith('image/') ? 'imagem' : anexo.mime.startsWith('video/') ? 'vídeo' : anexo.mime.startsWith('audio/') ? 'áudio' : 'documento' %>">
     <% if (anexo.mime.startsWith('image/')) { %>
       <a href="<%= urlAnexo %>" target="_blank" rel="noopener" aria-label="Abrir imagem <%= anexo.nome %>"><img src="<%= urlAnexo %>" alt="<%= anexo.nome %>" loading="lazy"></a>

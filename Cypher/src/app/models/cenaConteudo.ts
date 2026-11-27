@@ -1,3 +1,5 @@
+import { rotuloEndereco } from "./localEvento.js";
+
 // Curadoria do catálogo local. Contextos de referência e enredos inventados são
 // identificados internamente; não são prova de vínculo, declaração ou venda real.
 export type PessoaCena = {
@@ -394,25 +396,96 @@ type OportunidadeCena = {
   id: string;
   autor: string;
   titulo: string;
+  tipo: "servico" | "projeto" | "colaboracao" | "vaga";
   profissao: string;
-  valor: number;
+  modalidade: "remoto" | "presencial" | "hibrido";
+  local: string;
+  remuneracao: "remunerada" | "colaboracao" | "a_combinar";
+  valor: number | null;
+  unidade?: "hora" | "mes" | "projeto";
   descricao: string;
+  contexto: string;
+  condicoes: string;
+  responsabilidades: string;
+  requisitos: string;
   vagas: number;
-  projeto: string;
 };
-export const oportunidadesCena: OportunidadeCena[] = [];
+export const oportunidadesCena: OportunidadeCena[] = [
+  {
+    id: "demo-cx-registro-da-roda", autor: "fernandaferreira",
+    titulo: "Cobertura fotográfica de uma roda de rima", tipo: "servico", profissao: "fotografo",
+    modalidade: "presencial", local: "Campinas, SP", remuneracao: "remunerada", valor: 65000, vagas: 1,
+    descricao: "Buscamos fotógrafo(a) para registrar uma roda independente: retratos de MCs, público e bastidores, com seleção e tratamento de 20 fotos.",
+    contexto: "O registro vai compor o acervo da roda e a divulgação da próxima edição.",
+    condicoes: "Cachê fechado pela cobertura e edição. Crédito nas publicações da roda.",
+    responsabilidades: "Cobrir o encontro e entregar 20 fotos editadas em até cinco dias.",
+    requisitos: "Enviar portfólio com fotografia de eventos ou retratos.",
+  },
+  {
+    id: "demo-cx-corpo-e-batida", autor: "speto",
+    titulo: "Dança para a série Corpo e Batida", tipo: "colaboracao", profissao: "dancarino",
+    modalidade: "hibrido", local: "Campinas, SP", remuneracao: "colaboracao", valor: null, vagas: 1,
+    descricao: "Buscamos quem queira criar uma intervenção de dança de rua para uma série visual que cruza movimento, grafite e cultura hip-hop.",
+    contexto: "A ideia é filmar o diálogo entre a coreografia e as formas de um mural.",
+    condicoes: "Colaboração sem cachê, com crédito de criação e acesso ao material final para portfólio.",
+    responsabilidades: "Criar e ensaiar uma intervenção de até dois minutos, com crédito de criação.",
+    requisitos: "Enviar um vídeo curto de dança ou improviso.",
+  },
+  {
+    id: "demo-cx-corte-de-rua", autor: "torvic",
+    titulo: "Montagem de videoclipe: Corte de Rua", tipo: "servico", profissao: "editor-video",
+    modalidade: "remoto", local: "", remuneracao: "remunerada", valor: 95000, vagas: 1,
+    descricao: "Procuramos edição para um clipe de rap de três minutos, filmado entre uma quadra e os bastidores de uma batalha.",
+    contexto: "A filmagem já está pronta. O corte deve valorizar a performance sem perder o ritmo da faixa.",
+    condicoes: "Cachê fechado, duas rodadas de ajustes e crédito de montagem.",
+    responsabilidades: "Entregar um corte principal e dois recortes verticais para divulgação.",
+    requisitos: "Enviar portfólio de montagem musical ou de performance.",
+  },
+  {
+    id: "demo-cx-zine-linha-de-frente", autor: "caroljafet",
+    titulo: "Ilustração para o zine Linha de Frente", tipo: "projeto", profissao: "ilustrador",
+    modalidade: "remoto", local: "", remuneracao: "remunerada", valor: 70000, vagas: 2,
+    descricao: "O zine reúne relatos de mulheres que organizam batalhas. Buscamos duas pessoas para criar ilustrações originais a partir dos depoimentos.",
+    contexto: "A primeira edição terá distribuição digital e uma tiragem pequena em encontros da cena.",
+    condicoes: "Cachê por pessoa e crédito. O uso das imagens é limitado à edição e à sua divulgação.",
+    responsabilidades: "Criar duas ilustrações e preparar os arquivos para impressão e leitura digital.",
+    requisitos: "Enviar três peças de portfólio, de preferência com experiência editorial.",
+  },
+  {
+    id: "demo-cx-som-na-praca", autor: "fioti",
+    titulo: "Técnica de áudio para Som na Praça", tipo: "vaga", profissao: "engenheiro-audio",
+    modalidade: "presencial", local: "São Paulo, SP", remuneracao: "a_combinar", valor: null, vagas: 1,
+    descricao: "Buscamos uma pessoa para acompanhar o som de um encontro mensal com DJs, MCs e apresentações de rap ao vivo.",
+    contexto: "A equipe procura alguém da região para três edições, com possibilidade de continuidade.",
+    condicoes: "Valor e agenda a combinar antes da primeira edição.",
+    responsabilidades: "Conferir o mapa de palco, acompanhar a passagem de som e operar a mesa durante o evento.",
+    requisitos: "Ter experiência com som ao vivo e disponibilidade aos sábados.",
+  },
+];
+
+// Endereços públicos para a demonstração. Não representam a agenda real dos espaços.
+const locaisCena = {
+  // Prefeitura de Campinas: /secretaria/cultura-e-turismo/pagina/estacao-cultura · OSM way 404608979
+  estacao: { rua:"Largo Marechal Floriano", numero:"s/n", bairro:"Centro", cidade:"Campinas", uf:"SP", cep:"13013120", latitude:-22.90861, longitude:-47.06715 },
+  // Prefeitura de Campinas: contrato SEI 12802086 · OSM way 262295329
+  teatro: { rua:"Rua Conselheiro Gomide", numero:"62", bairro:"Vila Industrial", cidade:"Campinas", uf:"SP", cep:"13035320", latitude:-22.91109, longitude:-47.06532 },
+  // Prefeitura de Hortolândia: /museu-municipal-de-hortolandia-estacao-jacuba/ · OSM way 712428188
+  jacuba: { rua:"Rua Rosa Maestrello", numero:"2", bairro:"Vila São Francisco", cidade:"Hortolândia", uf:"SP", cep:"13184250", latitude:-22.86040, longitude:-47.21929 },
+  // Prefeitura de Hortolândia: /parque-socioambiental-irma-dorothy-stang/ · ponto no interior do parque, não de um portão.
+  dorothy: { rua:"Rua Manoel Antônio da Silva", numero:"415", bairro:"Jardim Nossa Senhora de Fátima", cidade:"Hortolândia", uf:"SP", cep:"", latitude:-22.89634, longitude:-47.16947 },
+};
 
 // Eventos públicos do catálogo local, mantidos em código para instalações novas.
 export const eventosCatalogoCena = [
-  { id: "demo-evento-batalha", autor: "jay", titulo: "Batalha da Aldeia", data: "2026-11-27", horario: "19:00", local: "São Paulo, SP", categoria: "Batalha", descricao: "MCs se enfrentam em duelos de freestyle, com beats ao vivo e voto do público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
-  { id: "demo-evento-cypher", autor: "jay", titulo: "Batalha do Santa Cruz", data: "2026-12-04", horario: "17:00", local: "São Paulo, SP", categoria: "Cypher", descricao: "Roda aberta para trocar versos, testar rimas e improvisar na batida.", formato: "Roda de improviso", cor: "green", tema: "cartaz-de-rua" },
-  { id: "demo-destaque-mulheres-no-mic", autor: "caroljafet", titulo: "Batalha das Gurias", data: "2026-11-28", horario: "20:00", local: "São Paulo, SP", categoria: "Show", descricao: "Noite de rap independente com MCs mulheres no palco e DJ entre os shows.", formato: "Apresentações ao vivo", cor: "violet", tema: "cartaz-de-rua" },
-  { id: "demo-destaque-roda-da-madrugada", autor: "jay", titulo: "Duelo de MCs Nacional", data: "2026-12-05", horario: "21:00", local: "São Paulo, SP", categoria: "Cypher", descricao: "Roda aberta de freestyle, com troca de versos e beats escolhidos pelo público.", formato: "Roda de improviso", cor: "green", tema: "classico" },
-  { id: "demo-destaque-voz-da-praca", autor: "fioti", titulo: "Red Bull FrancaMente", data: "2026-12-12", horario: "18:00", local: "São Paulo, SP", categoria: "Batalha", descricao: "Batalha de rimas na praça, com duelos de improviso e final decidida pelo público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
-  { id: "demo-evento-show", autor: "fioti", titulo: "Rap in Cena Festival", data: "2026-12-11", horario: "20:00", local: "São Paulo, SP", categoria: "Show", descricao: "Noite de rap independente com DJ sets e apresentação de faixas autorais.", formato: "Apresentações ao vivo", cor: "violet", tema: "classico" },
-  { id: "demo-workshop-beatbox", autor: "caroljafet", titulo: "Campeonato Nacional de Beatbox", data: "2026-12-20", horario: "15h", local: "Casa Cypher · São Paulo, SP", categoria: "Workshop", descricao: "Prática de ritmo, timbres e criação de bases usando a voz e o corpo como instrumentos.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
-  { id: "demo-workshop-dj-producao", autor: "wkilla", titulo: "A Arte do DJ", data: "2026-12-06", horario: "14h", local: "Estúdio Cypher · São Paulo, SP", categoria: "Workshop", descricao: "Uma sessão prática sobre discotecagem, construção de sets e fundamentos da produção musical.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
-  { id: "demo-workshop-slam-poesia", autor: "jay", titulo: "Slam da Guilhermina", data: "2026-12-13", horario: "16h", local: "Teatro de Bolso · São Paulo, SP", categoria: "Workshop", descricao: "Encontro aberto para experimentar escrita, presença de palco e poesia falada em comunidade.", formato: "Presencial · 90 minutos", cor: "yellow", tema: "cartaz-de-rua" },
+  { id: "demo-evento-batalha", autor: "jay", titulo: "Batalha da Aldeia", data: "2026-11-27", horario: "19:00", localOriginal: "São Paulo, SP", endereco: locaisCena.estacao, local: rotuloEndereco(locaisCena.estacao), categoria: "Batalha", descricao: "MCs se enfrentam em duelos de freestyle, com beats ao vivo e voto do público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
+  { id: "demo-evento-cypher", autor: "jay", titulo: "Batalha do Santa Cruz", data: "2026-12-04", horario: "17:00", localOriginal: "São Paulo, SP", endereco: locaisCena.jacuba, local: rotuloEndereco(locaisCena.jacuba), categoria: "Cypher", descricao: "Roda aberta para trocar versos, testar rimas e improvisar na batida.", formato: "Roda de improviso", cor: "green", tema: "cartaz-de-rua" },
+  { id: "demo-destaque-mulheres-no-mic", autor: "caroljafet", titulo: "Batalha das Gurias", data: "2026-11-28", horario: "20:00", localOriginal: "São Paulo, SP", endereco: locaisCena.teatro, local: rotuloEndereco(locaisCena.teatro), categoria: "Show", descricao: "Noite de rap independente com MCs mulheres no palco e DJ entre os shows.", formato: "Apresentações ao vivo", cor: "violet", tema: "cartaz-de-rua" },
+  { id: "demo-destaque-roda-da-madrugada", autor: "jay", titulo: "Duelo de MCs Nacional", data: "2026-12-05", horario: "21:00", localOriginal: "São Paulo, SP", endereco: locaisCena.estacao, local: rotuloEndereco(locaisCena.estacao), categoria: "Cypher", descricao: "Roda aberta de freestyle, com troca de versos e beats escolhidos pelo público.", formato: "Roda de improviso", cor: "green", tema: "classico" },
+  { id: "demo-destaque-voz-da-praca", autor: "fioti", titulo: "Red Bull FrancaMente", data: "2026-12-12", horario: "18:00", localOriginal: "São Paulo, SP", endereco: locaisCena.dorothy, local: rotuloEndereco(locaisCena.dorothy), categoria: "Batalha", descricao: "Batalha de rimas na praça, com duelos de improviso e final decidida pelo público.", formato: "Duelo de rimas", cor: "yellow", tema: "classico" },
+  { id: "demo-evento-show", autor: "fioti", titulo: "Rap in Cena Festival", data: "2026-12-11", horario: "20:00", localOriginal: "São Paulo, SP", endereco: locaisCena.teatro, local: rotuloEndereco(locaisCena.teatro), categoria: "Show", descricao: "Noite de rap independente com DJ sets e apresentação de faixas autorais.", formato: "Apresentações ao vivo", cor: "violet", tema: "classico" },
+  { id: "demo-workshop-beatbox", autor: "caroljafet", titulo: "Campeonato Nacional de Beatbox", data: "2026-12-20", horario: "15h", localOriginal: "Casa Cypher · São Paulo, SP", endereco: locaisCena.jacuba, local: rotuloEndereco(locaisCena.jacuba), categoria: "Workshop", descricao: "Prática de ritmo, timbres e criação de bases usando a voz e o corpo como instrumentos.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
+  { id: "demo-workshop-dj-producao", autor: "wkilla", titulo: "A Arte do DJ", data: "2026-12-06", horario: "14h", localOriginal: "Estúdio Cypher · São Paulo, SP", endereco: locaisCena.teatro, local: rotuloEndereco(locaisCena.teatro), categoria: "Workshop", descricao: "Uma sessão prática sobre discotecagem, construção de sets e fundamentos da produção musical.", formato: "Presencial · 2 horas", cor: "yellow", tema: "cartaz-de-rua" },
+  { id: "demo-workshop-slam-poesia", autor: "jay", titulo: "Slam da Guilhermina", data: "2026-12-13", horario: "16h", localOriginal: "Teatro de Bolso · São Paulo, SP", endereco: locaisCena.dorothy, local: rotuloEndereco(locaisCena.dorothy), categoria: "Workshop", descricao: "Encontro aberto para experimentar escrita, presença de palco e poesia falada em comunidade.", formato: "Presencial · 90 minutos", cor: "yellow", tema: "cartaz-de-rua" },
 ];
 
 export const ofertasCena: Record<

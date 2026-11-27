@@ -261,7 +261,7 @@ _Regras relacionadas: RN-118 a RN-135._
 
 **RF-082 — Atualizar ou cancelar eventos.** O sistema deve permitir alterar condições, data e local ou cancelar evento, preservando as informações históricas pertinentes e comunicando as mudanças aos afetados.
 
-**RF-083 — Consultar eventos por lista e localização.** O sistema deve disponibilizar aos usuários autenticados pesquisa e filtros de eventos e permitir visualização em lista ou mapa quando houver localização confiável, sem inventar pontos para eventos sem endereço adequado.
+**RF-083 — Consultar eventos por lista e localização.** O sistema deve disponibilizar pesquisa e filtros para usuários autenticados. A agenda deve oferecer um mapa dos próximos eventos por cidade, com pinos que abrem as fichas dos eventos. Ao cadastrar um endereço presencial, a organização pode preencher os campos disponíveis pelo CEP, completar o endereço e conferir o pino antes de confirmá-lo. Na ficha, o ponto confirmado aparece junto ao endereço, com acesso a uma rota.
 
 **RF-084 — Apresentar histórico e indicadores.** O sistema deve exibir organizadores e participantes com vínculos válidos e contabilizar separadamente interessados, inscritos, confirmados e presentes.
 
@@ -345,7 +345,7 @@ _Regras relacionadas: RN-170 a RN-175._
 
 **RF-116 — Configurar preferências de recebimento.** O sistema deve permitir escolher categorias opcionais de notificação, preservando avisos essenciais de segurança e decisões administrativas quando necessários.
 
-**RF-117 — Agendar lembretes de eventos.** O sistema deve programar lembretes de eventos acompanhados **24 horas antes e no dia da realização**, respeitando fuso e preferências, e atualizar ou cancelar lembretes após mudanças no evento.
+**RF-117 — Agendar lembretes de eventos.** O sistema deve programar lembretes de eventos acompanhados **24 horas antes e no dia da realização**, respeitando as preferências de recebimento, e atualizar ou cancelar lembretes após mudanças no evento.
 
 **RF-118 — Abrir contexto de notificação com permissão.** O sistema deve encaminhar o usuário ao registro associado apenas quando sua autorização de acesso permanecer válida.
 
